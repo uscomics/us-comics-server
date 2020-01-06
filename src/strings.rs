@@ -1,4 +1,4 @@
-#[allow(dead_code)]
+#![allow(dead_code)]
 pub static AUTHENTICATION_NOT_CONFIGURED: usize = 0;
 pub static AUTHORIZATION_NOT_CONFIGURED: usize = 1;
 pub static UNAUTHORIZED: usize = 2;

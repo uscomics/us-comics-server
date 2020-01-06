@@ -12,6 +12,7 @@ pub struct I18n{
     path: String
 }
 
+#[allow(dead_code)]
 impl I18n {
     pub fn new(locale: String, path: String) -> I18n {
         let vec = vec![];

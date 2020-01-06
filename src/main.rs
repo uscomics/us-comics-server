@@ -1,4 +1,5 @@
 // https://hermanradtke.com/2015/05/03/string-vs-str-in-rust-functions.html
+// https://blog.passcod.name/2018/mar/07/writing-servers-with-tokio
 
 //! A "hello world" echo server with Tokio
 //!
@@ -26,6 +27,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate hostname;
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate lazy_static;
 
 use tokio;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -40,6 +42,7 @@ mod request;
 mod config;
 mod i18n;
 mod strings;
+mod status;
 #[macro_use] mod log;
 
 #[tokio::main]

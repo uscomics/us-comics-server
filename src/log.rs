@@ -1,8 +1,8 @@
 use crate::i18n;
 use crate::strings;
+use crate::status::Status;
 use std::fmt;
 use std::process;
-use hyper::StatusCode;
 use hostname::get_hostname;
 
 ///////////////////////////////////////////
@@ -30,9 +30,9 @@ pub enum Level {
             log::Level::Trace =>  { style($arg).white() },
             log::Level::Debug =>  { style($arg).cyan() },
             log::Level::Info =>  { style($arg).blue() },
-            log::Level::Warning =>  { style($arg).green().bold() },
-            log::Level::Error =>  { style($arg).yellow().bold() },
-            log::Level::FatalError =>  { style($arg).yellow().bold().underlined() },
+            log::Level::Warning =>  { style($arg).yellow().bold()},
+            log::Level::Error =>  { style($arg).red().bold() },
+            log::Level::FatalError =>  { style($arg).red().bold().underlined() },
             log::Level::Off =>  { style($arg).black() }
         }
     })
@@ -52,8 +52,8 @@ pub enum Level {
                 line,
                 prefix
             );
-            println!( "{}{:?}{}", style_text!($level, colored_text.to_string()), format_args!($($args)+ ), " }");
-            format!("{}{:?}{}", colored_text.to_string(), format_args!($($args)+), " }")
+            println!( "{}\"{:?}\"{}", style_text!($level, colored_text.to_string()), format_args!($($args)+ ), " }");
+            format!("{}\"{:?}\"{}", colored_text.to_string(), format_args!($($args)+), " }")
         } else {
             format!("")
         }
@@ -70,6 +70,7 @@ pub enum Level {
 
 ///////////////////////////////////////////
 // Structured errors and messages.
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum StructuredMessage {
     Message {  message: String },
@@ -116,21 +117,25 @@ impl fmt::Display for StructuredMessage {
         }
     }
 }
+#[allow(dead_code)]
 pub fn build_message(message: &String) -> StructuredMessage{
     return StructuredMessage::Message{ message: message.to_string() };
 }
+#[allow(dead_code)]
 pub fn build_entering_message(i18n: & i18n::I18n, verb: &String, path: &String) -> StructuredMessage {
     let entering = i18n.get(strings::ENTERING);
     return StructuredMessage::EntryMessage{ message: entering, verb: verb.to_string(), path: path.to_string() };
 }
+#[allow(dead_code)]
 pub fn build_exiting_message(i18n: &i18n::I18n, verb: &String, path: &String) -> StructuredMessage{
     let exiting = i18n.get(strings::EXITING);
     return StructuredMessage::ExitMessage{ message: exiting, verb: verb.to_string(), path: path.to_string() };
 }
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum StructuredError {
-    Error {  message: String, status_code: StatusCode },
-    FileError {  message: String, status_code: StatusCode, file: String },
+    Error {  message: String, status_code: Status },
+    FileError {  message: String, status_code: Status, file: String },
 }
 impl fmt::Display for StructuredError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -155,10 +160,12 @@ impl fmt::Display for StructuredError {
         }
     }
 }
-pub fn build_error(message: &String, status_code: StatusCode) -> StructuredError{
+#[allow(dead_code)]
+pub fn build_error(message: &String, status_code: Status) -> StructuredError{
     return StructuredError::Error{ message: message.to_string(), status_code: status_code };
 }
-pub fn build_file_error(message: &String, file: &String, status_code: StatusCode) -> StructuredError{
+#[allow(dead_code)]
+pub fn build_file_error(message: &String, file: &String, status_code: Status) -> StructuredError{
     return StructuredError::FileError{ message: message.to_string(), status_code: status_code, file: file.to_string() };
 }
 
@@ -368,55 +375,55 @@ mod test {
     fn test_macros() {
         let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE.to_string(), i18n::DEFAULT_PATH.to_string());
         let mut log = log::Log::new(log::Level::All, &i18n);
-        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Info, "INFO" ).ends_with( "\"INFO\", \"entry\": INFO }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": DEBUG }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Trace, "TRACE" ).ends_with( "\"TRACE\", \"entry\": TRACE }" ), true);
-        assert_eq!(structured_log!(log, log::Level::All, "ALL" ).ends_with( "\"ALL\", \"entry\": ALL }" ), true);
+        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Info, "INFO" ).ends_with( "\"INFO\", \"entry\": \"INFO\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": \"DEBUG\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Trace, "TRACE" ).ends_with( "\"TRACE\", \"entry\": \"TRACE\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::All, "ALL" ).ends_with( "\"ALL\", \"entry\": \"ALL\" }" ), true);
         log.set(log::Level::Trace);
-        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Info, "INFO" ).ends_with( "\"INFO\", \"entry\": INFO }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": DEBUG }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Trace, "TRACE" ).ends_with( "\"TRACE\", \"entry\": TRACE }" ), true);
+        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Info, "INFO" ).ends_with( "\"INFO\", \"entry\": \"INFO\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": \"DEBUG\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Trace, "TRACE" ).ends_with( "\"TRACE\", \"entry\": \"TRACE\" }" ), true);
         assert_eq!(structured_log!(log, log::Level::All, "ALL" ), "".to_string());
         log.set(log::Level::Debug);
-        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Info, "INFO" ).ends_with( "\"INFO\", \"entry\": INFO }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": DEBUG }" ), true);
+        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Info, "INFO" ).ends_with( "\"INFO\", \"entry\": \"INFO\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": \"DEBUG\" }" ), true);
         assert_eq!(structured_log!(log, log::Level::Trace, "TRACE" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::All, "ALL" ), "".to_string());
         log.set(log::Level::Info);
-        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Info, "INFO" ).ends_with( "\"INFO\", \"entry\": INFO }" ), true);
+        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Info, "INFO" ).ends_with( "\"INFO\", \"entry\": \"INFO\" }" ), true);
         assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::Trace, "TRACE" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::All, "ALL" ), "".to_string());
         log.set(log::Level::Warning);
-        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
+        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
         assert_eq!(structured_log!(log, log::Level::Info, "INFO" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::Trace, "TRACE" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::All, "ALL" ), "".to_string());
         log.set(log::Level::Error);
-        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
+        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
         assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::Info, "INFO" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::Debug, "DEBUG" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::Trace, "TRACE" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::All, "ALL" ), "".to_string());
         log.set(log::Level::FatalError);
-        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
+        assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
         assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::Warning, "WARNING" ), "".to_string());
         assert_eq!(structured_log!(log, log::Level::Info, "INFO" ), "".to_string());
@@ -433,58 +440,58 @@ mod test {
         assert_eq!(structured_log!(log, log::Level::All, "ALL" ), "".to_string());
         log.set(log::Level::All);
         let log_text = structured_log!(log, log::Level::All, "Log Text {}.{}.{}.{}.{}", "one", "two", "three", "four", "five");
-        assert_eq!( log_text.ends_with( "\"ALL\", \"entry\": Log Text one.two.three.four.five }" ), true);
+        assert_eq!( log_text.ends_with( "\"ALL\", \"entry\": \"Log Text one.two.three.four.five\" }" ), true);
 
         log.init(log::Level::All, &i18n);
-        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
-        assert_eq!(structured_info!( log, "INFO" ).ends_with( "\"INFO\", \"entry\": INFO }" ), true);
-        assert_eq!(structured_debug!( log, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": DEBUG }" ), true);
-        assert_eq!(structured_trace!( log, "TRACE" ).ends_with( "\"TRACE\", \"entry\": TRACE }" ), true);
-        assert_eq!(structured_all!( log, "ALL" ).ends_with( "\"ALL\", \"entry\": ALL }" ), true);
+        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
+        assert_eq!(structured_info!( log, "INFO" ).ends_with( "\"INFO\", \"entry\": \"INFO\" }" ), true);
+        assert_eq!(structured_debug!( log, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": \"DEBUG\" }" ), true);
+        assert_eq!(structured_trace!( log, "TRACE" ).ends_with( "\"TRACE\", \"entry\": \"TRACE\" }" ), true);
+        assert_eq!(structured_all!( log, "ALL" ).ends_with( "\"ALL\", \"entry\": \"ALL\" }" ), true);
         log.set(log::Level::Trace);
-        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
-        assert_eq!(structured_info!( log, "INFO" ).ends_with( "\"INFO\", \"entry\": INFO }" ), true);
-        assert_eq!(structured_debug!( log, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": DEBUG }" ), true);
-        assert_eq!(structured_trace!( log, "TRACE" ).ends_with( "\"TRACE\", \"entry\": TRACE }" ), true);
+        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
+        assert_eq!(structured_info!( log, "INFO" ).ends_with( "\"INFO\", \"entry\": \"INFO\" }" ), true);
+        assert_eq!(structured_debug!( log, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": \"DEBUG\" }" ), true);
+        assert_eq!(structured_trace!( log, "TRACE" ).ends_with( "\"TRACE\", \"entry\": \"TRACE\" }" ), true);
         assert_eq!(structured_all!( log, "ALL" ), "".to_string());
         log.set(log::Level::Debug);
-        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
-        assert_eq!(structured_info!( log, "INFO" ).ends_with( "\"INFO\", \"entry\": INFO }" ), true);
-        assert_eq!(structured_debug!( log, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": DEBUG }" ), true);
+        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
+        assert_eq!(structured_info!( log, "INFO" ).ends_with( "\"INFO\", \"entry\": \"INFO\" }" ), true);
+        assert_eq!(structured_debug!( log, "DEBUG" ).ends_with( "\"DEBUG\", \"entry\": \"DEBUG\" }" ), true);
         assert_eq!(structured_trace!( log, "TRACE" ), "".to_string());
         assert_eq!(structured_all!( log, "ALL" ), "".to_string());
         log.set(log::Level::Info);
-        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
-        assert_eq!(structured_info!( log, "INFO" ).ends_with( "\"INFO\", \"entry\": INFO }" ), true);
+        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
+        assert_eq!(structured_info!( log, "INFO" ).ends_with( "\"INFO\", \"entry\": \"INFO\" }" ), true);
         assert_eq!(structured_debug!( log, "DEBUG" ), "".to_string());
         assert_eq!(structured_trace!( log, "TRACE" ), "".to_string());
         assert_eq!(structured_all!( log, "ALL" ), "".to_string());
         log.set(log::Level::Warning);
-        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
-        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": WARNING }" ), true);
+        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
+        assert_eq!(structured_warn!( log, "WARNING" ).ends_with( "\"WARNING\", \"entry\": \"WARNING\" }" ), true);
         assert_eq!(structured_info!( log, "INFO" ), "".to_string());
         assert_eq!(structured_debug!( log, "DEBUG" ), "".to_string());
         assert_eq!(structured_trace!( log, "TRACE" ), "".to_string());
         assert_eq!(structured_all!( log, "ALL" ), "".to_string());
         log.set(log::Level::Error);
-        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
-        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": ERROR }" ), true);
+        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
+        assert_eq!(structured_error!( log, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);
         assert_eq!(structured_warn!( log, "WARNING" ), "".to_string());
         assert_eq!(structured_info!( log, "INFO" ), "".to_string());
         assert_eq!(structured_debug!( log, "DEBUG" ), "".to_string());
         assert_eq!(structured_trace!( log, "TRACE" ), "".to_string());
         assert_eq!(structured_all!( log, "ALL" ), "".to_string());
         log.set(log::Level::FatalError);
-        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": FATAL_ERROR }" ), true);
+        assert_eq!(structured_fatal!( log, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
         assert_eq!(structured_error!( log, "ERROR" ), "".to_string());
         assert_eq!(structured_warn!( log, "WARNING" ), "".to_string());
         assert_eq!(structured_info!( log, "INFO" ), "".to_string());
@@ -501,18 +508,18 @@ mod test {
         assert_eq!(structured_all!( log, "ALL" ), "".to_string());
         log.set(log::Level::All);
         let log_text = structured_all!(log, "Log Text {}.{}.{}.{}.{}", "one", "two", "three", "four", "five");
-        assert_eq!( log_text.ends_with( "\"ALL\", \"entry\": Log Text one.two.three.four.five }" ), true);
+        assert_eq!( log_text.ends_with( "\"ALL\", \"entry\": \"Log Text one.two.three.four.five\" }" ), true);
         let log_text = structured_trace!(log, "Log Text {}.{}.{}.{}.{}", "one", "two", "three", "four", "five");
-        assert_eq!( log_text.ends_with( "\"TRACE\", \"entry\": Log Text one.two.three.four.five }" ), true);
+        assert_eq!( log_text.ends_with( "\"TRACE\", \"entry\": \"Log Text one.two.three.four.five\" }" ), true);
         let log_text = structured_debug!(log, "Log Text {}.{}.{}.{}.{}", "one", "two", "three", "four", "five");
-        assert_eq!( log_text.ends_with( "\"DEBUG\", \"entry\": Log Text one.two.three.four.five }" ), true);
+        assert_eq!( log_text.ends_with( "\"DEBUG\", \"entry\": \"Log Text one.two.three.four.five\" }" ), true);
         let log_text = structured_info!(log, "Log Text {}.{}.{}.{}.{}", "one", "two", "three", "four", "five");
-        assert_eq!( log_text.ends_with( "\"INFO\", \"entry\": Log Text one.two.three.four.five }" ), true);
+        assert_eq!( log_text.ends_with( "\"INFO\", \"entry\": \"Log Text one.two.three.four.five\" }" ), true);
         let log_text = structured_warn!(log, "Log Text {}.{}.{}.{}.{}", "one", "two", "three", "four", "five");
-        assert_eq!( log_text.ends_with( "\"WARNING\", \"entry\": Log Text one.two.three.four.five }" ), true);
+        assert_eq!( log_text.ends_with( "\"WARNING\", \"entry\": \"Log Text one.two.three.four.five\" }" ), true);
         let log_text = structured_error!(log, "Log Text {}.{}.{}.{}.{}", "one", "two", "three", "four", "five");
-        assert_eq!( log_text.ends_with( "\"ERROR\", \"entry\": Log Text one.two.three.four.five }" ), true);
+        assert_eq!( log_text.ends_with( "\"ERROR\", \"entry\": \"Log Text one.two.three.four.five\" }" ), true);
         let log_text = structured_fatal!(log, "Log Text {}.{}.{}.{}.{}", "one", "two", "three", "four", "five");
-        assert_eq!( log_text.ends_with( "\"FATAL ERROR\", \"entry\": Log Text one.two.three.four.five }" ), true);
+        assert_eq!( log_text.ends_with( "\"FATAL ERROR\", \"entry\": \"Log Text one.two.three.four.five\" }" ), true);
     }
 }

@@ -1,67 +1,65 @@
-pub mod request {
-    // https://stackoverflow.com/questions/53085270/how-do-i-implement-a-trait-with-a-generic-method
-    use std::collections::HashMap;
+// https://stackoverflow.com/questions/53085270/how-do-i-implement-a-trait-with-a-generic-method
+use std::collections::HashMap;
 
-    // Converts request data into a JSON object used by Handlers.
-    pub trait BodyParser {
-        type ParseResult;
-        fn name() -> &'static str;
-        fn parse(buf: &mut [u8]) -> Self::ParseResult;
-    }
+// Converts request data into a JSON object used by Handlers.
+pub trait BodyParser {
+    type ParseResult;
+    fn name() -> &'static str;
+    fn parse(buf: &mut [u8]) -> Self::ParseResult;
+}
 
-    // The result of a handler processing a request.
-    pub struct EventResult<'a> {
-        pub code: u8,
-        pub message: &'a str,
-    }
-    impl<'a> EventResult<'a> {
-        pub fn new(code: u8, message: &'a str) -> EventResult<'a> { EventResult { code: code, message: message }}
-    }
+// The result of a handler processing a request.
+pub struct EventResult<'a> {
+    pub code: u8,
+    pub message: &'a str,
+}
+impl<'a> EventResult<'a> {
+    pub fn new(code: u8, message: &'a str) -> EventResult<'a> { EventResult { code: code, message: message }}
+}
 
-    // Processes a JSON object created by a Parser and returns a Status.
-    pub trait Handler {
-        fn name() -> &'static str;
-        fn process<'a, T>(request: &T) -> EventResult<'a>;
-    }
+// Processes a JSON object created by a Parser and returns a Status.
+pub trait Handler {
+    fn name() -> &'static str;
+    fn process<'a, T>(request: &T) -> EventResult<'a>;
+}
 
-    pub fn get_route(data: &[u8]) -> String {
-        let data_as_string = String::from_utf8(data.to_vec()).unwrap_or("".to_string());
-        let mut lines = data_as_string.lines();
-        let route = lines.next().unwrap_or("").to_string();
-        route
-    }
+pub fn get_route(data: &[u8]) -> String {
+    let data_as_string = String::from_utf8(data.to_vec()).unwrap_or("".to_string());
+    let mut lines = data_as_string.lines();
+    let route = lines.next().unwrap_or("").to_string();
+    route
+}
 
-    pub fn get_headers(data: &[u8], headers: &mut HashMap<String, String>) { 
-        let data_as_string = String::from_utf8(data.to_vec()).unwrap_or("".to_string());
-        let mut lines = data_as_string.lines();
-        let _route = lines.next();
-        headers.clear();
-        loop {
-            let line = lines.next();
-            if None == line { break; }
-            let header = line.unwrap_or("").to_string();
-            if "" == header { break; }
-            let key_value: Vec<&str> = header.split(": ").collect();
-            headers.insert(key_value[0].to_string(), key_value[1].to_string());
-        }
+pub fn get_headers(data: &[u8], headers: &mut HashMap<String, String>) { 
+    let data_as_string = String::from_utf8(data.to_vec()).unwrap_or("".to_string());
+    let mut lines = data_as_string.lines();
+    let _route = lines.next();
+    headers.clear();
+    loop {
+        let line = lines.next();
+        if None == line { break; }
+        let header = line.unwrap_or("").to_string();
+        if "" == header { break; }
+        let key_value: Vec<&str> = header.split(": ").collect();
+        headers.insert(key_value[0].to_string(), key_value[1].to_string());
     }
+}
 
-    pub fn get_body(data: &[u8], body: &mut Vec<u8>) { 
-        let data_as_string = String::from_utf8(data.to_vec()).unwrap_or("".to_string());
-        let mut lines = data_as_string.lines();
-        let _route = lines.next();
-        loop {
-            let line = lines.next();
-            if None == line { break; }
-            let header = line.unwrap_or("").to_string();
-            if "" == header { break; }
-        }
-        let b: String = lines.collect();
-        let bytes = b.into_bytes();
-        let iterator = bytes.iter();
-        body.clear();
-        iterator.for_each(|x| body.push(*x));
-    }   
+pub fn get_body(data: &[u8], body: &mut Vec<u8>) { 
+    let data_as_string = String::from_utf8(data.to_vec()).unwrap_or("".to_string());
+    let mut lines = data_as_string.lines();
+    let _route = lines.next();
+    loop {
+        let line = lines.next();
+        if None == line { break; }
+        let header = line.unwrap_or("").to_string();
+        if "" == header { break; }
+    }
+    let b: String = lines.collect();
+    let bytes = b.into_bytes();
+    let iterator = bytes.iter();
+    body.clear();
+    iterator.for_each(|x| body.push(*x));
 }
 
 ///////////////////////////////////////////
@@ -70,7 +68,7 @@ pub mod request {
 
 #[cfg(test)]
 mod test {
-    use super::request::*;
+    use crate::request::*;
     use std::collections::HashMap;
 
     #[test]
