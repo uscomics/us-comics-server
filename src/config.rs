@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub mod config {
     // Used to store an entry from the config file.
     #[derive(Serialize, Deserialize, Debug)]
@@ -51,7 +52,7 @@ mod test {
                 "handler": "handler"
             }"#;
     
-        let config_request1: ConfigRequest = serde_json::from_str(data1).unwrap();
+        let config_request1: ConfigRequest<'_> = serde_json::from_str(data1).unwrap();
         assert_eq!(config_request1.name, "name");
         assert_eq!(config_request1.description, "description");
         assert_eq!(config_request1.route, "route");

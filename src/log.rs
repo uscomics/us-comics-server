@@ -1,9 +1,9 @@
+#![allow(dead_code)]
 use crate::i18n;
 use crate::strings;
-use crate::status::Status;
+use crate::server_status::ServerStatus;
 use std::fmt;
 use std::process;
-use hostname::get_hostname;
 
 ///////////////////////////////////////////
 // Valid logging levels
@@ -79,7 +79,7 @@ pub enum StructuredMessage {
     FileMessage {  message: String, file: String },
 }
 impl fmt::Display for StructuredMessage {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             StructuredMessage::Message{  message } => write!(
                 f,
@@ -134,11 +134,11 @@ pub fn build_exiting_message(i18n: &i18n::I18n, verb: &String, path: &String) ->
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum StructuredError {
-    Error {  message: String, status_code: Status },
-    FileError {  message: String, status_code: Status, file: String },
+    Error {  message: String, status_code: ServerStatus },
+    FileError {  message: String, status_code: ServerStatus, file: String },
 }
 impl fmt::Display for StructuredError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             StructuredError::Error{  message, status_code } => write!(
                 f,
@@ -161,14 +161,13 @@ impl fmt::Display for StructuredError {
     }
 }
 #[allow(dead_code)]
-pub fn build_error(message: &String, status_code: Status) -> StructuredError{
+pub fn build_error(message: &String, status_code: ServerStatus) -> StructuredError{
     return StructuredError::Error{ message: message.to_string(), status_code: status_code };
 }
 #[allow(dead_code)]
-pub fn build_file_error(message: &String, file: &String, status_code: Status) -> StructuredError{
+pub fn build_file_error(message: &String, file: &String, status_code: ServerStatus) -> StructuredError{
     return StructuredError::FileError{ message: message.to_string(), status_code: status_code, file: file.to_string() };
 }
-
 
 ///////////////////////////////////////////
 // Log.
@@ -244,10 +243,15 @@ impl Log {
     }
 
     fn prefix() -> String {
-        let hostname_option = get_hostname();
+        let hostname_option = hostname::get();
         let hostname = match hostname_option {
-            Some(ref p) => p.to_string(),
-            None => "".to_string()
+            Ok(hostname_result) => {
+                match hostname_result.into_string(){
+                    Ok(ref hn) => hn.to_string(),
+                    Err(_e) => "".to_string()
+                }
+            },
+            Err(_e) => "".to_string()
         };
         let id = process::id();
         return format!("\"host\": \"{}\", \"processId\": {}", hostname, id);

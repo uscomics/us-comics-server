@@ -1,88 +1,101 @@
-// https://hermanradtke.com/2015/05/03/string-vs-str-in-rust-functions.html
 // https://blog.passcod.name/2018/mar/07/writing-servers-with-tokio
+// https://hermanradtke.com/2015/05/03/string-vs-str-in-rust-functions.html
+// https://stackoverflow.com/questions/53085270/how-do-i-implement-a-trait-with-a-generic-method
 
-//! A "hello world" echo server with Tokio
-//!
-//! This server will create a TCP listener, accept connections in a loop, and
-//! write back everything that's read off of each TCP connection.
-//!
-//! Because the Tokio runtime uses a thread pool, each TCP connection is
-//! processed concurrently with all other TCP connections across multiple
-//! threads.
-//!
-//! To see this server in action, you can run this in one terminal:
-//!
-//!     cargo run --example echo
-//!
-//! and in another terminal you can run:
-//!
-//!     cargo run --example connect 127.0.0.1:8080
-//!
-//! Each line you type in to the `connect` terminal should be echo'd back to
-//! you! If you open up multiple terminals running the `connect` example you
-//! should be able to see them all make progress simultaneously.
-//! 
-//! 
-extern crate serde;
-extern crate serde_json;
-extern crate hostname;
-#[macro_use] extern crate serde_derive;
-#[macro_use] extern crate lazy_static;
-
-use tokio;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpListener;
-
+#![warn(rust_2018_idioms)]
+use futures::SinkExt;
+use http::{Request, Response, StatusCode};
 use std::env;
-use std::error::Error;
+use std::{error::Error, io};
+use serde_json;
+use tokio;
+use tokio::net::{TcpListener, TcpStream};
+use tokio::stream::StreamExt;
+use tokio_util::codec::{Framed};
+#[macro_use] extern crate lazy_static;
+#[macro_use] extern crate serde_derive;
 
-mod url;
-mod router;
-mod request;
 mod config;
+mod http_codec;
 mod i18n;
+mod request;
+mod router;
+mod server_status;
 mod strings;
-mod status;
+mod url;
 #[macro_use] mod log;
+
+// A "tiny" example of HTTP request/response handling using transports.
+//
+// Code here is based on the `echo-threads` example and implements two paths,
+// the `/plaintext` and `/json` routes to respond with some text and json,
+// respectively. By default this will run I/O on all the cores your system has
+// available, and it doesn't support HTTP request bodies.
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // Allow passing an address to listen on as the first argument of this
-    // program, but otherwise we'll just set up our TCP listener on
-    // 127.0.0.1:8080 for connections.
-    let addr = env::args().nth(1).unwrap_or_else(|| "127.0.0.1:8080".to_string());
-
-    // Next up we create a TCP listener which will listen for incoming
-    // connections. This TCP listener is bound to the address we determined
-    // above and must be associated with an event loop.
-    let mut listener = TcpListener::bind(&addr).await?;
+    // Parse the arguments, bind the TCP socket we'll be listening to, spin up
+    // our worker threads, and start shipping sockets to those worker threads.
+    let addr = env::args()
+        .nth(1)
+        .unwrap_or_else(|| "127.0.0.1:8080".to_string());
+    let mut server = TcpListener::bind(&addr).await?;
+    let mut incoming = server.incoming();
     println!("Listening on: {}", addr);
 
-    loop {
-        // Asynchronously wait for an inbound socket.
-        let (mut socket, _) = listener.accept().await?;
-
-        // And this is where much of the magic of this server happens. We
-        // crucially want all clients to make progress concurrently, rather than
-        // blocking one on completion of another. To achieve this we use the
-        // `tokio::spawn` function to execute the work in the background.
-        //
-        // Essentially here we're executing a new task to run concurrently,
-        // which will allow all of our clients to be processed concurrently.
-
+    while let Some(Ok(stream)) = incoming.next().await {
         tokio::spawn(async move {
-            let mut buf = [0; 1024];
-
-            // In a loop, read data from the socket and write the data back.
-            loop {
-                let n = socket.read(&mut buf).await
-                    .expect("failed to read data from socket");
-
-                if n == 0 { return; }
-
-                socket.write_all(&buf[0..n]).await
-                    .expect("failed to write data to socket");
+            if let Err(e) = process(stream).await {
+                println!("failed to process connection; error = {}", e);
             }
         });
     }
+
+    Ok(())
+}
+
+async fn process(stream: TcpStream) -> Result<(), Box<dyn Error>> {
+    let mut transport = Framed::new(stream, http_codec::Http);
+
+    while let Some(request) = transport.next().await {
+        match request {
+            Ok(request) => {
+                let response = respond(request).await?;
+                transport.send(response).await?;
+            }
+            Err(e) => return Err(e.into()),
+        }
+    }
+
+    Ok(())
+}
+
+async fn respond(req: Request<()>) -> Result<Response<String>, Box<dyn Error>> {
+    let mut response = Response::builder();
+    let body = match req.uri().path() {
+        "/plaintext" => {
+            response = response.header("Content-Type", "text/plain");
+            "Hello, World!".to_string()
+        }
+        "/json" => {
+            response = response.header("Content-Type", "application/json");
+
+            #[derive(Serialize)]
+            struct Message {
+                message: &'static str,
+            }
+            serde_json::to_string(&Message {
+                message: "Hello, World!",
+            })?
+        }
+        _ => {
+            response = response.status(StatusCode::NOT_FOUND);
+            String::new()
+        }
+    };
+    let response = response
+        .body(body)
+        .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+
+    Ok(response)
 }

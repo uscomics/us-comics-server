@@ -1,4 +1,4 @@
-// https://stackoverflow.com/questions/53085270/how-do-i-implement-a-trait-with-a-generic-method
+#![allow(dead_code)]
 use std::collections::HashMap;
 
 // Converts request data into a JSON object used by Handlers.
