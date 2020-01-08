@@ -26,7 +26,7 @@ impl Decoder for Http {
             let mut parsed_headers = [httparse::EMPTY_HEADER; 16];
             let mut r = httparse::Request::new(&mut parsed_headers);
             let status = r.parse(src).map_err(|e| {
-                let msg = format!("failed to parse http request: {:?}", e);
+                let msg = format!("{} {:?}", server_status::COULD_NOT_PARSE_HTTP_REQUEST.name.as_str(), e);
                 io::Error::new(io::ErrorKind::Other, msg)
             })?;
 
@@ -73,7 +73,7 @@ impl Decoder for Http {
                 None => break,
             };
             let value = HeaderValue::from_bytes(data.slice(v.0..v.1).as_ref())
-                .map_err(|_| io::Error::new(io::ErrorKind::Other, server_status::COUD_NOT_READ_HEADER.name.as_str()))?;
+                .map_err(|_| io::Error::new(io::ErrorKind::Other, server_status::COULD_NOT_READ_HEADER.name.as_str()))?;
             ret = ret.header(&data[k.0..k.1], value);
         }
 

@@ -1,25 +1,119 @@
+// https://stackoverflow.com/questions/28028854/how-do-i-match-enum-values-with-an-integer
+// https://github.com/rust-num/num-derive/blob/master/tests/trivial.rs
+
 #![allow(dead_code)]
-pub mod config {
-    // Used to store an entry from the config file.
-    #[derive(Serialize, Deserialize, Debug)]
-    pub struct ConfigRequest<'a> {
-        pub name: &'a str,          // Entry name.
-        pub description: &'a str,   // Entry description.
-        pub route: &'a str,         // Entry route.
-        pub parser: &'a str,        // Parser name.
-        pub handler: &'a str,       // Handler name.
+
+// HTTP Verb code
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+enum VerbCode {
+    GET = 0,
+    POST,
+    PUT,
+    DELETE,
+    OPTIONS
+}
+
+// Response code
+// Value is text or a string containing name=value pairs seperated by semicolons. 
+// Individual handlers will need to know how to parse the values they use.
+// 0 = Text           "response": { "type": 0, "value": "Text goes here"}
+// 1 = JSON           "response": { "type": 1, "value": "name=Server;version=1.0;"}
+// 2 = Binary file    "response": { "type": 2, "value": "template=./path/to/binary/data/file;"}
+// 3 = Text file      "response": { "type": 3, "value": "template=./:path/:to/:text/:data/:file"}
+// 4 = Handlebars     "response": { "type": 4, "value": "file=./path/to/handlebars/template;title=Handlebars template data;goes=here;"}
+// 5 = Computed       "response": { "type": 5, "value": "hasBody=false;"}
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+enum ResponseCode {
+    Text = 0,
+    JSON,
+    BinaryFile,
+    TextFile,
+    Handlebars,
+    Computed
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+struct ResponseInfo<'a> {
+    code: ResponseCode,
+    value: &'a str
+}
+impl<'a> ResponseInfo<'a> {
+    pub fn new(code: ResponseCode, value: &'a str) -> ResponseInfo<'a> {
+        let response_info = ResponseInfo {
+            code: code,
+            value: value
+        };
+        response_info
     }
-    impl<'a> ConfigRequest<'a> {
-        pub fn new(name: &'a str, description: &'a str, route: &'a str, parser: &'a str, handler: &'a str) -> ConfigRequest<'a> {
-            let config = ConfigRequest {
-                name: name,
-                description: description,
-                route: route,
-                parser: parser,
-                handler: handler
-            };
-            config
-        }
+}
+
+// {
+//   "id": unique id number,
+//   "response": { "type": response_code, "value": response_value}
+//   "authentication": "authentication_strategy_name",                  // Optional
+//   "authorization": { "strategy": "local", "groups": [ "admin" ] },   // Optional
+//   "options": "title=Handler specific data;goes=here;",               // Optional
+//   "http": {                                                          // Optional
+//      "verb": verb_code, 
+//      "path": http path string, including parameters, if used. No query strings, schema, or authority,
+//       "headers": [                                                   // Optional
+//          { "name": "MY_HEADER1", "value": "MY_HEADER_VALUE1" },
+//          { "name": "MY_HEADER2", "value": "MY_HEADER_VALUE2" },
+//          { "name": "MY_HEADER3", "value": "MY_HEADER_VALUE3" }
+//       ]
+//   },
+//   "authorization": { "strategy": "local", "groups": [ "admin" ] },   // Optional
+//   "body": { "param1": "value1", "param2": [ "value2" ] },            // Optional
+// }
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct Authorization<'a> {
+    pub strategy: &'a str,
+    pub groups: Vec<String>
+}
+impl<'a> Authorization<'a> {
+    pub fn new(strategy: &'a str, groups: &'a Vec<String>) -> Authorization<'a> {
+        let authorization = Authorization {
+            strategy: strategy,
+            groups: groups.clone()
+        };
+        authorization
+    }
+}
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct HTTPHeader<'a> {
+    pub name: &'a str,
+    pub value: &'a str,
+}
+impl<'a> HTTPHeader<'a> {
+    pub fn new(name: &'a str, value: &'a str) -> HTTPHeader<'a> {
+        let header = HTTPHeader {
+            name: name,
+            value: value
+        };
+        header
+    }
+}
+
+// Used to store an entry from the config file.
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ConfigRequest<'a> {
+    pub name: &'a str,          // Entry name.
+    pub description: &'a str,   // Entry description.
+    pub route: &'a str,         // Entry route.
+    pub parser: &'a str,        // Parser name.
+    pub handler: &'a str,       // Handler name.
+}
+impl<'a> ConfigRequest<'a> {
+    pub fn new(name: &'a str, description: &'a str, route: &'a str, parser: &'a str, handler: &'a str) -> ConfigRequest<'a> {
+        let config = ConfigRequest {
+            name: name,
+            description: description,
+            route: route,
+            parser: parser,
+            handler: handler
+        };
+        config
     }
 }
     
@@ -29,8 +123,57 @@ pub mod config {
 
 #[cfg(test)]
 mod test {
-    use super::config::*;
+    use crate::config::*;
+    use serde_json;
 
+    #[test]
+    fn test_verb_code() {
+        let json = serde_json::to_string(&VerbCode::DELETE).unwrap();
+        let verb: VerbCode = serde_json::from_str(&json).unwrap();
+        assert_eq!(verb, VerbCode::DELETE);
+    }
+
+    #[test]
+    fn test_response_code() {
+        let json = serde_json::to_string(&ResponseCode::Handlebars).unwrap();
+        let response: ResponseCode = serde_json::from_str(&json).unwrap();
+        assert_eq!(response, ResponseCode::Handlebars);
+    }
+    
+    #[test]
+    fn test_new_response_info() {
+        let response_info = ResponseInfo::new( ResponseCode::Handlebars, "x=y;a=b;");
+        assert_eq!(response_info.code, ResponseCode::Handlebars);
+        assert_eq!(response_info.value, "x=y;a=b;");
+
+        let json = serde_json::to_string(&response_info).unwrap();
+        let response_info2: ResponseInfo<'_> = serde_json::from_str(&json).unwrap();
+        assert_eq!(response_info, response_info2);
+    }
+
+    #[test]
+    fn test_authorization() {
+        let groups = vec!["user".to_string(), "admin".to_string()];
+        let authorization = Authorization::new( "strategy", &groups);
+        assert_eq!(authorization.strategy, "strategy");
+        assert_eq!(authorization.groups.len(), 2);
+
+        let json = serde_json::to_string(&authorization).unwrap();
+        let authorization2: Authorization<'_> = serde_json::from_str(&json).unwrap();
+        assert_eq!(authorization, authorization2);
+    }
+
+    #[test]
+    fn test_new_http_header() {
+        let http_header = HTTPHeader::new( "Header", "value");
+        assert_eq!(http_header.name, "Header");
+        assert_eq!(http_header.value, "value");
+
+        let json = serde_json::to_string(&http_header).unwrap();
+        let http_header2: HTTPHeader<'_> = serde_json::from_str(&json).unwrap();
+        assert_eq!(http_header, http_header2);
+    }
+    
     #[test]
     fn test_new_config_request() {
         let config_request = ConfigRequest::new( "name", "description", "route", "parser", "handler");
@@ -84,7 +227,7 @@ mod test {
                 }
              ]"#;
              
-        let array: Vec<ConfigRequest> = serde_json::from_str(data_array1).unwrap();
+        let array: Vec<ConfigRequest<'_>> = serde_json::from_str(data_array1).unwrap();
         assert_eq!(array[0].name, "name1");
         assert_eq!(array[0].description, "description1");
         assert_eq!(array[0].route, "route1");

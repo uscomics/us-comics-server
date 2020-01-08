@@ -65,7 +65,8 @@ lazy_static! {
     pub static ref TOO_MANY_REQUESTS: ServerStatus = ServerStatus::new(429, "Too Many Requests");
     pub static ref REQUEST_HEADER_FIELDS_TOO_LARGE: ServerStatus = ServerStatus::new(431, "Request Header Fields Too Large");
     pub static ref UNAVAILABLE_FOR_LEGAL_REASONS: ServerStatus = ServerStatus::new(451, "Unavailable For Legal Reasons");
-    pub static ref COUD_NOT_READ_HEADER: ServerStatus = ServerStatus::new(499, "Could not read header");
+    pub static ref COULD_NOT_READ_HEADER: ServerStatus = ServerStatus::new(498, "Could not read header");
+    pub static ref COULD_NOT_PARSE_HTTP_REQUEST: ServerStatus = ServerStatus::new(499, "Could not parse HTTP request");
 
     pub static ref INTERNAL_SERVER_ERROR: ServerStatus = ServerStatus::new(500, "Internal Server Error");
     pub static ref NOT_IMPLEMENTED: ServerStatus = ServerStatus::new(501, "Not Implemented");
@@ -86,7 +87,7 @@ lazy_static! {
 
 #[cfg(test)]
 mod test {
-    use crate::status::*;
+    use crate::server_status::*;
 
     #[test]
     fn test_status() {
