@@ -3,52 +3,97 @@
 
 #![allow(dead_code)]
 
-// HTTP Verb code
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-enum VerbCode {
-    GET = 0,
-    POST,
-    PUT,
-    DELETE,
-    OPTIONS
-}
+use crate::server_status;
+
+// Verb code
+pub static GET: u8 = 0;
+pub static POST: u8 = 1;
+pub static PUT: u8 = 2;
+pub static DELETE: u8 = 3;
+pub static OPIONS: u8 = 4;
 
 // Response code
-// Value is text or a string containing name=value pairs seperated by semicolons. 
-// Individual handlers will need to know how to parse the values they use.
+// * The value field is text or a string containing name=value pairs seperated by semicolons. 
+// * Individual handlers will need to know how to parse the values they use. They can use 
+//   the parse_values() function to convert name=value entries to a JSON string.
+// * A colon in a path represents a parameter. The body of the request MUST supply the values
+//   for these parameters.
 // 0 = Text           "response": { "type": 0, "value": "Text goes here"}
 // 1 = JSON           "response": { "type": 1, "value": "name=Server;version=1.0;"}
 // 2 = Binary file    "response": { "type": 2, "value": "template=./path/to/binary/data/file;"}
 // 3 = Text file      "response": { "type": 3, "value": "template=./:path/:to/:text/:data/:file"}
-// 4 = Handlebars     "response": { "type": 4, "value": "file=./path/to/handlebars/template;title=Handlebars template data;goes=here;"}
+// 4 = Handlebars     "response": { "type": 4, "value": "file=./required/path/to/handlebars/template;title=Handlebars template data;goes=here;"}
 // 5 = Computed       "response": { "type": 5, "value": "hasBody=false;"}
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-enum ResponseCode {
-    Text = 0,
-    JSON,
-    BinaryFile,
-    TextFile,
-    Handlebars,
-    Computed
-}
+pub static TEXT: u8 = 0;
+pub static JSON: u8 = 1;
+pub static BINARY_FILE: u8 = 2;
+pub static TEXT_FILE: u8 = 3;
+pub static HANDLEBARS: u8 = 4;
+pub static COMPUTED: u8 = 5;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-struct ResponseInfo<'a> {
-    code: ResponseCode,
-    value: &'a str
+pub struct ResponseInfo {
+    code: u8,
+    value: String
 }
-impl<'a> ResponseInfo<'a> {
-    pub fn new(code: ResponseCode, value: &'a str) -> ResponseInfo<'a> {
+impl ResponseInfo {
+    pub fn new(code: u8, value: & str) -> ResponseInfo {
         let response_info = ResponseInfo {
             code: code,
-            value: value
+            value: value.to_string()
         };
         response_info
     }
 }
 
+fn parse_values(data: &str) -> Result<String, server_status::ServerStatus> {
+    let pairs = data.split(";").collect::<Vec<_>>();
+    if 0 == pairs.len() { return Ok("".to_string()); }
+    let mut pairs_iter = pairs.iter();
+
+    let mut json = "{".to_owned();
+    let mut count = 0;
+    loop {
+        match pairs_iter.next() {
+            Some(pair) => {
+                if 0 == pair.len() { break; }
+                let mut key_value_iter = pair.split("=");
+                match key_value_iter.next() {
+                    Some(key) => {
+                        match key_value_iter.next() {
+                            Some(value) => {
+                                if 0 == value.len() {
+                                    let mut err: server_status::ServerStatus = server_status::INVALID_KEY_VALUE_PAIRS.clone();
+                                    err.context = data.to_string();
+                                    return Err(err);
+                                }
+                                if 0 < count { json.push_str(","); }
+                                json.push_str("\""); json.push_str(key); json.push_str("\":");
+                                json.push_str("\""); json.push_str(value); json.push_str("\"");
+                                count += 1;
+                            },
+                            None => {
+                                let mut err: server_status::ServerStatus = server_status::INVALID_KEY_VALUE_PAIRS.clone();
+                                err.context = data.to_string();
+                                return Err(err);
+                            }
+                        };
+                    },
+                    None => break
+                };
+            }
+            None => break
+        }
+    }
+    json.push_str("}");
+    Ok(json)
+}
+
+// Service entry
 // {
 //   "id": unique id number,
+//   "name": descriptive name,
+//   "description": A shrt description,
 //   "response": { "type": response_code, "value": response_value}
 //   "authentication": "authentication_strategy_name",                  // Optional
 //   "authorization": { "strategy": "local", "groups": [ "admin" ] },   // Optional
@@ -61,59 +106,87 @@ impl<'a> ResponseInfo<'a> {
 //          { "name": "MY_HEADER2", "value": "MY_HEADER_VALUE2" },
 //          { "name": "MY_HEADER3", "value": "MY_HEADER_VALUE3" }
 //       ]
-//   },
-//   "authorization": { "strategy": "local", "groups": [ "admin" ] },   // Optional
-//   "body": { "param1": "value1", "param2": [ "value2" ] },            // Optional
+//   }
 // }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct Authorization<'a> {
-    pub strategy: &'a str,
+pub struct Authorization {
+    pub strategy: String,
     pub groups: Vec<String>
 }
-impl<'a> Authorization<'a> {
-    pub fn new(strategy: &'a str, groups: &'a Vec<String>) -> Authorization<'a> {
+impl Authorization {
+    pub fn new(strategy: &str, groups: &Vec<String>) -> Authorization {
         let authorization = Authorization {
-            strategy: strategy,
+            strategy: strategy.to_string(),
             groups: groups.clone()
         };
         authorization
     }
 }
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct HTTPHeader<'a> {
-    pub name: &'a str,
-    pub value: &'a str,
+pub struct HTTPHeader {
+    pub name: String,
+    pub value: String,
 }
-impl<'a> HTTPHeader<'a> {
-    pub fn new(name: &'a str, value: &'a str) -> HTTPHeader<'a> {
+impl HTTPHeader {
+    pub fn new(name: & str, value: & str) -> HTTPHeader {
         let header = HTTPHeader {
-            name: name,
-            value: value
+            name: name.to_string(),
+            value: value.to_string()
         };
         header
     }
 }
-
-// Used to store an entry from the config file.
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ConfigRequest<'a> {
-    pub name: &'a str,          // Entry name.
-    pub description: &'a str,   // Entry description.
-    pub route: &'a str,         // Entry route.
-    pub parser: &'a str,        // Parser name.
-    pub handler: &'a str,       // Handler name.
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct HTTP {
+    pub verb: u8,
+    pub path: String,
+    pub headers: Option<Vec<HTTPHeader>>
 }
-impl<'a> ConfigRequest<'a> {
-    pub fn new(name: &'a str, description: &'a str, route: &'a str, parser: &'a str, handler: &'a str) -> ConfigRequest<'a> {
-        let config = ConfigRequest {
-            name: name,
-            description: description,
-            route: route,
-            parser: parser,
-            handler: handler
+impl HTTP {
+    pub fn new(verb: u8, path: & str, headers: &Option<Vec<HTTPHeader>>) -> HTTP {
+        let http = HTTP {
+            verb: verb,
+            path: path.to_string(),
+            headers: headers.clone()
         };
-        config
+        http
+    }
+}
+// Used to store an entry from the config file.
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct ServiceEntry {
+    pub id: u32,
+    pub name: String,
+    pub description: String,
+    pub response: ResponseInfo,
+    pub authentication: Option<String>,
+    pub authorization: Option<Authorization>,
+    pub options: Option<String>,
+    pub http: Option<HTTP>
+}
+impl ServiceEntry {
+    pub fn new(
+        id: u32,
+        name: &str,
+        description: &str,
+        response: &ResponseInfo,
+        authentication: &Option<String>,
+        authorization: &Option<Authorization>,
+        options: &Option<String>,
+        http: &Option<HTTP>
+    ) -> ServiceEntry {
+        let servive_entry = ServiceEntry {
+            id: id,
+            name: name.to_string(),
+            description: description.to_string(),
+            response: response.clone(),
+            authentication: authentication.clone(),
+            authorization: authorization.clone(),
+            options: options.clone(),
+            http: http.clone()
+        };
+        servive_entry
     }
 }
     
@@ -128,26 +201,26 @@ mod test {
 
     #[test]
     fn test_verb_code() {
-        let json = serde_json::to_string(&VerbCode::DELETE).unwrap();
-        let verb: VerbCode = serde_json::from_str(&json).unwrap();
-        assert_eq!(verb, VerbCode::DELETE);
+        let json = serde_json::to_string(&DELETE).unwrap();
+        let verb: u8 = serde_json::from_str(&json).unwrap();
+        assert_eq!(verb, DELETE);
     }
 
     #[test]
     fn test_response_code() {
-        let json = serde_json::to_string(&ResponseCode::Handlebars).unwrap();
-        let response: ResponseCode = serde_json::from_str(&json).unwrap();
-        assert_eq!(response, ResponseCode::Handlebars);
+        let json = serde_json::to_string(&HANDLEBARS).unwrap();
+        let response: u8 = serde_json::from_str(&json).unwrap();
+        assert_eq!(response, HANDLEBARS);
     }
     
     #[test]
     fn test_new_response_info() {
-        let response_info = ResponseInfo::new( ResponseCode::Handlebars, "x=y;a=b;");
-        assert_eq!(response_info.code, ResponseCode::Handlebars);
-        assert_eq!(response_info.value, "x=y;a=b;");
+        let response_info = ResponseInfo::new(HANDLEBARS, "file=a/b/c;x=y;a=b;");
+        assert_eq!(response_info.code, HANDLEBARS);
+        assert_eq!(response_info.value, "file=a/b/c;x=y;a=b;");
 
         let json = serde_json::to_string(&response_info).unwrap();
-        let response_info2: ResponseInfo<'_> = serde_json::from_str(&json).unwrap();
+        let response_info2: ResponseInfo = serde_json::from_str(&json).unwrap();
         assert_eq!(response_info, response_info2);
     }
 
@@ -159,8 +232,28 @@ mod test {
         assert_eq!(authorization.groups.len(), 2);
 
         let json = serde_json::to_string(&authorization).unwrap();
-        let authorization2: Authorization<'_> = serde_json::from_str(&json).unwrap();
+        let authorization2: Authorization = serde_json::from_str(&json).unwrap();
         assert_eq!(authorization, authorization2);
+    }
+
+    #[test]
+    fn test_parse_values() {
+        match parse_values("test=my test;") {
+            Ok(data) => assert_eq!(data, "{\"test\":\"my test\"}"),
+            Err(_err) => assert_eq!(true, false),
+        };
+        match parse_values("test=my test;test2=my test 2;") {
+            Ok(data) => assert_eq!(data, "{\"test\":\"my test\",\"test2\":\"my test 2\"}"),
+            Err(_err) => assert_eq!(true, false),
+        };
+        match parse_values("test=my test;test2=my test 2;test3=my test 3;") {
+            Ok(data) => assert_eq!(data, "{\"test\":\"my test\",\"test2\":\"my test 2\",\"test3\":\"my test 3\"}"),
+            Err(_err) => assert_eq!(true, false),
+        };
+        match parse_values("test=my test;test2=my test 2;test3=") {
+            Ok(_data) => assert_eq!(true, false),
+            Err(err) => assert_eq!(497, err.status),
+        };
     }
 
     #[test]
@@ -170,78 +263,198 @@ mod test {
         assert_eq!(http_header.value, "value");
 
         let json = serde_json::to_string(&http_header).unwrap();
-        let http_header2: HTTPHeader<'_> = serde_json::from_str(&json).unwrap();
+        let http_header2: HTTPHeader = serde_json::from_str(&json).unwrap();
         assert_eq!(http_header, http_header2);
     }
-    
-    #[test]
-    fn test_new_config_request() {
-        let config_request = ConfigRequest::new( "name", "description", "route", "parser", "handler");
-        assert_eq!(config_request.name, "name");
-        assert_eq!(config_request.description, "description");
-        assert_eq!(config_request.route, "route");
-        assert_eq!(config_request.parser, "parser");
-        assert_eq!(config_request.handler, "handler");
-    }
 
     #[test]
-    fn test_config_request_from_json() {
-        let data1 = r#"
+    fn test_new_http() {
+        let mut http = HTTP::new(0, "/ping", &None);
+        assert_eq!(http.verb, GET);
+        assert_eq!(http.path, "/ping");
+        assert_eq!(http.headers, None);
+        
+        let http_header = HTTPHeader::new( "Header", "value");
+        http = HTTP::new(0, "/ping", &Some(vec![http_header]));
+        assert_eq!(http.verb, GET);
+        assert_eq!(http.path, "/ping");
+        let headers = http.headers.unwrap();
+        assert_eq!(headers[0].name, "Header");
+        assert_eq!(headers[0].value, "value");
+
+        http = HTTP::new(0, "/ping", &Some(vec![HTTPHeader::new( "Header", "value")]));
+        let json = serde_json::to_string(&http).unwrap();
+        let http2: HTTP = serde_json::from_str(&json).unwrap();
+        assert_eq!(http, http2);
+    }
+    
+    #[test]
+    fn test_new_service_entry() {
+        let response_info = ResponseInfo::new(HANDLEBARS, "file=a/b/c;x=y;a=b;");
+        let mut service_entry = ServiceEntry::new(
+            2, 
+            "name", 
+            "description", 
+            &response_info, 
+            &None, 
+            &None, 
+            &None,
+            &None);
+        assert_eq!(service_entry.id, 2);
+        assert_eq!(service_entry.name, "name");
+        assert_eq!(service_entry.description, "description");
+        assert_eq!(service_entry.response, response_info);
+        assert_eq!(service_entry.authentication, None);
+        assert_eq!(service_entry.authorization, None);
+        assert_eq!(service_entry.options, None);
+        assert_eq!(service_entry.http, None);
+
+        let groups = vec!["user".to_string(), "admin".to_string()];
+        let authorization = Authorization::new( "strategy", &groups);
+        let http_header = HTTPHeader::new( "Header", "value");
+        let http = HTTP::new(0, "/ping", &Some(vec![http_header]));
+        service_entry = ServiceEntry::new(
+            2, 
+            "name", 
+            "description", 
+            &response_info, 
+            &Some("Oauth".to_string()), 
+            &Some(authorization.clone()), 
+            &Some("option1=x".to_string()),
+            &Some(http.clone()));
+            assert_eq!(service_entry.id, 2);
+            assert_eq!(service_entry.name, "name");
+            assert_eq!(service_entry.description, "description");
+            assert_eq!(service_entry.response, response_info);
+            assert_eq!(service_entry.authentication, Some("Oauth".to_string()));
+            assert_eq!(service_entry.authorization, Some(authorization));
+            assert_eq!(service_entry.options, Some("option1=x".to_string()));
+            assert_eq!(service_entry.http, Some(http));
+        }
+
+    #[test]
+    fn test_service_entry_from_json() {
+        let mut data = r#"
             {
+                "id": 42,
                 "name": "name",
                 "description": "description",
-                "route": "route",
-                "parser": "parser",
-                "handler": "handler"
+                "response": { "code": 3, "value": "/path/to/file"}
             }"#;
-    
-        let config_request1: ConfigRequest<'_> = serde_json::from_str(data1).unwrap();
-        assert_eq!(config_request1.name, "name");
-        assert_eq!(config_request1.description, "description");
-        assert_eq!(config_request1.route, "route");
-        assert_eq!(config_request1.parser, "parser");
-        assert_eq!(config_request1.handler, "handler");
 
-        let data_array1 = r#"
+        let mut service_entry: ServiceEntry = serde_json::from_str(data).unwrap();
+        assert_eq!(service_entry.id, 42);
+        assert_eq!(service_entry.name, "name");
+        assert_eq!(service_entry.description, "description");
+        assert_eq!(service_entry.response.code, 3);
+        assert_eq!(service_entry.response.value, "/path/to/file");
+        assert_eq!(service_entry.authentication, None);
+        assert_eq!(service_entry.authorization, None);
+        assert_eq!(service_entry.options, None);
+        assert_eq!(service_entry.http, None);
+
+        data = r#"
+            {
+                "id": 43,
+                "name": "name",
+                "description": "description",
+                "response": { "code": 3, "value": "/path/to/file"},
+                "authentication": "0auth",
+                "authorization": { "strategy": "strategy", "groups": ["admin", "user"] },
+                "options": "option1=abc;",
+                "http": {
+                    "verb": 3, 
+                    "path": "/ping",
+                    "headers": [
+                       { "name": "MY_HEADER1", "value": "MY_HEADER_VALUE1" },
+                       { "name": "MY_HEADER2", "value": "MY_HEADER_VALUE2" },
+                       { "name": "MY_HEADER3", "value": "MY_HEADER_VALUE3" }
+                    ]
+                }
+            }"#;
+        service_entry = serde_json::from_str(data).unwrap();
+        assert_eq!(service_entry.id, 43);
+        assert_eq!(service_entry.name, "name");
+        assert_eq!(service_entry.description, "description");
+        assert_eq!(service_entry.response.code, 3);
+        assert_eq!(service_entry.response.value, "/path/to/file");
+        assert_eq!(service_entry.authentication, Some("0auth".to_string()));
+        let authorization: Authorization = service_entry.authorization.unwrap();
+        assert_eq!(authorization.strategy, "strategy");
+        assert_eq!(authorization.groups[0], "admin");
+        assert_eq!(authorization.groups[1], "user");
+        assert_eq!(service_entry.options, Some("option1=abc;".to_string()));
+        let http: HTTP = service_entry.http.unwrap();
+        let http_headers: Vec<HTTPHeader> = http.headers.unwrap();
+        assert_eq!(http.verb, 3);
+        assert_eq!(http.path, "/ping");
+        assert_eq!(http_headers[0].name, "MY_HEADER1");
+        assert_eq!(http_headers[0].value, "MY_HEADER_VALUE1");
+        assert_eq!(http_headers[1].name, "MY_HEADER2");
+        assert_eq!(http_headers[1].value, "MY_HEADER_VALUE2");
+        assert_eq!(http_headers[2].name, "MY_HEADER3");
+        assert_eq!(http_headers[2].value, "MY_HEADER_VALUE3");
+
+        data = r#"
              [
                 {
-                    "name": "name1",
-                    "description": "description1",
-                    "route": "route1",
-                    "parser": "parser1",
-                    "handler": "handler1"
+                    "id": 42,
+                    "name": "name",
+                    "description": "description",
+                    "response": { "code": 3, "value": "/path/to/file"}
                 },
                 {
-                    "name": "name2",
-                    "description": "description2",
-                    "route": "route2",
-                    "parser": "parser2",
-                    "handler": "handler2"
-                },
-                {
-                    "name": "name3",
-                    "description": "description3",
-                    "route": "route3",
-                    "parser": "parser3",
-                    "handler": "handler3"
+                    "id": 43,
+                    "name": "name",
+                    "description": "description",
+                    "response": { "code": 3, "value": "/path/to/file"},
+                    "authentication": "0auth",
+                    "authorization": { "strategy": "strategy", "groups": ["admin", "user"] },
+                    "options": "option1=abc;",
+                    "http": {
+                        "verb": 3, 
+                        "path": "/ping",
+                        "headers": [
+                           { "name": "MY_HEADER1", "value": "MY_HEADER_VALUE1" },
+                           { "name": "MY_HEADER2", "value": "MY_HEADER_VALUE2" },
+                           { "name": "MY_HEADER3", "value": "MY_HEADER_VALUE3" }
+                        ]
+                    }
                 }
              ]"#;
-             
-        let array: Vec<ConfigRequest<'_>> = serde_json::from_str(data_array1).unwrap();
-        assert_eq!(array[0].name, "name1");
-        assert_eq!(array[0].description, "description1");
-        assert_eq!(array[0].route, "route1");
-        assert_eq!(array[0].parser, "parser1");
-        assert_eq!(array[0].handler, "handler1");
-        assert_eq!(array[1].name, "name2");
-        assert_eq!(array[1].description, "description2");
-        assert_eq!(array[1].route, "route2");
-        assert_eq!(array[1].parser, "parser2");
-        assert_eq!(array[1].handler, "handler2");
-        assert_eq!(array[2].name, "name3");
-        assert_eq!(array[2].description, "description3");
-        assert_eq!(array[2].route, "route3");
-        assert_eq!(array[2].parser, "parser3");
-        assert_eq!(array[2].handler, "handler3");
-    }
+             let service_entries: Vec<ServiceEntry> = serde_json::from_str(data).unwrap();
+             let service_entry1 = &service_entries[0];
+             let service_entry2 = &service_entries[1];
+             assert_eq!(service_entry1.id, 42);
+             assert_eq!(service_entry1.name, "name");
+             assert_eq!(service_entry1.description, "description");
+             assert_eq!(service_entry1.response.code, 3);
+             assert_eq!(service_entry1.response.value, "/path/to/file");
+             assert_eq!(service_entry1.authentication, None);
+             assert_eq!(service_entry1.authorization, None);
+             assert_eq!(service_entry1.options, None);
+             assert_eq!(service_entry1.http, None);
+
+             assert_eq!(service_entry2.id, 43);
+             assert_eq!(service_entry2.name, "name");
+             assert_eq!(service_entry2.description, "description");
+             assert_eq!(service_entry2.response.code, 3);
+             assert_eq!(service_entry2.response.value, "/path/to/file");
+             assert_eq!(service_entry2.authentication, Some("0auth".to_string()));
+             let authorization_ref = service_entry2.authorization.as_ref().unwrap();
+             assert_eq!(authorization_ref.strategy, "strategy");
+             assert_eq!(authorization_ref.groups[0], "admin");
+             assert_eq!(authorization_ref.groups[1], "user");
+             assert_eq!(service_entry2.options, Some("option1=abc;".to_string()));
+             let http_ref = service_entry2.http.as_ref().unwrap();
+             let http_headers_ref = http_ref.headers.as_ref().unwrap();
+             assert_eq!(http_ref.verb, 3);
+             assert_eq!(http_ref.path, "/ping");
+             assert_eq!(http_headers_ref[0].name, "MY_HEADER1");
+             assert_eq!(http_headers_ref[0].value, "MY_HEADER_VALUE1");
+             assert_eq!(http_headers_ref[1].name, "MY_HEADER2");
+             assert_eq!(http_headers_ref[1].value, "MY_HEADER_VALUE2");
+             assert_eq!(http_headers_ref[2].name, "MY_HEADER3");
+             assert_eq!(http_headers_ref[2].value, "MY_HEADER_VALUE3");
+        }
 }

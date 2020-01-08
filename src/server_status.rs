@@ -1,12 +1,13 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ServerStatus {
     pub status: u16,
-    pub name: String
+    pub name: String,
+    pub context: String
 }
 impl ServerStatus {
-    pub fn new(status: u16, name: &str) -> ServerStatus { ServerStatus { status: status, name: name.to_string() }}
+    pub fn new(status: u16, name: &str) -> ServerStatus { ServerStatus { status: status, name: name.to_string(), context: "".to_string() }}
 }
 impl fmt::Display for ServerStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -65,6 +66,7 @@ lazy_static! {
     pub static ref TOO_MANY_REQUESTS: ServerStatus = ServerStatus::new(429, "Too Many Requests");
     pub static ref REQUEST_HEADER_FIELDS_TOO_LARGE: ServerStatus = ServerStatus::new(431, "Request Header Fields Too Large");
     pub static ref UNAVAILABLE_FOR_LEGAL_REASONS: ServerStatus = ServerStatus::new(451, "Unavailable For Legal Reasons");
+    pub static ref INVALID_KEY_VALUE_PAIRS: ServerStatus = ServerStatus::new(497, "Invalid key/value pairs");
     pub static ref COULD_NOT_READ_HEADER: ServerStatus = ServerStatus::new(498, "Could not read header");
     pub static ref COULD_NOT_PARSE_HTTP_REQUEST: ServerStatus = ServerStatus::new(499, "Could not parse HTTP request");
 
@@ -94,5 +96,6 @@ mod test {
         let status = ServerStatus::new(200, "OK");
         assert_eq!(status.status, 200);
         assert_eq!(status.name, "OK");
+        assert_eq!(status.context, "");
     }
 }
