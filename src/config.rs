@@ -3,6 +3,7 @@
 
 #![allow(dead_code)]
 
+use crate::i18n;
 use crate::server_status;
 
 // Verb code
@@ -153,7 +154,7 @@ impl HTTP {
         http
     }
 }
-// Used to store an entry from the config file.
+// Used to describe a service.
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ServiceEntry {
     pub id: u32,
@@ -176,7 +177,7 @@ impl ServiceEntry {
         options: &Option<String>,
         http: &Option<HTTP>
     ) -> ServiceEntry {
-        let servive_entry = ServiceEntry {
+        let service_entry = ServiceEntry {
             id: id,
             name: name.to_string(),
             description: description.to_string(),
@@ -186,10 +187,72 @@ impl ServiceEntry {
             options: options.clone(),
             http: http.clone()
         };
-        servive_entry
+        service_entry
     }
 }
-    
+
+// Used to store basic server info.
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct ServerInfo {
+    pub port: Option<u32>,
+    pub https_port: Option<u32>,
+    pub logging: Option<String>,
+    pub locale: Option<String>,
+    pub locale_path: Option<String>
+}
+impl ServerInfo {
+    pub fn new(port: Option<u32>, https_port: Option<u32>, logging: Option<String>, locale: Option<String>, locale_path: Option<String>) -> ServerInfo {
+        let server_info = ServerInfo {
+            port: port,
+            https_port: https_port,
+            logging: logging,
+            locale: locale,
+            locale_path: locale_path            
+        };
+        server_info
+    }
+    pub fn default() -> ServerInfo {
+        let server_info = ServerInfo {
+            port: Some(2),
+            https_port: None,
+            logging: Some("WARN".to_string()),
+            locale: Some(i18n::DEFAULT_LOCALE.to_string()),
+            locale_path: Some(i18n::DEFAULT_PATH.to_string())
+        };
+        server_info
+    }
+    pub fn add_defaults(server_info: &ServerInfo) -> ServerInfo {
+        let defaults = ServerInfo::default();
+        let mut port = server_info.port;
+        let mut https_port = server_info.https_port;
+        let mut logging = server_info.logging.clone();
+        let mut locale = server_info.locale.clone();
+        let mut locale_path = server_info.locale_path.clone();
+        if None == port { port = defaults.port; }
+        if None == https_port { https_port = defaults.https_port; }
+        if None == logging { logging = defaults.logging; }
+        if None == locale { locale = defaults.locale; }
+        if None == locale_path { locale_path = defaults.locale_path; }
+        ServerInfo::new(port, https_port, logging, locale, locale_path)
+    }
+}
+
+// Used to configure the server.
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+pub struct ServerConfig {
+    pub server: ServerInfo,
+    pub services: Vec<ServiceEntry>
+}
+impl ServerConfig {
+    pub fn new(server_info: &ServerInfo, service_entries: & Vec<ServiceEntry>) -> ServerConfig {
+        let server_config = ServerConfig {
+            server: server_info.clone(),
+            services: service_entries.clone()
+        };
+        server_config
+    }
+}
+
 ///////////////////////////////////////////
 // Tests
 // cargo test -- --nocapture --test-threads=1
@@ -396,65 +459,182 @@ mod test {
         assert_eq!(http_headers[2].value, "MY_HEADER_VALUE3");
 
         data = r#"
-             [
-                {
-                    "id": 42,
-                    "name": "name",
-                    "description": "description",
-                    "response": { "code": 3, "value": "/path/to/file"}
-                },
-                {
-                    "id": 43,
-                    "name": "name",
-                    "description": "description",
-                    "response": { "code": 3, "value": "/path/to/file"},
-                    "authentication": "0auth",
-                    "authorization": { "strategy": "strategy", "groups": ["admin", "user"] },
-                    "options": "option1=abc;",
-                    "http": {
-                        "verb": 3, 
-                        "path": "/ping",
-                        "headers": [
-                           { "name": "MY_HEADER1", "value": "MY_HEADER_VALUE1" },
-                           { "name": "MY_HEADER2", "value": "MY_HEADER_VALUE2" },
-                           { "name": "MY_HEADER3", "value": "MY_HEADER_VALUE3" }
-                        ]
-                    }
+            [
+            {
+                "id": 42,
+                "name": "name",
+                "description": "description",
+                "response": { "code": 3, "value": "/path/to/file"}
+            },
+            {
+                "id": 43,
+                "name": "name",
+                "description": "description",
+                "response": { "code": 3, "value": "/path/to/file"},
+                "authentication": "0auth",
+                "authorization": { "strategy": "strategy", "groups": ["admin", "user"] },
+                "options": "option1=abc;",
+                "http": {
+                    "verb": 3, 
+                    "path": "/ping",
+                    "headers": [
+                        { "name": "MY_HEADER1", "value": "MY_HEADER_VALUE1" },
+                        { "name": "MY_HEADER2", "value": "MY_HEADER_VALUE2" },
+                        { "name": "MY_HEADER3", "value": "MY_HEADER_VALUE3" }
+                    ]
                 }
-             ]"#;
-             let service_entries: Vec<ServiceEntry> = serde_json::from_str(data).unwrap();
-             let service_entry1 = &service_entries[0];
-             let service_entry2 = &service_entries[1];
-             assert_eq!(service_entry1.id, 42);
-             assert_eq!(service_entry1.name, "name");
-             assert_eq!(service_entry1.description, "description");
-             assert_eq!(service_entry1.response.code, 3);
-             assert_eq!(service_entry1.response.value, "/path/to/file");
-             assert_eq!(service_entry1.authentication, None);
-             assert_eq!(service_entry1.authorization, None);
-             assert_eq!(service_entry1.options, None);
-             assert_eq!(service_entry1.http, None);
+            }
+        ]"#;
+        let service_entries: Vec<ServiceEntry> = serde_json::from_str(data).unwrap();
+        let service_entry1 = &service_entries[0];
+        let service_entry2 = &service_entries[1];
+        assert_eq!(service_entry1.id, 42);
+        assert_eq!(service_entry1.name, "name");
+        assert_eq!(service_entry1.description, "description");
+        assert_eq!(service_entry1.response.code, 3);
+        assert_eq!(service_entry1.response.value, "/path/to/file");
+        assert_eq!(service_entry1.authentication, None);
+        assert_eq!(service_entry1.authorization, None);
+        assert_eq!(service_entry1.options, None);
+        assert_eq!(service_entry1.http, None);
 
-             assert_eq!(service_entry2.id, 43);
-             assert_eq!(service_entry2.name, "name");
-             assert_eq!(service_entry2.description, "description");
-             assert_eq!(service_entry2.response.code, 3);
-             assert_eq!(service_entry2.response.value, "/path/to/file");
-             assert_eq!(service_entry2.authentication, Some("0auth".to_string()));
-             let authorization_ref = service_entry2.authorization.as_ref().unwrap();
-             assert_eq!(authorization_ref.strategy, "strategy");
-             assert_eq!(authorization_ref.groups[0], "admin");
-             assert_eq!(authorization_ref.groups[1], "user");
-             assert_eq!(service_entry2.options, Some("option1=abc;".to_string()));
-             let http_ref = service_entry2.http.as_ref().unwrap();
-             let http_headers_ref = http_ref.headers.as_ref().unwrap();
-             assert_eq!(http_ref.verb, 3);
-             assert_eq!(http_ref.path, "/ping");
-             assert_eq!(http_headers_ref[0].name, "MY_HEADER1");
-             assert_eq!(http_headers_ref[0].value, "MY_HEADER_VALUE1");
-             assert_eq!(http_headers_ref[1].name, "MY_HEADER2");
-             assert_eq!(http_headers_ref[1].value, "MY_HEADER_VALUE2");
-             assert_eq!(http_headers_ref[2].name, "MY_HEADER3");
-             assert_eq!(http_headers_ref[2].value, "MY_HEADER_VALUE3");
-        }
+        assert_eq!(service_entry2.id, 43);
+        assert_eq!(service_entry2.name, "name");
+        assert_eq!(service_entry2.description, "description");
+        assert_eq!(service_entry2.response.code, 3);
+        assert_eq!(service_entry2.response.value, "/path/to/file");
+        assert_eq!(service_entry2.authentication, Some("0auth".to_string()));
+        let authorization_ref = service_entry2.authorization.as_ref().unwrap();
+        assert_eq!(authorization_ref.strategy, "strategy");
+        assert_eq!(authorization_ref.groups[0], "admin");
+        assert_eq!(authorization_ref.groups[1], "user");
+        assert_eq!(service_entry2.options, Some("option1=abc;".to_string()));
+        let http_ref = service_entry2.http.as_ref().unwrap();
+        let http_headers_ref = http_ref.headers.as_ref().unwrap();
+        assert_eq!(http_ref.verb, 3);
+        assert_eq!(http_ref.path, "/ping");
+        assert_eq!(http_headers_ref[0].name, "MY_HEADER1");
+        assert_eq!(http_headers_ref[0].value, "MY_HEADER_VALUE1");
+        assert_eq!(http_headers_ref[1].name, "MY_HEADER2");
+        assert_eq!(http_headers_ref[1].value, "MY_HEADER_VALUE2");
+        assert_eq!(http_headers_ref[2].name, "MY_HEADER3");
+        assert_eq!(http_headers_ref[2].value, "MY_HEADER_VALUE3");
+    }
+
+    #[test]
+    fn test_new_server_info() {
+        let server_info = ServerInfo::new( Some(100), Some(101), Some("ALL".to_string()), Some(i18n::DEFAULT_LOCALE.to_string()), Some(i18n::DEFAULT_PATH.to_string()));
+        assert_eq!(server_info.port, Some(100));
+        assert_eq!(server_info.https_port, Some(101));
+        assert_eq!(server_info.logging, Some("ALL".to_string()));
+        assert_eq!(server_info.locale, Some(i18n::DEFAULT_LOCALE.to_string()));
+        assert_eq!(server_info.locale_path, Some(i18n::DEFAULT_PATH.to_string()));
+
+        let json = serde_json::to_string(&server_info).unwrap();
+        let server_info2: ServerInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(server_info, server_info2);
+    }
+
+    #[test]
+    fn test_default_server_info() {
+        let server_info = ServerInfo::default();
+        assert_eq!(server_info.port, Some(2));
+        assert_eq!(server_info.https_port, None);
+        assert_eq!(server_info.logging, Some("WARN".to_string()));
+        assert_eq!(server_info.locale, Some(i18n::DEFAULT_LOCALE.to_string()));
+        assert_eq!(server_info.locale_path, Some(i18n::DEFAULT_PATH.to_string()));
+
+        let json = serde_json::to_string(&server_info).unwrap();
+        let server_info2: ServerInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(server_info, server_info2);
+    }
+
+    #[test]
+    fn test_add_defaults_server_info() {
+        let server_info_none = ServerInfo::new( None, None, None, None, None);
+        let server_info = ServerInfo::add_defaults(&server_info_none);
+        assert_eq!(server_info.port, Some(2));
+        assert_eq!(server_info.https_port, None);
+        assert_eq!(server_info.logging, Some("WARN".to_string()));
+        assert_eq!(server_info.locale, Some(i18n::DEFAULT_LOCALE.to_string()));
+        assert_eq!(server_info.locale_path, Some(i18n::DEFAULT_PATH.to_string()));
+    }
+
+    #[test]
+    fn test_new_server_config() {
+        let data = r#"{
+            "server": {
+                "port": 100,
+                "https_port": 101,
+                "logging": "ALL"
+            },
+            "services":
+            [
+            {
+                "id": 42,
+                "name": "name",
+                "description": "description",
+                "response": { "code": 3, "value": "/path/to/file"}
+            },
+            {
+                "id": 43,
+                "name": "name",
+                "description": "description",
+                "response": { "code": 3, "value": "/path/to/file"},
+                "authentication": "0auth",
+                "authorization": { "strategy": "strategy", "groups": ["admin", "user"] },
+                "options": "option1=abc;",
+                "http": {
+                    "verb": 3, 
+                    "path": "/ping",
+                    "headers": [
+                        { "name": "MY_HEADER1", "value": "MY_HEADER_VALUE1" },
+                        { "name": "MY_HEADER2", "value": "MY_HEADER_VALUE2" },
+                        { "name": "MY_HEADER3", "value": "MY_HEADER_VALUE3" }
+                    ]
+                }
+            }
+        ]}"#;
+        let server_config: ServerConfig = serde_json::from_str(data).unwrap();
+        let server = server_config.server;
+        let services = server_config.services;
+
+        assert_eq!(server.port, Some(100));
+        assert_eq!(server.https_port, Some(101));
+        assert_eq!(server.logging, Some("ALL".to_string()));
+
+        let service_entry1 = &services[0];
+        let service_entry2 = &services[1];
+        assert_eq!(service_entry1.id, 42);
+        assert_eq!(service_entry1.name, "name");
+        assert_eq!(service_entry1.description, "description");
+        assert_eq!(service_entry1.response.code, 3);
+        assert_eq!(service_entry1.response.value, "/path/to/file");
+        assert_eq!(service_entry1.authentication, None);
+        assert_eq!(service_entry1.authorization, None);
+        assert_eq!(service_entry1.options, None);
+        assert_eq!(service_entry1.http, None);
+
+        assert_eq!(service_entry2.id, 43);
+        assert_eq!(service_entry2.name, "name");
+        assert_eq!(service_entry2.description, "description");
+        assert_eq!(service_entry2.response.code, 3);
+        assert_eq!(service_entry2.response.value, "/path/to/file");
+        assert_eq!(service_entry2.authentication, Some("0auth".to_string()));
+        let authorization_ref = service_entry2.authorization.as_ref().unwrap();
+        assert_eq!(authorization_ref.strategy, "strategy");
+        assert_eq!(authorization_ref.groups[0], "admin");
+        assert_eq!(authorization_ref.groups[1], "user");
+        assert_eq!(service_entry2.options, Some("option1=abc;".to_string()));
+        let http_ref = service_entry2.http.as_ref().unwrap();
+        let http_headers_ref = http_ref.headers.as_ref().unwrap();
+        assert_eq!(http_ref.verb, 3);
+        assert_eq!(http_ref.path, "/ping");
+        assert_eq!(http_headers_ref[0].name, "MY_HEADER1");
+        assert_eq!(http_headers_ref[0].value, "MY_HEADER_VALUE1");
+        assert_eq!(http_headers_ref[1].name, "MY_HEADER2");
+        assert_eq!(http_headers_ref[1].value, "MY_HEADER_VALUE2");
+        assert_eq!(http_headers_ref[2].name, "MY_HEADER3");
+        assert_eq!(http_headers_ref[2].value, "MY_HEADER_VALUE3");
+    }
 }

@@ -1,0 +1,16 @@
+{
+  "server": {
+      "port": 2,
+      "https_port": 443,
+      "logging": "WARN"
+  },
+  "services": [
+    {
+      "id": 0,
+      "name": "ping",
+      "description": "Pings the server",
+      "response": { "code": 1, "value": "name=U.S. Comics Server;version=1.0"},
+      "http": { "verb": 0, "path": "/ping" }
+    }
+  ]
+}

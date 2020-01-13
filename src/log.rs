@@ -283,7 +283,7 @@ mod test {
     }
     #[test]
     fn test_get_level_prefix() {
-        let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE.to_string(), i18n::DEFAULT_PATH.to_string());
+        let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE, i18n::DEFAULT_PATH);
         let log = log::Log::new(log::Level::Debug, &i18n);
         assert_eq!(log.prefix_fatal_error, format!("{}, \"level\": \"{}\"", log::Log::prefix(), i18n.get(strings::FATAL_ERROR)));
         assert_eq!(log.prefix_error, format!("{}, \"level\": \"{}\"", log::Log::prefix(), i18n.get(strings::ERROR)));
@@ -295,7 +295,7 @@ mod test {
     }
     #[test]
     fn test_prefix() {
-        let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE.to_string(), i18n::DEFAULT_PATH.to_string());
+        let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE, i18n::DEFAULT_PATH);
         let log = log::Log::new(log::Level::Debug, &i18n);
         assert_eq!( log.level, log::Level::Debug);
         assert_eq!( log.prefix_fatal_error, format!("{}, \"level\": \"{}\"", log::Log::prefix(), i18n.get(strings::FATAL_ERROR)) );
@@ -308,7 +308,7 @@ mod test {
     }
     #[test]
     fn test_can_and_set() {
-        let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE.to_string(), i18n::DEFAULT_PATH.to_string());
+        let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE, i18n::DEFAULT_PATH);
         let mut log = log::Log::new(log::Level::All, &i18n);
         assert_eq!(log.can( log::Level::FatalError), true);
         assert_eq!(log.can( log::Level::Error), true);
@@ -377,7 +377,7 @@ mod test {
 
     #[test]
     fn test_macros() {
-        let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE.to_string(), i18n::DEFAULT_PATH.to_string());
+        let i18n = i18n::I18n::new(i18n::DEFAULT_LOCALE, i18n::DEFAULT_PATH);
         let mut log = log::Log::new(log::Level::All, &i18n);
         assert_eq!(structured_log!(log, log::Level::FatalError, "FATAL_ERROR" ).ends_with( "\"FATAL ERROR\", \"entry\": \"FATAL_ERROR\" }" ), true);
         assert_eq!(structured_log!(log, log::Level::Error, "ERROR" ).ends_with( "\"ERROR\", \"entry\": \"ERROR\" }" ), true);

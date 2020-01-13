@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use std::fs::File;
 
 pub static DEFAULT_LOCALE: &str = "en-US";
-pub static DEFAULT_PATH: &str = "./src/config/i18n/strings-en-US.txt";
+pub static DEFAULT_PATH: &str = "./config/i18n/strings-en-US.txt";
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct I18n{
@@ -15,21 +15,21 @@ pub struct I18n{
 
 #[allow(dead_code)]
 impl I18n {
-    pub fn new(locale: String, path: String) -> I18n {
+    pub fn new(locale: &str, path: &str) -> I18n {
         let vec = vec![];
         let mut i18n = I18n {
             locale: locale.to_string(),
             strings: vec,
-            path: path
+            path: path.to_string()
         };
-        i18n.set_locale(locale.to_string());
+        i18n.set_locale(locale);
         return i18n;
     }
-    pub fn init(&mut self, locale: String, path: String) {
-        self.path = path;
-        self.set_locale(locale.to_string());
+    pub fn init(&mut self, locale: &str, path: &str) {
+        self.path = path.to_string();
+        self.set_locale(locale);
     }
-    pub fn set_locale(&mut self, locale: String) {
+    pub fn set_locale(&mut self, locale: &str) {
         let mut file = File::open(self.path.to_string()).expect("Unable to open the file");
         let mut contents = String::new();
         file.read_to_string(&mut contents).expect("Unable to read the file");
@@ -38,7 +38,7 @@ impl I18n {
         let mut lines_iter = cursor.lines().map(|l| l.unwrap());
         let mut optional = lines_iter.next();
 
-        self.locale = locale;
+        self.locale = locale.to_string();
         self.strings.clear();
         while let Some(text) = optional {
             self.strings.push(text);
@@ -48,6 +48,10 @@ impl I18n {
     pub fn get(&self, string_id: usize) -> String{
         if self.strings.len() <= string_id { return "".to_string(); }
         return self.strings[string_id].to_string();
+    }
+    pub fn get_from_locale(string_id: usize, locale: &str, path: &str) -> String{
+        let i18n = I18n::new(locale, path);
+        i18n.get(string_id)
     }
 }
 
@@ -62,14 +66,14 @@ mod test {
 
     #[test]
     fn test_new() {
-        let i18n = I18n::new( "en-US".to_string(), "./src/config/i18n/strings-en-US.txt".to_string());
+        let i18n = I18n::new( "en-US", "./config/i18n/strings-en-US.txt");
         assert_eq!(i18n.locale, "en-US");
-        assert_eq!(i18n.path, "./src/config/i18n/strings-en-US.txt");
+        assert_eq!(i18n.path, "./config/i18n/strings-en-US.txt");
         assert_eq!(i18n.strings.len(), strings::COUNT);
     }
     #[test]
     fn test_get() {
-        let i18n = I18n::new( "en-US".to_string(), "./src/config/i18n/strings-en-US.txt".to_string());
+        let i18n = I18n::new( "en-US", "./config/i18n/strings-en-US.txt");
         assert_eq!(i18n.get(strings::AUTHENTICATION_NOT_CONFIGURED), "Authentication not configured.");
         assert_eq!(i18n.get(strings::AUTHORIZATION_NOT_CONFIGURED), "Authorization not configured.");
         assert_eq!(i18n.get(strings::UNAUTHORIZED), "Unauthorized.");
@@ -77,7 +81,7 @@ mod test {
         assert_eq!(i18n.get(strings::INCORRECT_USER_NAME), "Incorrect username:");
         assert_eq!(i18n.get(strings::INCORRECT_PASSWORD), "Incorrect password.");
         assert_eq!(i18n.get(strings::LOGIN_SUCCESSFUL), "Login successful.");
-        assert_eq!(i18n.get(strings::LISTENING_ON_PORT), "Listening on port");
+        assert_eq!(i18n.get(strings::LISTENING_ON_PORT), "Listening on");
         assert_eq!(i18n.get(strings::FATAL_ERROR), "FATAL ERROR");
         assert_eq!(i18n.get(strings::ERROR), "ERROR");
         assert_eq!(i18n.get(strings::WARNING), "WARNING");
