@@ -26,10 +26,14 @@ mod server;
 // available, and it doesn't support HTTP request bodies.
 #[tokio::main]
 async fn main() {
-    let s = server::Server::new();
-    let config = match server::Server::init("./config/config.json") {
-        Ok(config) => config,
-        Err(e) => { println!("{}", e); return; }
+    let config_path = "./config/config.json";
+    match server::Server::init(config_path) {
+        Ok(config) => {
+            let firecracker = config;
+            server::Server::start(&firecracker).await;
+        },
+        Err(e) => {
+            println!("Bad config: {}", e); 
+        }
     };
-    server::Server::start(&config).await;
 }

@@ -81,7 +81,7 @@ mod test {
         assert_eq!(i18n.get(strings::INCORRECT_USER_NAME), "Incorrect username:");
         assert_eq!(i18n.get(strings::INCORRECT_PASSWORD), "Incorrect password.");
         assert_eq!(i18n.get(strings::LOGIN_SUCCESSFUL), "Login successful.");
-        assert_eq!(i18n.get(strings::LISTENING_ON_PORT), "Listening on");
+        assert_eq!(i18n.get(strings::FIRECRACKER_LISTENING_ON_PORT), "Firecracker listening on");
         assert_eq!(i18n.get(strings::FATAL_ERROR), "FATAL ERROR");
         assert_eq!(i18n.get(strings::ERROR), "ERROR");
         assert_eq!(i18n.get(strings::WARNING), "WARNING");
@@ -89,6 +89,15 @@ mod test {
         assert_eq!(i18n.get(strings::DEBUG), "DEBUG");
         assert_eq!(i18n.get(strings::TRACE), "TRACE");
         assert_eq!(i18n.get(strings::ALL), "ALL");
-        assert_eq!(i18n.get(strings::INVALID_HEADER_DATA_IN_CONFIG), "Invalid header data found in config file.");
+        assert_eq!(i18n.get(strings::ENTERING), "-> Entering");
+        assert_eq!(i18n.get(strings::EXITING), "<- Exiting");
+        assert_eq!(i18n.get(strings::SUCCESSFULLY_OPENED_FILE), "Successfully opened file.");
+        assert_eq!(i18n.get(strings::SUCCESSFULLY_READ_FILE), "Successfully read file.");
+        assert_eq!(i18n.get(strings::COULD_NOT_OPEN_FILE), "Could not open file.");
+        assert_eq!(i18n.get(strings::COULD_NOT_READ_FILE), "Could not read file.");
+        assert_eq!(i18n.get(strings::NO_FILE_SPECIFIED), "No file specified.");
+        assert_eq!(i18n.get(strings::REQUEST_NOT_READ), "Request not read.");
+        assert_eq!(i18n.get(strings::REQUEST_NOT_FOUND), "Request not found.");
+        assert_eq!(i18n.get(strings::REQUEST_PROCESSED), "Request Processed.");
     }
 }

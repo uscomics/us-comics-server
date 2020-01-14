@@ -47,7 +47,7 @@ impl ResponseInfo {
     }
 }
 
-fn parse_values(data: &str) -> Result<String, server_status::ServerStatus> {
+pub fn parse_values(data: &str) -> Result<String, server_status::ServerStatus> {
     let pairs = data.split(";").collect::<Vec<_>>();
     if 0 == pairs.len() { return Ok("".to_string()); }
     let mut pairs_iter = pairs.iter();

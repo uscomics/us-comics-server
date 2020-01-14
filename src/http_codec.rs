@@ -15,10 +15,10 @@ pub struct Http;
 /// that information to construct an instance of a `http::Request` object,
 /// trying to avoid allocations where possible.
 impl Decoder for Http {
-    type Item = Request<()>;
+    type Item = Request<BytesMut>;
     type Error = io::Error;
-
-    fn decode(&mut self, src: &mut BytesMut) -> io::Result<Option<Request<()>>> {
+    
+    fn decode(&mut self, src: &mut BytesMut) -> io::Result<Option<Request<BytesMut>>> {
         // TODO: we should grow this headers array if parsing fails and asks
         //       for more headers
         let mut headers = [None; 16];
@@ -77,8 +77,8 @@ impl Decoder for Http {
             ret = ret.header(&data[k.0..k.1], value);
         }
 
-        let req = ret
-            .body(())
+        let req = ret   
+            .body(src.clone())
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
         Ok(Some(req))   
     }

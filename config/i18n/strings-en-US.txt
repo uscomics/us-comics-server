@@ -5,7 +5,7 @@ Login required.
 Incorrect username:
 Incorrect password.
 Login successful.
-Listening on
+Firecracker listening on
 FATAL ERROR
 ERROR
 WARNING
@@ -13,11 +13,6 @@ INFO
 DEBUG
 TRACE
 ALL
-Invalid header data found in config file.
-Invalid cookie data found in config file.
-Invalid response data found in config file.
-Invalid authorization data found in config file.
-Invalid mock data found in config file.
 -> Entering
 <- Exiting
 Successfully opened file.
@@ -25,6 +20,6 @@ Successfully read file.
 Could not open file.
 Could not read file.
 No file specified.
-Bad data in config.
-Not Found.
+Request not read.
+Request not found.
 Request Processed.
