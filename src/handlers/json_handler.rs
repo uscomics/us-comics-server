@@ -2,10 +2,10 @@ use bytes::BytesMut;
 
 use crate::config;
 use crate::mime;
-use crate::handlers::response;
+use crate::handlers::handler_response::HandlerResponse;
 use crate::server_status;
 
-pub fn json_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) -> Result<response::Response, server_status::ServerStatus> {
+pub fn json_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) -> Result<HandlerResponse, server_status::ServerStatus> {
     let value = match &service_entry.response_info.value {
         Some(value) => value,
         None => {
@@ -22,7 +22,7 @@ pub fn json_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) 
             return Err(error);
         }
     };
-    let response = response::Response::new(&server_status::OK, &mime::JSON, &json, &service_entry.response_info);
+    let response = HandlerResponse::new(&server_status::OK, &mime::JSON, Some(json), None, &service_entry.response_info);
     Ok(response)
 }
 
@@ -51,7 +51,7 @@ mod test {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
                 assert_eq!(r.mime, *mime::JSON);
-                assert_eq!(r.value, "{\"name\":\"Server\",\"version\":\"1.0\"}");
+                assert_eq!(r.value, Some("{\"name\":\"Server\",\"version\":\"1.0\"}".to_string()));
                 assert_eq!(r.response_info, response_info);        
             },
             Err(_e) => assert_eq!(true, false)
@@ -71,7 +71,7 @@ mod test {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
                 assert_eq!(r.mime, *mime::JSON);
-                assert_eq!(r.value, "{}");
+                assert_eq!(r.value, Some("{}".to_string()));
                 assert_eq!(r.response_info, response_info);        
             },
             Err(_e) => assert_eq!(true, false)

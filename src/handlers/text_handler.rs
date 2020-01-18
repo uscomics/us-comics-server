@@ -2,10 +2,10 @@ use bytes::BytesMut;
 
 use crate::config;
 use crate::mime;
-use crate::handlers::response;
+use crate::handlers::handler_response::HandlerResponse;
 use crate::server_status;
 
-pub fn text_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) -> Result<response::Response, server_status::ServerStatus> {
+pub fn text_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) -> Result<HandlerResponse, server_status::ServerStatus> {
     let value = match &service_entry.response_info.value {
         Some(value) => value,
         None => {
@@ -14,7 +14,7 @@ pub fn text_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) 
             return Err(error);
         }
     };
-    let response = response::Response::new(&server_status::OK, &mime::TEXT, &value.as_str(), &service_entry.response_info);
+    let response = HandlerResponse::new(&server_status::OK, &mime::TEXT, Some(value.clone()), None, &service_entry.response_info);
     Ok(response)
 }
 
@@ -43,7 +43,7 @@ mod test {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
                 assert_eq!(r.mime, *mime::TEXT);
-                assert_eq!(r.value, "Text goes here");
+                assert_eq!(r.value, Some("Text goes here".to_string()));
                 assert_eq!(r.response_info, response_info);        
             },
             Err(_e) => assert_eq!(true, false)
@@ -63,7 +63,7 @@ mod test {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
                 assert_eq!(r.mime, *mime::TEXT);
-                assert_eq!(r.value, "");
+                assert_eq!(r.value, Some("".to_string()));
                 assert_eq!(r.response_info, response_info);        
             },
             Err(_e) => assert_eq!(true, false)
