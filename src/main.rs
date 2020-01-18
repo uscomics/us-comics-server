@@ -9,10 +9,10 @@ use tokio;
 #[macro_use] extern crate serde_derive;
 
 mod config;
-mod handlers;
 mod http_codec;
 mod i18n;
 mod mime;
+mod preprocessing;
 mod request;
 mod router;
 mod server_status;

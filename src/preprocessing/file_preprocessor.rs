@@ -4,12 +4,12 @@ use std::str;
 
 use crate::config;
 use crate::mime;
-use crate::handlers::handler_response::HandlerResponse;
+use crate::preprocessing::preprocessing_response::PreprocessingResponse;
 use crate::server_status;
 use crate::url;
 
 // Body contains the requested file and service_entry.response_info.file maps that request to an actual file.
-pub fn file_handler(service_entry: &config::ServiceEntry, body: &mut BytesMut) -> Result<HandlerResponse, server_status::ServerStatus> {
+pub fn file_preprocessor(service_entry: &config::ServiceEntry, body: &mut BytesMut) -> Result<PreprocessingResponse, server_status::ServerStatus> {
     // Validate the response file.
     let response_file = match &service_entry.response_info.file {
         Some(rf) => {
@@ -103,7 +103,7 @@ pub fn file_handler(service_entry: &config::ServiceEntry, body: &mut BytesMut) -
     };
 
     // Return response.
-    let response = HandlerResponse::new(&server_status::OK, &mime_type, value, Some(path.clone()), &service_entry.response_info);
+    let response = PreprocessingResponse::new(&server_status::OK, &mime_type, value, Some(path.clone()), &service_entry.response_info);
     Ok(response)
 }
 
@@ -113,14 +113,14 @@ pub fn file_handler(service_entry: &config::ServiceEntry, body: &mut BytesMut) -
 
 #[cfg(test)]
 mod test {
-    use crate::handlers::file_handler::*;
+    use crate::preprocessing::file_preprocessor::*;
     use crate::config::*;
     use bytes::{BytesMut, BufMut};
     use crate::server_status;
     use crate::mime;
 
     #[test]
-    fn test_file_handler() {
+    fn test_file_preprocessor() {
         let mut response_info = ResponseInfo::new(TEXT_FILE, None, Some("/file/path".to_string()));
         let mut service_entry = ServiceEntry::new(
             0, 
@@ -132,7 +132,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        let mut response = file_handler(&service_entry, &mut body);
+        let mut response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -154,7 +154,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        response = file_handler(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -176,7 +176,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        response = file_handler(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -190,7 +190,7 @@ mod test {
     }
     
     #[test]
-    fn test_file_handler_with_params() {
+    fn test_file_preprocessor_with_params() {
         let response_info = ResponseInfo::new(TEXT_FILE, None, Some("/:file/:path".to_string()));
         let service_entry = ServiceEntry::new(
             0, 
@@ -202,7 +202,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/cat/dog\"}"[..]);
-        let response = file_handler(&service_entry, &mut body);
+        let response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -216,7 +216,7 @@ mod test {
     }
     
     #[test]
-    fn test_file_handler_with_values() {
+    fn test_file_preprocessor_with_values() {
         let response_info = ResponseInfo::new(TEXT_FILE, Some("title=Handlebars template data;goes=here;".to_string()), Some("/:file/:path".to_string()));
         let service_entry = ServiceEntry::new(
             0, 
@@ -228,7 +228,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/cat/dog\"}"[..]);
-        let response = file_handler(&service_entry, &mut body);
+        let response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -242,7 +242,7 @@ mod test {
     }
     
     #[test]
-    fn test_file_handler_bad_response_file() {
+    fn test_file_preprocessor_bad_response_file() {
         let mut response_info = ResponseInfo::new(TEXT_FILE, None, Some("".to_string()));
         let mut service_entry = ServiceEntry::new(
             0, 
@@ -254,7 +254,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        let mut response = file_handler(&service_entry, &mut body);
+        let mut response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -274,7 +274,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        response = file_handler(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -286,7 +286,7 @@ mod test {
     }
     
     #[test]
-    fn test_file_handler_bad_body() {
+    fn test_file_preprocessor_bad_body() {
         let mut response_info = ResponseInfo::new(TEXT_FILE, None, Some("/:file/:path".to_string()));
         let mut service_entry = ServiceEntry::new(
             0, 
@@ -297,7 +297,7 @@ mod test {
             &None, 
             &None);
         let mut body = BytesMut::new();
-        let mut response = file_handler(&service_entry, &mut body);
+        let mut response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -317,7 +317,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"JUNK"[..]);
-        response = file_handler(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -337,7 +337,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"not_path\":\"/file/path\"}"[..]);
-        response = file_handler(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -357,7 +357,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/x\"}"[..]);
-        response = file_handler(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -377,7 +377,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/x/y/z\"}"[..]);
-        response = file_handler(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -389,7 +389,7 @@ mod test {
     }
     
     #[test]
-    fn test_file_handler_with_bad_response_code() {
+    fn test_file_preprocessor_with_bad_response_code() {
         let response_info = ResponseInfo::new(99, None, Some("/:file/:path".to_string()));
         let service_entry = ServiceEntry::new(
             0, 
@@ -401,7 +401,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/cat/dog\"}"[..]);
-        let response = file_handler(&service_entry, &mut body);
+        let response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -413,7 +413,7 @@ mod test {
     }
     
     #[test]
-    fn test_file_handler_with_bad_values() {
+    fn test_file_preprocessor_with_bad_values() {
         let response_info = ResponseInfo::new(TEXT_FILE, Some("JUNK".to_string()), Some("/:file/:path".to_string()));
         let service_entry = ServiceEntry::new(
             0, 
@@ -425,7 +425,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/cat/dog\"}"[..]);
-        let response = file_handler(&service_entry, &mut body);
+        let response = file_preprocessor(&service_entry, &mut body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {

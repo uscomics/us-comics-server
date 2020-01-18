@@ -3,7 +3,7 @@ use crate::mime;
 use crate::server_status;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
-pub struct HandlerResponse {
+pub struct PreprocessingResponse {
     pub status: server_status::ServerStatus,
     pub mime: mime::Mime,
     pub value: Option<String>,
@@ -11,12 +11,11 @@ pub struct HandlerResponse {
     pub response_info: config::ResponseInfo
 }
 
-impl HandlerResponse {
-    pub fn new(status: &server_status::ServerStatus, mime: &mime::Mime, value: Option<String>, file: Option<String>, response_info: &config::ResponseInfo) -> HandlerResponse { 
-        HandlerResponse { status: status.clone(), mime: mime.clone(), value: value, file: file, response_info: response_info.clone() }
+impl PreprocessingResponse {
+    pub fn new(status: &server_status::ServerStatus, mime: &mime::Mime, value: Option<String>, file: Option<String>, response_info: &config::ResponseInfo) -> PreprocessingResponse { 
+        PreprocessingResponse { status: status.clone(), mime: mime.clone(), value: value, file: file, response_info: response_info.clone() }
     }
 }
-
 
 ///////////////////////////////////////////
 // Tests
@@ -25,14 +24,14 @@ impl HandlerResponse {
 #[cfg(test)]
 mod test {
     use crate::config::*;
-    use crate::handlers::handler_response::*;
+    use crate::preprocessing::preprocessing_response::*;
     use crate::server_status::*;
     use crate::mime::*;
 
     #[test]
     fn test_response() {
         let response_info = ResponseInfo::new(HANDLEBARS, Some("x=y;a=b;".to_string()), Some("file=a/b/c".to_string()));
-        let response = HandlerResponse::new(&OK, &AAC_AUDIO, Some("value".to_string()), None, &response_info);
+        let response = PreprocessingResponse::new(&OK, &AAC_AUDIO, Some("value".to_string()), None, &response_info);
         assert_eq!(response.status.status, 200);
         assert_eq!(response.status.name, "OK");
         assert_eq!(response.status.context, "");

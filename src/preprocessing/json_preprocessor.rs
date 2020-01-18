@@ -2,10 +2,10 @@ use bytes::BytesMut;
 
 use crate::config;
 use crate::mime;
-use crate::handlers::handler_response::HandlerResponse;
+use crate::preprocessing::preprocessing_response::PreprocessingResponse;
 use crate::server_status;
 
-pub fn json_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) -> Result<HandlerResponse, server_status::ServerStatus> {
+pub fn json_preprocessor(service_entry: &config::ServiceEntry, _body: &mut BytesMut) -> Result<PreprocessingResponse, server_status::ServerStatus> {
     let value = match &service_entry.response_info.value {
         Some(value) => value,
         None => {
@@ -22,7 +22,7 @@ pub fn json_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) 
             return Err(error);
         }
     };
-    let response = HandlerResponse::new(&server_status::OK, &mime::JSON, Some(json), None, &service_entry.response_info);
+    let response = PreprocessingResponse::new(&server_status::OK, &mime::JSON, Some(json), None, &service_entry.response_info);
     Ok(response)
 }
 
@@ -32,11 +32,11 @@ pub fn json_handler(service_entry: &config::ServiceEntry, _body: &mut BytesMut) 
 
 #[cfg(test)]
 mod test {
-    use crate::handlers::json_handler::*;
+    use crate::preprocessing::json_preprocessor::*;
     use crate::config::*;
 
     #[test]
-    fn test_json_handler() {
+    fn test_json_preprocessor() {
         let mut response_info = ResponseInfo::new(TEXT, Some("name=Server;version=1.0;".to_string()), None);
         let mut service_entry = ServiceEntry::new(
             0, 
@@ -46,7 +46,7 @@ mod test {
             &None, 
             &None, 
             &None);
-        let mut response = json_handler(&service_entry, &mut BytesMut::new());
+        let mut response = json_preprocessor(&service_entry, &mut BytesMut::new());
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -66,7 +66,7 @@ mod test {
             &None, 
             &None, 
             &None);
-        response = json_handler(&service_entry, &mut BytesMut::new());
+        response = json_preprocessor(&service_entry, &mut BytesMut::new());
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -79,7 +79,7 @@ mod test {
     }
 
     #[test]
-    fn test_json_handler_error() {
+    fn test_json_preprocessor_error() {
         let response_info = ResponseInfo::new(TEXT, None, None);
         let service_entry = ServiceEntry::new(
             0, 
@@ -89,7 +89,7 @@ mod test {
             &None, 
             &None, 
             &None);
-        let response = json_handler(&service_entry, &mut BytesMut::new());
+        let response = json_preprocessor(&service_entry, &mut BytesMut::new());
         match response {
             Ok(_r) =>  assert_eq!(true, false),
             Err(e) => {
