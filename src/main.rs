@@ -13,7 +13,6 @@ mod http_codec;
 mod preprocessing;
 mod request;
 mod router;
-mod server_status;
 mod util;
 mod server;
 

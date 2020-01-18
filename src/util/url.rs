@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use std::collections::HashMap;
 
-use crate::server_status;
+use crate::util::server_status;
 
 // Functions for working with URLs and URL templates. A URL template is a URL that can contain params.
 // Example URL template: /user/:id

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::util::*;
-use crate::server_status::ServerStatus;
+use crate::util::server_status::ServerStatus;
 use std::fmt;
 use std::process;
 

@@ -6,7 +6,7 @@ use std::io;
 use std::str;
 use tokio_util::codec::{Decoder, Encoder};
 
-use crate::server_status;
+use crate::util::server_status;
 
 pub struct Http;
 

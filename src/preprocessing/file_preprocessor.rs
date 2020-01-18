@@ -4,7 +4,7 @@ use std::str;
 
 use crate::config;
 use crate::preprocessing::preprocessing_response::PreprocessingResponse;
-use crate::server_status;
+use crate::util::server_status;
 use crate::util::mime;
 use crate::util::url;
 
@@ -116,7 +116,7 @@ mod test {
     use crate::preprocessing::file_preprocessor::*;
     use crate::config::*;
     use bytes::{BytesMut, BufMut};
-    use crate::server_status;
+    use crate::util::server_status;
     use crate::util::mime;
 
     #[test]

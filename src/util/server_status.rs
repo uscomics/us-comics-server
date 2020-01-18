@@ -93,7 +93,7 @@ lazy_static! {
 
 #[cfg(test)]
 mod test {
-    use crate::server_status::*;
+    use crate::util::server_status::*;
 
     #[test]
     fn test_status() {

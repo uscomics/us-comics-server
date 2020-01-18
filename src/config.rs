@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 
 use crate::util::i18n;
-use crate::server_status;
+use crate::util::server_status;
 
 // Verb code
 pub const GET: u8 = 0;
