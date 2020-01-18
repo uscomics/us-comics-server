@@ -1,114 +1,129 @@
 #![allow(dead_code)]
-pub mod url {
-    use std::collections::HashMap;
+use std::collections::HashMap;
 
-    // Functions for working with URLs and URL templates. A URL template is a URL that can contain params.
-    // Example URL template: /user/:id
-    // Example URL that matches template: /user/1234
-    // URLs have scheme, authority, and possibly query fields. URL templates don't.
-    // URL tempates possibly have param fields. URLs don't.
-    pub fn has_scheme(url: & str) -> bool { url.to_string().contains(":") }
-    pub fn get_scheme(url: & str) -> String {
-        if !has_scheme(url) { return "".to_string(); }
-        let mut url_iter = url.split(":");
-        url_iter.next().unwrap().to_string()
-    }
-    pub fn remove_scheme(url: & str) -> String {
-        if !has_scheme(url) { return url.to_string(); }
-        let mut url_iter = url.split(":");
-        url_iter.next();
-        url_iter.next().unwrap().to_string()
-    }
-    pub fn has_authority (url: & str) -> bool { remove_scheme(url).to_string().contains("//") }
-    pub fn get_authority (url: & str) -> String {
-        if !has_authority(url) { return "".to_string(); }
-        let mut url_clean = remove_scheme(url);
-        url_clean = url_clean.trim_start_matches('/').to_string();
-        let mut url_iter = url_clean.split("/");
-        url_iter.next().unwrap().to_string()
-    }
-    pub fn remove_authority (url: & str) -> String {
-        if !has_authority(url) { return url.to_string(); }
-        let mut url_clean = remove_scheme(url);
-        url_clean = url_clean.trim_start_matches('/').to_string();
-        let mut url_iter = url_clean.split("/");
-        url_iter.next();
-        let mut result: String = "".to_owned();
-        url_iter.for_each(|item| {
-            result.push_str("/");
-            result.push_str(item);
-        });
-        result.to_string()
-    }
-    pub fn has_params(template: & str) -> bool { template.contains(":") }
-    pub fn get_params(url: & str, template: & str, params: &mut HashMap<String, String>) {
-        let url_no_scheme = remove_scheme(url);
-        let url_no_authority = remove_authority(url_no_scheme.as_str());
-        let url_clean = remove_query(url_no_authority.as_str());
-        let url_iter = url_clean.split("/");
-        let template_iter = template.split("/");
-        let zip_iter = template_iter.zip(url_iter);
-        params.clear();
-        zip_iter.for_each(|(template, url)| {
-            let mut template_chars_iterator = template.chars();
-            let first_char = template_chars_iterator.nth(0);
-            match first_char {
-                Some(c) => {
-                    if ':' != c { return; }
-                    let param_name: String = template_chars_iterator.collect();
-                    params.insert(param_name, url.to_string());
-                },
-                None    => return
-            }
-        });
-    }
-    pub fn set_params(url: & str, template: & str) -> String { 
-        let mut params: HashMap<String, String> = HashMap::new();
-        get_params(url, template, &mut params);
-        let params_iter = params.iter();
-        let mut result = template.to_string();
-        params_iter.for_each(|(key, value)| {
-            let mut k: String = ":".to_owned();
-            k.push_str(key);
-            result = str::replace(result.as_str(), k.as_str(), value);
-        });
-        result
-    }
-    pub fn has_query(url: & str) -> bool { url.to_string().contains("?") }
-    pub fn remove_query(url: & str) -> String {
-        let mut url_iter = url.split("?");
-        url_iter.next().unwrap().to_string()
-    }
-    pub fn get_query(url: & str, query: &mut HashMap<String, String>) {
-        query.clear();
-        if !has_query(url) { return; }
-        let mut url_iter = url.split("?");
-        url_iter.next();
-        match url_iter.next() {
-            Some(q) => {
-                let query_text = q.to_string();
-                let query_iter = query_text.split("&");
-                query_iter.for_each(|query_item| {
-                    let mut item_iter = query_item.split("=");
-                    match item_iter.next() {
-                        Some(key) => {
-                            match item_iter.next() {
-                                Some(value) => { query.insert(key.to_string(), value.to_string()); },
-                                None    => return
-                            }
-                        },
-                        None    => return
-                    }
-                })
+use crate::server_status;
+
+// Functions for working with URLs and URL templates. A URL template is a URL that can contain params.
+// Example URL template: /user/:id
+// Example URL that matches template: /user/1234
+// URLs have scheme, authority, and possibly query fields. URL templates don't.
+// URL tempates possibly have param fields. URLs don't.
+pub fn has_scheme(url: & str) -> bool { url.to_string().contains(":") }
+pub fn get_scheme(url: & str) -> String {
+    if !has_scheme(url) { return "".to_string(); }
+    let mut url_iter = url.split(":");
+    url_iter.next().unwrap().to_string()
+}
+pub fn remove_scheme(url: & str) -> String {
+    if !has_scheme(url) { return url.to_string(); }
+    let mut url_iter = url.split(":");
+    url_iter.next();
+    url_iter.next().unwrap().to_string()
+}
+pub fn has_authority (url: & str) -> bool { remove_scheme(url).to_string().contains("//") }
+pub fn get_authority (url: & str) -> String {
+    if !has_authority(url) { return "".to_string(); }
+    let mut url_clean = remove_scheme(url);
+    url_clean = url_clean.trim_start_matches('/').to_string();
+    let mut url_iter = url_clean.split("/");
+    url_iter.next().unwrap().to_string()
+}
+pub fn remove_authority (url: & str) -> String {
+    if !has_authority(url) { return url.to_string(); }
+    let mut url_clean = remove_scheme(url);
+    url_clean = url_clean.trim_start_matches('/').to_string();
+    let mut url_iter = url_clean.split("/");
+    url_iter.next();
+    let mut result: String = "".to_owned();
+    url_iter.for_each(|item| {
+        result.push_str("/");
+        result.push_str(item);
+    });
+    result.to_string()
+}
+pub fn has_params(template: & str) -> bool { template.contains(":") }
+pub fn get_params(url: & str, template: & str, params: &mut HashMap<String, String>) {
+    let url_no_scheme = remove_scheme(url);
+    let url_no_authority = remove_authority(url_no_scheme.as_str());
+    let url_clean = remove_query(url_no_authority.as_str());
+    let url_iter = url_clean.split("/");
+    let template_iter = template.split("/");
+    let zip_iter = template_iter.zip(url_iter);
+    params.clear();
+    zip_iter.for_each(|(template, url)| {
+        let mut template_chars_iterator = template.chars();
+        let first_char = template_chars_iterator.nth(0);
+        match first_char {
+            Some(c) => {
+                if ':' != c { return; }
+                let param_name: String = template_chars_iterator.collect();
+                params.insert(param_name, url.to_string());
             },
             None    => return
         }
+    });
+}
+pub fn set_params(url: & str, template: & str) -> Result<String, server_status::ServerStatus> { 
+    let url_clean = remove_query(&remove_authority(&remove_scheme(url)));
+    let url_elements = url_clean.split("/");
+    let template_elements = template.split("/");
+    if url_elements.count() != template_elements.count() { 
+        let mut error = server_status::INVALID_PATH.clone();
+        error.context = format!("url: {:?}, template: {:?}", url, template);
+        return Err(error); 
     }
-    pub fn matches(url: & str, template: & str) -> bool { 
-        let url_clean = remove_query(remove_authority(remove_scheme(url).as_str()).as_str());
-        let populated_template = set_params(url, template);
-        url_clean == populated_template
+
+    let mut params: HashMap<String, String> = HashMap::new();
+    get_params(url, template, &mut params);
+    let params_iter = params.iter();
+    let mut result = template.to_string();
+    params_iter.for_each(|(key, value)| {
+        let mut k: String = ":".to_owned();
+        k.push_str(key);
+        result = str::replace(result.as_str(), k.as_str(), value);
+    });
+    Ok(result)
+}
+pub fn has_query(url: & str) -> bool { url.to_string().contains("?") }
+pub fn remove_query(url: & str) -> String {
+    let mut url_iter = url.split("?");
+    url_iter.next().unwrap().to_string()
+}
+pub fn get_query(url: & str, query: &mut HashMap<String, String>) {
+    query.clear();
+    if !has_query(url) { return; }
+    let mut url_iter = url.split("?");
+    url_iter.next();
+    match url_iter.next() {
+        Some(q) => {
+            let query_text = q.to_string();
+            let query_iter = query_text.split("&");
+            query_iter.for_each(|query_item| {
+                let mut item_iter = query_item.split("=");
+                match item_iter.next() {
+                    Some(key) => {
+                        match item_iter.next() {
+                            Some(value) => { query.insert(key.to_string(), value.to_string()); },
+                            None    => return
+                        }
+                    },
+                    None    => return
+                }
+            })
+        },
+        None    => return
     }
+}
+pub fn matches(url: & str, template: & str) -> bool {
+    let url_clean = remove_query(&remove_authority(&remove_scheme(url)));
+    let url_elements = url_clean.split("/");
+    let template_elements = template.split("/");
+    if url_elements.count() != template_elements.count() { return false; }
+    let populated_template = match set_params(&url_clean.as_str(), template) {
+        Ok(pt) => pt,
+        Err(_e) => { return false; }
+    };
+    url_clean == populated_template
 }
 
 ///////////////////////////////////////////
@@ -117,7 +132,7 @@ pub mod url {
 
 #[cfg(test)]
 mod test {
-    use super::url::*;
+    use super::*;
     use std::collections::HashMap;
 
     #[test]
@@ -201,26 +216,21 @@ mod test {
 
     #[test]
     fn test_set_params() {
-        let mut params_set = set_params("/eat/at/joes", "/eat/at/joes");
+        let mut params_set = set_params("/eat/at/joes", "/eat/at/joes").unwrap();
         assert_eq!(params_set, "/eat/at/joes");
-        params_set = set_params("/eat/at/joes", "");
-        assert_eq!(params_set, "");
-        params_set = set_params("", "/:param1/:param2/:param3");
-        assert_eq!(params_set, "/:param1/:param2/:param3");
-        params_set = set_params("/eat/at/joes", "/:param1/:param2/:param3");
+        match set_params("/eat/at/joes", "") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 496) };
+        match set_params("", "/:param1/:param2/:param3") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 496) };
+        params_set = set_params("/eat/at/joes", "/:param1/:param2/:param3").unwrap();
         assert_eq!(params_set, "/eat/at/joes");
-        params_set = set_params("/eat/at/joes/now", "/:param1/:param2/:param3/now");
+        params_set = set_params("/eat/at/joes/now", "/:param1/:param2/:param3/now").unwrap();
         assert_eq!(params_set, "/eat/at/joes/now");
     
-        params_set = set_params("https://en.wikipedia.org/eat/at/joes", "/eat/at/joes");
+        params_set = set_params("https://en.wikipedia.org/eat/at/joes", "/eat/at/joes").unwrap();
         assert_eq!(params_set, "/eat/at/joes");
-        params_set = set_params("https://en.wikipedia.org/eat/at/joes", "");
-        assert_eq!(params_set, "");
-        params_set = set_params("", "/:param1/:param2/:param3");
-        assert_eq!(params_set, "/:param1/:param2/:param3");
-        params_set = set_params("https://en.wikipedia.org/eat/at/joes", "/:param1/:param2/:param3");
+        match set_params("https://en.wikipedia.org/eat/at/joes", "") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 496) };
+        params_set = set_params("https://en.wikipedia.org/eat/at/joes", "/:param1/:param2/:param3").unwrap();
         assert_eq!(params_set, "/eat/at/joes");
-        params_set = set_params("https://en.wikipedia.org/eat/at/joes/now", "/:param1/:param2/:param3/now");
+        params_set = set_params("https://en.wikipedia.org/eat/at/joes/now", "/:param1/:param2/:param3/now").unwrap();
         assert_eq!(params_set, "/eat/at/joes/now");
     }
 

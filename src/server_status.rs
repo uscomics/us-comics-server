@@ -15,6 +15,7 @@ impl fmt::Display for ServerStatus {
     }
 }
 
+// https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 #[allow(dead_code)]
 lazy_static! {
     pub static ref OK: ServerStatus = ServerStatus::new(200, "OK");
@@ -66,6 +67,9 @@ lazy_static! {
     pub static ref TOO_MANY_REQUESTS: ServerStatus = ServerStatus::new(429, "Too Many Requests");
     pub static ref REQUEST_HEADER_FIELDS_TOO_LARGE: ServerStatus = ServerStatus::new(431, "Request Header Fields Too Large");
     pub static ref UNAVAILABLE_FOR_LEGAL_REASONS: ServerStatus = ServerStatus::new(451, "Unavailable For Legal Reasons");
+    pub static ref INVALID_RESPONSE_CODE: ServerStatus = ServerStatus::new(494, "Invalid response code");
+    pub static ref INVALID_VALUE: ServerStatus = ServerStatus::new(495, "Invalid value");
+    pub static ref INVALID_PATH: ServerStatus = ServerStatus::new(496, "Invalid path");
     pub static ref INVALID_KEY_VALUE_PAIRS: ServerStatus = ServerStatus::new(497, "Invalid key/value pairs");
     pub static ref COULD_NOT_READ_HEADER: ServerStatus = ServerStatus::new(498, "Could not read header");
     pub static ref COULD_NOT_PARSE_HTTP_REQUEST: ServerStatus = ServerStatus::new(499, "Could not parse HTTP request");

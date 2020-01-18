@@ -6,11 +6,11 @@ use std::fs::File;
 pub static DEFAULT_LOCALE: &str = "en-US";
 pub static DEFAULT_PATH: &str = "./config/i18n/strings-en-US.txt";
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct I18n{
-    locale: String,
-    strings: Vec<String>,
-    path: String
+    pub locale: String,
+    pub strings: Vec<String>,
+    pub path: String
 }
 
 #[allow(dead_code)]

@@ -16,7 +16,7 @@ use crate::config;
 use crate::http_codec;
 use crate::i18n;
 use crate::log;
-use crate::{structured_all, structured_trace, structured_debug, structured_info, structured_warn, structured_error, structured_fatal, structured_log, style_text};
+use crate::{structured_debug, structured_info, structured_error, structured_log, style_text};
 use crate::strings;
 
 pub static DEFAULT_FIRECRACKER_PORT: u32 = 2;
@@ -64,10 +64,13 @@ impl Server {
         structured_info!( server.log, "{} {}", listening_message, addr);
 
         while let Some(Ok(stream)) = incoming.next().await {
+            let (locale, path, log_level) = (server.i18n.locale.clone(), server.i18n.path.clone(), server.log.level.clone());
             tokio::spawn(async move {
                 if let Err(e) = Server::read(stream).await {
-                    //let error_message = server.i18n.get(strings::REQUEST_NOT_READ);
-                    //structured_error!( server.log, "{} {:?}", error_message, e);
+                    let i18n = i18n::I18n::new(locale.as_str(), path.as_str());
+                    let error_message = i18n.get(strings::REQUEST_NOT_READ);
+                    let log = log::Log::new(log_level, &i18n);
+                    structured_error!( log, "{} {:?}", error_message, e);
                 }
             });
         }

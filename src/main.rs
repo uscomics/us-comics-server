@@ -3,13 +3,16 @@
 // https://stackoverflow.com/questions/53085270/how-do-i-implement-a-trait-with-a-generic-method
 
 #![warn(rust_2018_idioms)]
+#![recursion_limit="256"]
 use tokio;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate serde_derive;
 
 mod config;
+mod handlers;
 mod http_codec;
 mod i18n;
+mod mime;
 mod request;
 mod router;
 mod server_status;

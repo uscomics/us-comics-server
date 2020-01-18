@@ -173,7 +173,7 @@ pub fn build_file_error(message: &String, file: &String, status_code: ServerStat
 // Log.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Log{
-    level: Level,
+    pub level: Level,
     prefix_fatal_error: String,
     prefix_error: String,
     prefix_warning: String,
