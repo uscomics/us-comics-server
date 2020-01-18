@@ -1,6 +1,6 @@
 use crate::config;
-use crate::mime;
 use crate::server_status;
+use crate::util::mime;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct PreprocessingResponse {
@@ -26,7 +26,7 @@ mod test {
     use crate::config::*;
     use crate::preprocessing::preprocessing_response::*;
     use crate::server_status::*;
-    use crate::mime::*;
+    use crate::util::mime::*;
 
     #[test]
     fn test_response() {

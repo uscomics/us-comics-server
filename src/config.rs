@@ -3,7 +3,7 @@
 
 #![allow(dead_code)]
 
-use crate::i18n;
+use crate::util::i18n;
 use crate::server_status;
 
 // Verb code

@@ -1,7 +1,7 @@
 use bytes::BytesMut;
 
 use crate::config;
-use crate::mime;
+use crate::util::mime;
 use crate::preprocessing::preprocessing_response::PreprocessingResponse;
 use crate::server_status;
 

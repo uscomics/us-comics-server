@@ -1,4 +1,3 @@
-
 use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
@@ -105,7 +104,7 @@ lazy_static! {
 
 #[cfg(test)]
 mod test {
-    use crate::mime::*;
+    use crate::util::mime::*;
 
     #[test]
     fn test_mime() {

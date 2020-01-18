@@ -3,10 +3,10 @@ use serde_json::Value;
 use std::str;
 
 use crate::config;
-use crate::mime;
 use crate::preprocessing::preprocessing_response::PreprocessingResponse;
 use crate::server_status;
-use crate::url;
+use crate::util::mime;
+use crate::util::url;
 
 // Body contains the requested file and service_entry.response_info.file maps that request to an actual file.
 pub fn file_preprocessor(service_entry: &config::ServiceEntry, body: &mut BytesMut) -> Result<PreprocessingResponse, server_status::ServerStatus> {
@@ -117,7 +117,7 @@ mod test {
     use crate::config::*;
     use bytes::{BytesMut, BufMut};
     use crate::server_status;
-    use crate::mime;
+    use crate::util::mime;
 
     #[test]
     fn test_file_preprocessor() {

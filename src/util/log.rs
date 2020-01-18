@@ -1,6 +1,5 @@
 #![allow(dead_code)]
-use crate::i18n;
-use crate::strings;
+use crate::util::*;
 use crate::server_status::ServerStatus;
 use std::fmt;
 use std::process;
@@ -263,9 +262,7 @@ impl Log {
 // cargo test -- --nocapture
 #[cfg(test)]
 mod test {
-    use crate::log;
-    use crate::i18n;
-    use crate::strings;
+    use crate::util::*;
     use console::style;
     use chrono::prelude::*;
 

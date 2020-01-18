@@ -62,7 +62,7 @@ impl I18n {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::strings;
+    use crate::util::strings;
 
     #[test]
     fn test_new() {

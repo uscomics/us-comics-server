@@ -10,16 +10,12 @@ use tokio;
 
 mod config;
 mod http_codec;
-mod i18n;
-mod mime;
 mod preprocessing;
 mod request;
 mod router;
 mod server_status;
-mod strings;
-mod url;
+mod util;
 mod server;
-#[macro_use] mod log;
 
 // A "tiny" example of HTTP request/response handling using transports.
 //
