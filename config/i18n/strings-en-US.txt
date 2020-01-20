@@ -5,7 +5,7 @@ Login required.
 Incorrect username:
 Incorrect password.
 Login successful.
-Firecracker listening on
+Listening on
 FATAL ERROR
 ERROR
 WARNING

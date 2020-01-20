@@ -4,6 +4,8 @@ use console::style;
 use futures::SinkExt;
 use http::{Request, Response, StatusCode};
 use serde_json;
+use std::cell::Cell;
+use std::collections::HashMap;
 use std::{error::Error, io};
 use std::env;
 use std::fs::File;
@@ -17,12 +19,15 @@ use crate::http_codec;
 use crate::util::*;
 use crate::{structured_debug, structured_info, structured_error, structured_log, style_text};
 
-pub static DEFAULT_FIRECRACKER_PORT: u32 = 2;
+pub static DEFAULT_PORT: u32 = 2;
 
 pub struct Server {
     config: config::ServerConfig,
     i18n: i18n::I18n,
     log: log::Log
+}
+lazy_static! {
+    static ref CONFIG: Server = Server::init("./config/config.json").unwrap();
 }
 
 impl Server {
@@ -52,23 +57,20 @@ impl Server {
         Ok(Server::new(server_config_with_defaults, i18n, log))
     }
 
-    pub async fn start(server: &Server) -> Result<(), Box<dyn Error>> {
+    pub async fn start() -> Result<(), Box<dyn Error>> {
         // Parse the arguments, bind the TCP socket we'll be listening to, spin up
         // our worker threads, and start shipping sockets to those worker threads.
-        let addr = Server::get_firecracker_address(&server.config);
+        let addr = Server::get_address(&CONFIG.config);
         let mut tokio_server = TcpListener::bind(&addr).await?;
         let mut incoming = tokio_server.incoming();
-        let listening_message = server.i18n.get(strings::FIRECRACKER_LISTENING_ON_PORT);
-        structured_info!( server.log, "{} {}", listening_message, addr);
+        let listening_message = CONFIG.i18n.get(strings::LISTENING_ON_PORT);
+        structured_info!( CONFIG.log, "{} {}", listening_message, addr);
 
         while let Some(Ok(stream)) = incoming.next().await {
-            let (locale, path, log_level) = (server.i18n.locale.clone(), server.i18n.path.clone(), server.log.level.clone());
             tokio::spawn(async move {
                 if let Err(e) = Server::read(stream).await {
-                    let i18n = i18n::I18n::new(locale.as_str(), path.as_str());
-                    let error_message = i18n.get(strings::REQUEST_NOT_READ);
-                    let log = log::Log::new(log_level, &i18n);
-                    structured_error!( log, "{} {:?}", error_message, e);
+                    let error_message = CONFIG.i18n.get(strings::REQUEST_NOT_READ);
+                    structured_error!( CONFIG.log, "{} {:?}", error_message, e);
                 }
             });
         }
@@ -80,7 +82,7 @@ impl Server {
         while let Some(request) = transport.next().await {
             match request {
                 Ok(request) => {
-                    let response = Server::respond(request).await?;
+                    let response = Server::respond(request).await;
                     transport.send(response).await?;
                 }
                 Err(e) => return Err(e.into()),
@@ -89,8 +91,33 @@ impl Server {
         Ok(())
     }
 
-    async fn respond(req: Request<BytesMut>) -> Result<Response<String>, Box<dyn Error>> {
-        let mut response = Response::builder();
+    async fn respond(req: Request<BytesMut>) -> Response<String> {
+        let mut builder = Response::builder();
+        let url = req.uri().path();
+        let mut params = HashMap::new();
+        url::get_params(url, "/index/:id", &mut params);
+        let id = match(params["id"].parse::<usize>()) {
+            Ok(i) => i,
+            Err(e) => {
+                let error_message = server_status::COULD_NOT_PARSE_HTTP_REQUEST.clone();
+                structured_error!( CONFIG.log, "{:?} {:?}", error_message, e);
+                return builder.status(server_status::COULD_NOT_PARSE_HTTP_REQUEST.status)
+                    .body(server_status::COULD_NOT_PARSE_HTTP_REQUEST.name.clone()).unwrap();
+            }
+        };
+        if CONFIG.config.services.len() <= id {
+            let error_message = server_status::INVALID_SERVICE.clone();
+            structured_error!( CONFIG.log, "{:?}: {}", error_message, id);
+            return builder.status(server_status::INVALID_SERVICE.status)
+                .body(server_status::INVALID_SERVICE.name.clone()).unwrap();
+        }
+
+        let mut body = "".to_string();
+        if 0 == id {
+            builder = builder.header("Content-Type", "application/json");
+            body = "ping".to_string();
+        }
+        /*
         let body = match req.uri().path() {
             "/plaintext" => {
                 response = response.header("Content-Type", "text/plain");
@@ -123,21 +150,20 @@ impl Server {
                 String::new()
             }
         };
-        let response = response
-            .body(body)
-            .map_err(|err| io::Error::new(io::ErrorKind::Other, err))?;
+        */
+        let response = builder.body(body).unwrap();
 
-        Ok(response)
+        response
     }
 
-    fn get_firecracker_address(config: &config::ServerConfig) -> String {
+    fn get_address(config: &config::ServerConfig) -> String {
         let port = match config.server.port {
             Some(port) => port,
             None => {
                 for (key, value) in env::vars() {
-                    if key == ("FIRECRACKER_PORT") { value.parse::<u32>().unwrap_or(DEFAULT_FIRECRACKER_PORT); }
+                    if key == ("US_COMICS_PORT") { value.parse::<u32>().unwrap_or(DEFAULT_PORT); }
                 }
-                DEFAULT_FIRECRACKER_PORT
+                DEFAULT_PORT
             }
         };
         format!("{}{}", "127.0.0.1:", port)

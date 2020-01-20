@@ -9,7 +9,7 @@
       "id": 0,
       "name": "ping",
       "description": "Pings the server",
-      "response_info": { "code": 1, "value": "name=U.S. Comics Server;version=1.0"},
+      "response_info": { "code": 1, "value": "name=U.S. Comics Server;version=1.0"}
     }
   ]
 }

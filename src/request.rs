@@ -1,28 +1,6 @@
 #![allow(dead_code)]
 use std::collections::HashMap;
 
-// Converts request data into a JSON object used by Handlers.
-pub trait BodyParser {
-    type ParseResult;
-    fn name() -> &'static str;
-    fn parse(buf: &mut [u8]) -> Self::ParseResult;
-}
-
-// The result of a handler processing a request.
-pub struct EventResult<'a> {
-    pub code: u8,
-    pub message: &'a str,
-}
-impl<'a> EventResult<'a> {
-    pub fn new(code: u8, message: &'a str) -> EventResult<'a> { EventResult { code: code, message: message }}
-}
-
-// Processes a JSON object created by a Parser and returns a Status.
-pub trait Handler {
-    fn name() -> &'static str;
-    fn process<'a, T>(request: &T) -> EventResult<'a>;
-}
-
 pub fn get_route(data: &[u8]) -> String {
     let data_as_string = String::from_utf8(data.to_vec()).unwrap_or("".to_string());
     let mut lines = data_as_string.lines();
@@ -116,12 +94,5 @@ Connection: Keep-Alive
         get_body(req.as_bytes(), &mut body_vec);
         body = String::from_utf8(body_vec).unwrap();
         assert_eq!(body, "");    
-    }
-
-    #[test]
-    fn test_new_event_result() {
-        let event_result = EventResult::new(200, "OK");
-        assert_eq!(event_result.code, 200);
-        assert_eq!(event_result.message, "OK");
     }
 }
