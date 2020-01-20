@@ -132,7 +132,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        let mut response = file_preprocessor(&service_entry, &mut body);
+        let mut response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -154,7 +154,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        response = file_preprocessor(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -176,7 +176,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        response = file_preprocessor(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -202,7 +202,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/cat/dog\"}"[..]);
-        let response = file_preprocessor(&service_entry, &mut body);
+        let response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -228,7 +228,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/cat/dog\"}"[..]);
-        let response = file_preprocessor(&service_entry, &mut body);
+        let response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -254,7 +254,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        let mut response = file_preprocessor(&service_entry, &mut body);
+        let mut response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -274,7 +274,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        response = file_preprocessor(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -297,7 +297,7 @@ mod test {
             &None, 
             &None);
         let mut body = BytesMut::new();
-        let mut response = file_preprocessor(&service_entry, &mut body);
+        let mut response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -317,7 +317,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"JUNK"[..]);
-        response = file_preprocessor(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -337,7 +337,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"not_path\":\"/file/path\"}"[..]);
-        response = file_preprocessor(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -357,7 +357,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/x\"}"[..]);
-        response = file_preprocessor(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -377,7 +377,7 @@ mod test {
             &None);
         body = BytesMut::new();
         body.put(&b"{\"path\":\"/x/y/z\"}"[..]);
-        response = file_preprocessor(&service_entry, &mut body);
+        response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -401,7 +401,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/cat/dog\"}"[..]);
-        let response = file_preprocessor(&service_entry, &mut body);
+        let response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -425,7 +425,7 @@ mod test {
             &None);
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/cat/dog\"}"[..]);
-        let response = file_preprocessor(&service_entry, &mut body);
+        let response = file_preprocessor(&service_entry, &body);
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {

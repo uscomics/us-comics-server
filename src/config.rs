@@ -153,6 +153,8 @@ impl ServiceEntry {
     }
 }
 
+pub static DEFAULT_PORT: u32 = 8080;
+
 // Used to store basic server info.
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct ServerInfo {
@@ -173,7 +175,7 @@ impl ServerInfo {
     }
     pub fn default() -> ServerInfo {
         let server_info = ServerInfo {
-            port: Some(2),
+            port: Some(DEFAULT_PORT),
             logging: Some("WARN".to_string()),
             locale: Some(i18n::DEFAULT_LOCALE.to_string()),
             locale_path: Some(i18n::DEFAULT_PATH.to_string())
@@ -418,7 +420,7 @@ mod test {
     #[test]
     fn test_default_server_info() {
         let server_info = ServerInfo::default();
-        assert_eq!(server_info.port, Some(2));
+        assert_eq!(server_info.port, Some(DEFAULT_PORT));
         assert_eq!(server_info.logging, Some("WARN".to_string()));
         assert_eq!(server_info.locale, Some(i18n::DEFAULT_LOCALE.to_string()));
         assert_eq!(server_info.locale_path, Some(i18n::DEFAULT_PATH.to_string()));
@@ -432,7 +434,7 @@ mod test {
     fn test_add_defaults_server_info() {
         let server_info_none = ServerInfo::new( None, None, None, None);
         let server_info = ServerInfo::add_defaults(&server_info_none);
-        assert_eq!(server_info.port, Some(2));
+        assert_eq!(server_info.port, Some(DEFAULT_PORT));
         assert_eq!(server_info.logging, Some("WARN".to_string()));
         assert_eq!(server_info.locale, Some(i18n::DEFAULT_LOCALE.to_string()));
         assert_eq!(server_info.locale_path, Some(i18n::DEFAULT_PATH.to_string()));

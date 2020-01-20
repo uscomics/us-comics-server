@@ -38,7 +38,7 @@ mod test {
             &None, 
             &None, 
             &None);
-        let mut response = text_preprocessor(&service_entry, &mut BytesMut::new());
+        let mut response = text_preprocessor(&service_entry, &BytesMut::new());
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
