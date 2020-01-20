@@ -9,7 +9,7 @@ use crate::util::mime;
 use crate::util::url;
 
 // Body contains the requested file and service_entry.response_info.file maps that request to an actual file.
-pub fn file_preprocessor(service_entry: &config::ServiceEntry, body: &mut BytesMut) -> Result<PreprocessingResponse, server_status::ServerStatus> {
+pub fn file_preprocessor(service_entry: &config::ServiceEntry, body: &BytesMut) -> Result<PreprocessingResponse, server_status::ServerStatus> {
     // Validate the response file.
     let response_file = match &service_entry.response_info.file {
         Some(rf) => {

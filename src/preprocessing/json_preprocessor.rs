@@ -5,7 +5,7 @@ use crate::util::mime;
 use crate::preprocessing::preprocessing_response::PreprocessingResponse;
 use crate::util::server_status;
 
-pub fn json_preprocessor(service_entry: &config::ServiceEntry, _body: &mut BytesMut) -> Result<PreprocessingResponse, server_status::ServerStatus> {
+pub fn json_preprocessor(service_entry: &config::ServiceEntry, _body: &BytesMut) -> Result<PreprocessingResponse, server_status::ServerStatus> {
     let value = match &service_entry.response_info.value {
         Some(value) => value,
         None => {

@@ -2,9 +2,8 @@ use bytes::BytesMut;
 use chrono::prelude::*;
 use console::style;
 use futures::SinkExt;
-use http::{Request, Response, StatusCode};
+use http::{Request, Response};
 use serde_json;
-use std::cell::Cell;
 use std::collections::HashMap;
 use std::{error::Error, io};
 use std::env;
@@ -16,6 +15,10 @@ use tokio_util::codec::{Framed};
 
 use crate::config;
 use crate::http_codec;
+use crate::preprocessing::text_preprocessor::text_preprocessor;
+use crate::preprocessing::json_preprocessor::json_preprocessor;
+use crate::preprocessing::file_preprocessor::file_preprocessor;
+use crate::preprocessing::computed_preprocessor::computed_preprocessor;
 use crate::util::*;
 use crate::{structured_debug, structured_info, structured_error, structured_log, style_text};
 
@@ -92,11 +95,12 @@ impl Server {
     }
 
     async fn respond(req: Request<BytesMut>) -> Response<String> {
+        let mut req_body = req.body();
         let mut builder = Response::builder();
         let url = req.uri().path();
         let mut params = HashMap::new();
         url::get_params(url, "/index/:id", &mut params);
-        let id = match(params["id"].parse::<usize>()) {
+        let id = match params["id"].parse::<usize>() {
             Ok(i) => i,
             Err(e) => {
                 let error_message = server_status::COULD_NOT_PARSE_HTTP_REQUEST.clone();
@@ -114,6 +118,36 @@ impl Server {
 
         let mut body = "".to_string();
         if 0 == id {
+            let service_entry = CONFIG.config.services[id].clone();
+            let preprossing_reponse = match service_entry.response_info.code {
+                config::TEXT => text_preprocessor(&service_entry, &req_body),
+                config::JSON => json_preprocessor(&service_entry, &req_body),
+                config::BINARY_FILE => file_preprocessor(&service_entry, &req_body),
+                config::TEXT_FILE => file_preprocessor(&service_entry, &req_body),
+                config::HANDLEBARS => file_preprocessor(&service_entry, &req_body),
+                config::COMPUTED => computed_preprocessor(&service_entry, &req_body),
+                _ => {
+                    let error_message = server_status::INVALID_RESPONSE_CODE.clone();
+                    structured_error!( CONFIG.log, "{:?}: {}", error_message, id);
+                    return builder.status(server_status::INVALID_RESPONSE_CODE.status)
+                        .body(server_status::INVALID_RESPONSE_CODE.name.clone()).unwrap();
+                }
+            };
+            let preprocess = match preprossing_reponse {
+                Ok(pr) => pr,
+                Err(err) => {
+                    structured_error!( CONFIG.log, "{:?}: {}", err, id);
+                    return builder.status(err.status)
+                        .body(err.name.clone()).unwrap();
+                }
+            };
+            if server_status::ServerStatus::is_error(&preprocess.status) {
+                let error_message = server_status::INVALID_SERVICE.clone();
+                structured_error!( CONFIG.log, "{:?}: {}", error_message, id);
+                return builder.status(server_status::INVALID_SERVICE.status)
+                    .body(server_status::INVALID_SERVICE.name.clone()).unwrap();
+            }
+
             builder = builder.header("Content-Type", "application/json");
             body = "ping".to_string();
         }
@@ -143,7 +177,7 @@ impl Server {
                     body: "Body".to_string(),
                     user_id: 42,
                     message: "Hello, World!",
-                })?
+                }).unwrap()
             }
             _ => {
                 response = response.status(StatusCode::NOT_FOUND);

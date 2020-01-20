@@ -81,7 +81,7 @@ mod test {
         assert_eq!(i18n.get(strings::INCORRECT_USER_NAME), "Incorrect username:");
         assert_eq!(i18n.get(strings::INCORRECT_PASSWORD), "Incorrect password.");
         assert_eq!(i18n.get(strings::LOGIN_SUCCESSFUL), "Login successful.");
-        assert_eq!(i18n.get(strings::FIRECRACKER_LISTENING_ON_PORT), "Firecracker listening on");
+        assert_eq!(i18n.get(strings::LISTENING_ON_PORT), "Listening on");
         assert_eq!(i18n.get(strings::FATAL_ERROR), "FATAL ERROR");
         assert_eq!(i18n.get(strings::ERROR), "ERROR");
         assert_eq!(i18n.get(strings::WARNING), "WARNING");

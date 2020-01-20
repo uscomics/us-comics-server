@@ -8,6 +8,7 @@ pub struct ServerStatus {
 }
 impl ServerStatus {
     pub fn new(status: u16, name: &str) -> ServerStatus { ServerStatus { status: status, name: name.to_string(), context: "".to_string() }}
+    pub fn is_error(server_status: &ServerStatus) -> bool { return 300 <= server_status.status; }
 }
 impl fmt::Display for ServerStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -67,6 +68,7 @@ lazy_static! {
     pub static ref TOO_MANY_REQUESTS: ServerStatus = ServerStatus::new(429, "Too Many Requests");
     pub static ref REQUEST_HEADER_FIELDS_TOO_LARGE: ServerStatus = ServerStatus::new(431, "Request Header Fields Too Large");
     pub static ref UNAVAILABLE_FOR_LEGAL_REASONS: ServerStatus = ServerStatus::new(451, "Unavailable For Legal Reasons");
+
     pub static ref INVALID_SERVICE: ServerStatus = ServerStatus::new(493, "Invalid service");
     pub static ref INVALID_RESPONSE_CODE: ServerStatus = ServerStatus::new(494, "Invalid response code");
     pub static ref INVALID_VALUE: ServerStatus = ServerStatus::new(495, "Invalid value");
@@ -102,5 +104,9 @@ mod test {
         assert_eq!(status.status, 200);
         assert_eq!(status.name, "OK");
         assert_eq!(status.context, "");
+
+        ;
+        assert_eq!(ServerStatus::is_error(&OK), false);
+        assert_eq!(ServerStatus::is_error(&INTERNAL_SERVER_ERROR), true);
     }
 }
