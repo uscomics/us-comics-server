@@ -98,7 +98,7 @@ impl Encoder for Http {
             BytesWrite(dst),
             "\
              HTTP/1.1 {}\r\n\
-             Server: U.S.Comics Server\r\n\
+             Server: U.S. Comics Server\r\n\
              Content-Length: {}\r\n\
              ",
             item.status(),

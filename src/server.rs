@@ -90,7 +90,7 @@ impl Server {
         while let Some(request) = transport.next().await {
             match request {
                 Ok(request) => {
-                    let response = Server::respond(request).await;
+                    let response = Server::respond(request);
                     transport.send(response).await?;
                 }
                 Err(e) => return Err(e.into()),
@@ -99,9 +99,8 @@ impl Server {
         Ok(())
     }
 
-    async fn respond(req: http::request::Request<BytesMut>) -> http::response::Response<String> {
+    fn respond(req: http::request::Request<BytesMut>) -> http::response::Response<String> {
         let mut req_body = req.body();
-        let mut res_body = "".to_string();
         let service_entry = match Server::get_requested_service(req.uri().path(), &CONFIG) {
             Ok(se) => { se },
             Err(e) => { return e; }
@@ -111,10 +110,15 @@ impl Server {
             Err(e) => { return e; }
         };
         
-        res_body = "ping".to_string();
-        return http::response::Response::builder().status(server_status::OK.status)
-            .header("Content-Type", "text/plain")
-            .body(res_body.clone()).unwrap();
+        let mut resp_body = "".to_string();
+        if config::TEXT == preprocessing_response.response_info.code || config::JSON == preprocessing_response.response_info.code { 
+            resp_body = preprocessing_response.value.clone().unwrap(); 
+        }
+        let mut response: http::response::Response<String> = http::response::Response::builder()
+            .status(preprocessing_response.status.status)
+            .header("Content-Type", preprocessing_response.mime.mime_type)
+            .body(resp_body.clone()).unwrap();
+        return response;
     }
 
     fn get_address(server: &Server) -> String {
