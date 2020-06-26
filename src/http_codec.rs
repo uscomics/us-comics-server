@@ -88,33 +88,33 @@ impl Decoder for Http {
 /// Implementation of encoding an HTTP response into a `BytesMut`, basically
 /// just writing out an HTTP/1.1 response.
 impl Encoder for Http {
-    type Item = Response<String>;
+    type Item = Response<BytesMut>;
     type Error = io::Error;
 
-    fn encode(&mut self, item: Response<String>, dst: &mut BytesMut) -> io::Result<()> {
+    fn encode(&mut self, source_http_response: Response<BytesMut>, destination_bytes: &mut BytesMut) -> io::Result<()> {
         use std::fmt::Write;
 
         write!(
-            BytesWrite(dst),
+            BytesWrite(destination_bytes),
             "\
-             HTTP/1.1 {}\r\n\
-             Server: U.S. Comics Server\r\n\
-             Content-Length: {}\r\n\
-             ",
-            item.status(),
-            item.body().len()
+            HTTP/1.1 {}\r\n\
+            Server: U.S. Comics Server\r\n\
+            Content-Length: {}\r\n\
+            ",
+            source_http_response.status(),
+            source_http_response.body().len()
         )
         .unwrap();
 
-        for (key, value) in item.headers() {
-            dst.extend_from_slice(key.as_str().as_bytes());
-            dst.extend_from_slice(b": ");
-            dst.extend_from_slice(value.as_bytes());
-            dst.extend_from_slice(b"\r\n");
+        for (key, value) in source_http_response.headers() {
+            destination_bytes.extend_from_slice(key.as_str().as_bytes());
+            destination_bytes.extend_from_slice(b": ");
+            destination_bytes.extend_from_slice(value.as_bytes());
+            destination_bytes.extend_from_slice(b"\r\n");
         }
 
-        dst.extend_from_slice(b"\r\n");
-        dst.extend_from_slice(item.body().as_bytes());
+        destination_bytes.extend_from_slice(b"\r\n");
+        destination_bytes.extend_from_slice(source_http_response.body());
 
         return Ok(());
 

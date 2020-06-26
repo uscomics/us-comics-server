@@ -1,0 +1,467 @@
+{
+  "mocks": [
+    {
+      "id": 1,
+      "http": { "verb": 0, "path": "/ping"},
+      "response": { "type": 1, "value": {"name":"Mock Server","version":"1.0"}}
+    },
+    {
+      "path": "/json",
+      "response": "./src/config/server-config.json",
+      "responseType": "JSON"
+    },
+    {
+      "path": "/json-string-array",
+      "response": ["./server-config.json", "./test/test-data.json"],
+      "responseType": "JSON"
+    },
+    {
+      "path": "/json-object",
+      "response": {"title": "Index"},
+      "responseType": "JSON"
+    },
+    {
+      "path": "/json-object-array",
+      "response": [{"title": "Index"}, {"title": "Not Found"} ],
+      "responseType": "JSON"
+    },
+    {
+      "path": "/hbs",
+      "response": "index.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Index"}
+    },
+    {
+      "path": "/hbs-string-array",
+      "response": [ "index.hbs", "error.hbs" ],
+      "responseType": "HBS",
+      "hbsData": [ {"title": "Index"}, {"title": "Not Found"} ]
+    },
+    {
+      "path": "/text",
+      "response": "./views/index.hbs",
+      "responseType": "TEXT"
+    },
+    {
+      "path": "/text-string-array",
+      "response": [ "./views/index.hbs", "./views/error.hbs" ],
+      "responseType": "TEXT"
+    },
+    {
+      "path": "/text-object",
+      "response": {"title": "Index"},
+      "responseType": "TEXT"
+    },
+    {
+      "path": "/text-object2",
+      "response": {"text": "Index"},
+      "responseType": "TEXT"
+    },
+    {
+      "path": "/text-object-array",
+      "response": [{"title": "Index"}, {"title": "Not Found"} ],
+      "responseType": "TEXT"
+    },
+    {
+      "path": "/text-object-array2",
+      "response": [{"text": "Index"}, {"text": "Not Found"} ],
+      "responseType": "TEXT"
+    },
+    {
+      "path": "/uploadfile",
+      "response": "upload.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Upload File", "action": "upload", "verb": "POST"}
+    },
+    {
+      "path": "/elasticsearch/index/upload",
+      "response": "upload.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Upload ElasticSearch Index", "action": "/elasticsearch/index", "verb": "POST"}
+    },
+    {
+      "path": "/elasticsearch/index/mapping/upload",
+      "response": "upload.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Upload ElasticSearch Mapping", "action": "/elasticsearch/index/mapping", "verb": "POST"}
+    },
+    {
+      "path": "/elasticsearch/data/upload",
+      "response": "upload.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Upload ElasticSearch Data", "action": "/elasticsearch/data", "verb": "POST"}
+    },
+    {
+      "path": "/elasticsearch/data/update",
+      "response": "upload.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Update ElasticSearch Data", "action": "/elasticsearch/data/update", "verb": "POST"}
+    },
+    {
+      "path": "/upload/log",
+      "response": "upload.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Upload to log", "action": "/log", "verb": "POST"}
+    },
+    {
+      "path": "/upload/hotswap",
+      "response": "upload.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Upload hotswap config", "action": "/hotswap", "verb": "POST"}
+    },
+    {
+      "path": "/color",
+      "response": "color-picker.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Select a color", "action": "/color/schemes", "verb": "POST"}
+    },
+    {
+      "path": "/login",
+      "response": "login.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Login", "action": "/user/authenticate", "verb": "POST"}
+    },
+    {
+      "path": "/user/password/reset/request",
+      "response": "password-reset-request.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Password Reset Request", "action": "/user/password/reset/request/data", "verb": "POST"}
+    },
+    {
+      "path": "/comics",
+      "response": "./public/files/comics/comics.json",
+      "responseType": "JSON"
+    },
+    {
+      "path": "/comics/:user",
+      "response": "./private/users/:user/owned.json",
+      "responseType": "JSON"
+    },
+    {
+      "path": "/comics/:name/:issue/EndofPreview.jpg",
+      "response": "./public/files/EndofPreview.jpg",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/comics/:name/:issue/:page",
+      "response": "./public/files/comics/:name/:issue/:page",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/comics/:name/:issue",
+      "response": "./public/files/comics/:name/:issue/manifest.json",
+      "responseType": "JSON"
+    },
+    {
+      "path": "/favorites/:user",
+      "response": "./private/users/:user/favorites.json",
+      "responseType": "JSON"
+    },
+    {
+      "path": "/cart/:user",
+      "response": "./private/users/:user/cart.json",
+      "responseType": "JSON"
+    },
+    {
+      "path": "/user/add",
+      "response": "add-user.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Add User", "action": "/user/add/data", "verb": "POST" }
+    },
+    {
+      "path": "/user/update",
+      "response": "add-user.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Update User", "action": "/user/update/data", "verb": "POST" }
+    },
+    {
+      "path": "/user/favorites/add",
+      "response": "favorite.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Add Favorite", "action": "/user/favorites/add/data", "verb": "POST"}
+    },
+    {
+      "path": "/user/favorites/delete",
+      "response": "favorite.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Delete Favorite", "action": "/user/favorites/delete/data", "verb": "POST"}
+    },
+    {
+      "path": "/user/cart/add",
+      "response": "favorite.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Add Favorite", "action": "/user/cart/add/data", "verb": "POST"}
+    },
+    {
+      "path": "/user/cart/delete",
+      "response": "favorite.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Delete Favorite", "action": "/user/cart/delete/data", "verb": "POST"}
+    },
+    {
+      "path": "/user/cart/price",
+      "response": "pricing.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "pricing", "action": "/user/cart/price/data", "verb": "POST"}
+    },
+    {
+      "path": "/user/checkout",
+      "response": "checkout.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "Chekout", "action": "/user/checkout/data", "verb": "POST"}
+    },
+    {
+      "path": "/slideshow/:name",
+      "response": "./public/files/slideshows/:name/manifest.json",
+      "responseType": "JSON"
+    },
+    {
+      "path": "/slideshow/:name/:page",
+      "response": "./public/files/slideshows/:name/:page",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/remember",
+      "response": "remember.hbs",
+      "responseType": "HBS",
+      "hbsData": {"title": "remember", "action": "/remember/data", "verb": "POST"}
+    },
+    {
+      "path": "/",
+      "response": "./index.html",
+      "responseType": "TEXT"
+    },
+    {
+      "path": "/js/:name",
+      "response": "./js/:name",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/css/:name",
+      "response": "./css/:name",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/img/:name",
+      "response": "./img/:name",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/fonts/:name",
+      "response": "./fonts/:name",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/statics/:name",
+      "response": "./statics/:name",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/statics/rive/:name",
+      "response": "./statics/rive/:name",
+      "responseType": "BLOB"
+    },
+    {
+      "path": "/logo",
+      "response": "./public/USComicsLogo.png",
+      "responseType": "BLOB"
+    }
+  ],
+  "microservices": [
+    {
+      "verb": "POST",
+      "path": "/remember/data",
+      "name": "Remember",
+      "description": "Provides a user name if the server remembers their machine.",
+      "serviceFile": "remember.js"
+    },
+    {
+      "path": "/user/password/reset/reply/:token",
+      "name": "User Password Reply",
+      "description": "Provides a form which lets a user change their password.",
+      "serviceFile": "password-reset-form.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/password/reset/update",
+      "name": "Password Update",
+      "description": "Updates a password.",
+      "serviceFile": "password-update.js"
+    },
+    {
+      "path": "/user/:user/info",
+      "name": "Get User Info",
+      "description": "Provides basic information about a user.",
+      "serviceFile": "user-info.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/add/data",
+      "name": "Add account",
+      "description": "Adds an account to the server account file.",
+      "serviceFile": "add-account.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/update/data",
+      "name": "Update account",
+      "description": "updates an account to the server account file.",
+      "serviceFile": "update-account.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/favorites/add/data",
+      "name": "Add a user favorite",
+      "description": "Adds an item to the user favorite list.",
+      "serviceFile": "add-favorite.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/favorites/delete/data",
+      "name": "Delete a user favorite",
+      "description": "Deletes an item from the user favorite list.",
+      "serviceFile": "delete-favorite.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/cart/add/data",
+      "name": "Add an item to the user cart",
+      "description": "Adds an item to the user cart.",
+      "serviceFile": "add-to-cart.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/cart/delete/data",
+      "name": "Delete an item from the user cart",
+      "description": "Deletes an item from the user cart.",
+      "serviceFile": "delete-from-cart.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/cart/price/data",
+      "name": "Pricing",
+      "description": "Provides pricing infrmation for the items in a user cart.",
+      "serviceFile": "pricing.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/checkout/data",
+      "name": "Add books to the user account",
+      "description": "Adds books to the user account.",
+      "serviceFile": "checkout.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/user/authenticate",
+      "name": "Authenticate User",
+      "description": "Authenticates a user.",
+      "serviceFile": "authenticate-user.js",
+      "authentication": "local"
+    },
+    {
+      "verb": "POST",
+      "path": "/color/schemes",
+      "name": "Displays complimentary colors",
+      "description": "Displays complimentary colors",
+      "serviceFile": "color-schemes.js"
+    },
+    {
+      "path": "/mocks",
+      "name": "Mock Services List",
+      "description": "Provides a list of mock services registered with this server.",
+      "serviceFile": "mocks.js"
+    },
+    {
+      "path": "/microservices",
+      "name": "Microservices List",
+      "description": "Provides a list of microservices registered with this server.",
+      "serviceFile": "microservices.js"
+    },
+    {
+      "path": "/endpoints",
+      "name": "Endpoints List",
+      "description": "Provides a list of endpoints registered with this server.",
+      "serviceFile": "endpoints.js"
+    },
+    {
+      "path": "/databaseconnections",
+      "name": "Database Connection List",
+      "description": "Provides a list of database connections registered with this server.",
+      "serviceFile": "database-connections.js"
+    },
+    {
+      "path": "/download/:name",
+      "name": "File Download",
+      "description": "Downloads a file from the files directory of the server. The :name Parameter is the file name.",
+      "serviceFile": "download.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/upload",
+      "name": "File Upload",
+      "description": "Uploads a file from the client. The file was specified using upload.hbs",
+      "serviceFile": "upload.js"
+    },
+    {
+      "path": "/log",
+      "name": "Body To Log",
+      "description": "Prints a request's body to the log. Ensure that server logging is configured.",
+      "serviceFile": "log-request.js",
+      "serviceData": { "level": "DEBUG", "json": true },
+      "cookies": [
+        { "name": "MY_COOKIE1", "value": "MY_COOKIE_VALUE1" },
+        { "name": "MY_COOKIE2", "value": "MY_COOKIE_VALUE2", "expires": 9999 },
+        { "name": "MY_COOKIE3", "value": "MY_COOKIE_VALUE3", "maxAge" : 9999 }
+      ]
+    },
+    {
+      "path": "/strings",
+      "name": "String List",
+      "description": "Displays an array of strings.",
+      "serviceFile": "strings.js"
+    },
+    {
+      "path": "/throw",
+      "name": "Throw Exception",
+      "description": "A micro service that throws an exception. For testing purposes.",
+      "serviceFile": "throw.js"
+    }
+  ],
+  "endpoints": [
+    {
+      "verb": "POST",
+      "path": "/user/password/reset/request/data",
+      "name": "Password Reset",
+      "description": "Sends a password reset email to a user.",
+      "serviceFile": "password-reset-request.js"
+    },
+    {
+      "path": "/stop",
+      "name": "Stop",
+      "description": "Stops the server.",
+      "serviceFile": "stop.js"
+    },
+    {
+      "verb": "POST",
+      "path": "/hotswap",
+      "name": "Hot swap",
+      "description": "Hot swaps the server configuration.",
+      "serviceFile": "hot-swap.js"
+    }
+  ],
+  "databaseConnections" : [
+    {
+      "name": "elasticsearch",
+      "description": "Elasticsearch service.",
+      "databaseConnector": "elasticsearch.js",
+      "generateConnectionAPI": true,
+      "generateIndexAPI": true,
+      "generateDataAPI": true,
+      "config": {
+        "host": "localhost:9200",
+        "log": "trace"
+      },
+      "authorization": { "strategy": "local", "groups": [ "admin" ] }
+    }
+  ]
+}

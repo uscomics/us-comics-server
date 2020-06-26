@@ -5,7 +5,7 @@ use futures::SinkExt;
 use http;
 use serde_json;
 use std::collections::HashMap;
-use std::{error::Error, io};
+use std::error::Error;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
@@ -20,6 +20,12 @@ use crate::preprocessing::file_preprocessor::file_preprocessor;
 use crate::preprocessing::json_preprocessor::json_preprocessor;
 use crate::preprocessing::preprocessing_response::PreprocessingResponse;
 use crate::preprocessing::text_preprocessor::text_preprocessor;
+use crate::processing::binary_file_processor::binary_file_processor;
+// use crate::processing::computed_processor::computed_processor;
+use crate::processing::json_processor::json_processor;
+use crate::processing::processing_response::ProcessingResponse;
+use crate::processing::text_file_processor::text_file_processor;
+use crate::processing::text_processor::text_processor;
 use crate::util::i18n;
 use crate::util::log;
 use crate::util::server_status;
@@ -84,6 +90,7 @@ impl Server {
         }
         Ok(())
     }
+
     async fn read(stream: TcpStream) -> Result<(), Box<dyn Error>> {
         let mut transport = Framed::new(stream, http_codec::Http);
 
@@ -99,8 +106,8 @@ impl Server {
         Ok(())
     }
 
-    fn respond(req: http::request::Request<BytesMut>) -> http::response::Response<String> {
-        let mut req_body = req.body();
+    fn respond(req: http::request::Request<BytesMut>) -> http::response::Response<BytesMut> {
+        let req_body = req.body();
         let service_entry = match Server::get_requested_service(req.uri().path(), &CONFIG) {
             Ok(se) => { se },
             Err(e) => { return e; }
@@ -109,16 +116,14 @@ impl Server {
             Ok(pr) => { pr },
             Err(e) => { return e; }
         };
-        
-        let mut resp_body = "".to_string();
-        if config::TEXT == preprocessing_response.response_info.code || config::JSON == preprocessing_response.response_info.code { 
-            resp_body = preprocessing_response.value.clone().unwrap(); 
+        let processing_response = match Server::process(&preprocessing_response) {
+            Ok(pr) => { pr },
+            Err(e) => { return e; }
+        };
+        match Server::build_response(&processing_response) {
+            Ok(r) => return r,
+            Err(e) => return e
         }
-        let mut response: http::response::Response<String> = http::response::Response::builder()
-            .status(preprocessing_response.status.status)
-            .header("Content-Type", preprocessing_response.mime.mime_type)
-            .body(resp_body.clone()).unwrap();
-        return response;
     }
 
     fn get_address(server: &Server) -> String {
@@ -135,30 +140,49 @@ impl Server {
         format!("{}{}", "127.0.0.1:", port)
     }
 
-    fn build_error_response(status: &server_status::ServerStatus, context: &str) -> http::response::Response<String> {
+    fn build_error_response(status: &server_status::ServerStatus, context: &str) -> http::response::Response<BytesMut> {
         let mut status_clone: server_status::ServerStatus = status.clone();
         status_clone.context = context.to_string();
         structured_error!( CONFIG.log, "{:?}", status_clone);
-        return http::response::Response::builder().status(status.status)
-            .body(status.name.clone()).unwrap();
-
+        let mut body = BytesMut::new();
+        body.extend_from_slice(status.name.as_bytes());
+        http::response::Response::builder().status(status.status).body(body).unwrap()
     }
 
-    fn get_requested_service(path: &str, server: &Server) -> Result<config::ServiceEntry, http::response::Response<String>> {
-        if !url::matches(path, DEFAULT_PATH) { return Err(Server::build_error_response(&server_status::INVALID_SERVICE, "")); }
+    fn build_response(processing_response: &ProcessingResponse) -> Result<http::response::Response<BytesMut>, http::response::Response<BytesMut>> {
+        let mut response = http::response::Response::builder()
+            .status(processing_response.status.status.clone())
+            .header("Content-Type", processing_response.mime.mime_type.clone());
+        let mut headers = response.headers_mut().unwrap();
+        processing_response.copy_to_headers(&mut headers);
+        if !headers.contains_key("X-US-COMICS-FILE") { 
+            let body = if None != processing_response.body { processing_response.body.clone().unwrap() } else { BytesMut::new() };
+            return Ok(response.body(body).unwrap()); 
+        }
+        let value_bytes = headers.get("X-US-COMICS-FILE").unwrap().as_bytes();
+        let value = std::str::from_utf8(value_bytes).unwrap();
+        let body = Server::get_file_bytes(&String::from(value))?;
+        Ok(response.body(body).unwrap())
+    }
+
+    fn get_requested_service(path: &str, server: &Server) -> Result<config::ServiceEntry, http::response::Response<BytesMut>> {
+        if "/favicon.ico" == path { return Err(Server::build_error_response(&server_status::INVALID_SERVICE, path)); }
+        if !url::matches(path, DEFAULT_PATH) {
+            return Err(Server::build_error_response(&server_status::INVALID_SERVICE, path)); 
+        }
         let mut params = HashMap::new();
         url::get_params(path, DEFAULT_PATH, &mut params);
-        if !params.contains_key("id") { return Err(Server::build_error_response(&server_status::INVALID_SERVICE, "")); }
+        if !params.contains_key("id") { return Err(Server::build_error_response(&server_status::INVALID_SERVICE, path)); }
         let id = match params["id"].parse::<usize>() {
             Ok(i) => i,
             Err(e) => { return Err(Server::build_error_response(&server_status::INVALID_SERVICE, format!("{:?}", e).as_str())); }
         };
         if server.config.services.len() <= id { return Err(Server::build_error_response(&server_status::INVALID_SERVICE, format!("{}", id).as_str())); }
 
-        return Ok(CONFIG.config.services[id].clone());
+        Ok(CONFIG.config.services[id].clone())
     }
 
-    fn preprocess(service_entry: &config::ServiceEntry, req_body: &BytesMut) -> Result<PreprocessingResponse, http::response::Response<String>> {
+    fn preprocess(service_entry: &config::ServiceEntry, req_body: &BytesMut) -> Result<PreprocessingResponse, http::response::Response<BytesMut>> {
         let preprocess = match service_entry.response_info.code {
             config::TEXT => text_preprocessor(&service_entry, req_body),
             config::JSON => json_preprocessor(&service_entry, req_body),
@@ -177,7 +201,46 @@ impl Server {
         if server_status::ServerStatus::is_error(&preprocessing_reponse.status) {
             return Err(Server::build_error_response(&server_status::INVALID_SERVICE, ""));
         }
-        return Ok(preprocessing_reponse);
+        Ok(preprocessing_reponse)
+    }
+
+    fn process(preprocessing_response: &PreprocessingResponse) -> Result<ProcessingResponse, http::response::Response<BytesMut>> {
+        let process = match preprocessing_response.response_info.code {
+            config::TEXT => text_processor(&preprocessing_response),
+            config::JSON => json_processor(&preprocessing_response),
+            config::BINARY_FILE => binary_file_processor(&preprocessing_response),
+            config::TEXT_FILE => text_file_processor(&preprocessing_response),
+            // config::HANDLEBARS => file_processor(&preprocessing_response),
+            // config::COMPUTED => computed_processor(&preprocessing_response),
+            _ => {
+                return Err(Server::build_error_response(&server_status::INVALID_RESPONSE_CODE, ""));
+            }
+        };
+        let processing_reponse = match process {
+            Ok(pr) => pr,
+            Err(err) => { return Err(Server::build_error_response(&err, "")); }
+        };
+        if server_status::ServerStatus::is_error(&processing_reponse.status) {
+            return Err(Server::build_error_response(&server_status::INVALID_SERVICE, ""));
+        }
+        Ok(processing_reponse)
+    }
+
+    fn get_file_bytes(file_name: &String) -> Result<BytesMut, http::response::Response<BytesMut>> {
+        let mut file = match std::fs::File::open(&file_name){
+            Ok(f) => f,
+            Err(_e) => return Err(Server::build_error_response(&server_status::NOT_FOUND, ""))
+        };
+
+        let mut data = Vec::new();
+        match file.read_to_end(&mut data) {
+            Ok(_f) => { 
+                let mut data2 = BytesMut::with_capacity(0);
+                data2.extend_from_slice(&data);
+                return Ok(data2) 
+            },
+            Err(_e) => return Err(Server::build_error_response(&server_status::INTERNAL_SERVER_ERROR, ""))
+        }
     }
 }
 
@@ -426,5 +489,21 @@ mod test {
                 assert_eq!(*(e.body()), server_status::INVALID_PATH.name);
             }
         }
+    }
+
+    #[test]
+    fn test_respond() {
+        let request = http::request::Request::builder()
+            .method("POST")
+            .uri("https://www.rust-lang.org/index/0")
+            .version(http::version::Version::HTTP_11)
+            .body(BytesMut::new())
+            .unwrap();
+        let response = Server::respond(request);
+
+        assert_eq!(response.status(), server_status::OK.status);
+        assert_eq!(response.headers().contains_key("Content-Type"), true);
+        assert_eq!(response.headers().get("Content-Type").unwrap().to_str().unwrap(), mime::JSON.mime_type.as_str());
+        assert_eq!(response.body(), "{\"name\":\"U.S. Comics Server\",\"version\":\"0.0.1\"}");        
     }
 }

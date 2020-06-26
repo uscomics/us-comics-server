@@ -11,17 +11,12 @@ use tokio;
 mod config;
 mod http_codec;
 mod preprocessing;
+mod processing;
 mod request;
 mod router;
 mod util;
 mod server;
 
-// A "tiny" example of HTTP request/response handling using transports.
-//
-// Code here is based on the `echo-threads` example and implements two paths,
-// the `/plaintext` and `/json` routes to respond with some text and json,
-// respectively. By default this will run I/O on all the cores your system has
-// available, and it doesn't support HTTP request bodies.
 #[tokio::main]
 async fn main() {
     server::Server::start().await;

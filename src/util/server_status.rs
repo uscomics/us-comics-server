@@ -105,7 +105,6 @@ mod test {
         assert_eq!(status.name, "OK");
         assert_eq!(status.context, "");
 
-        ;
         assert_eq!(ServerStatus::is_error(&OK), false);
         assert_eq!(ServerStatus::is_error(&INTERNAL_SERVER_ERROR), true);
     }
