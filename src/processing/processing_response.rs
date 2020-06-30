@@ -47,7 +47,7 @@ mod test {
         let preprocessing_response = PreprocessingResponse::new(&OK, &AAC_AUDIO, Some("value".to_string()), None, &response_info);
         let mut headers = http::header::HeaderMap::new();
         let mut body = BytesMut::new();
-        let header_name = http::header::HeaderName::from_lowercase(b"HEADER").unwrap();
+        let header_name = http::header::HeaderName::from_lowercase(b"header").unwrap();
         let value = "value";
         let header_value = http::header::HeaderValue::from_str(value).unwrap();
         headers.insert(header_name, header_value);

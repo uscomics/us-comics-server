@@ -6,7 +6,7 @@ use crate::util::mime;
 use crate::util::server_status;
 
 pub fn json_processor(preprocessing_response: &PreprocessingResponse) -> Result<ProcessingResponse, server_status::ServerStatus> {
-    let value = match &preprocessing_response.value {
+    let preprocessing_value = match &preprocessing_response.value {
         Some(v) => v,
         None => {
             let mut error = server_status::INVALID_VALUE.clone();
@@ -15,11 +15,11 @@ pub fn json_processor(preprocessing_response: &PreprocessingResponse) -> Result<
         }
     };
     let mut headers = http::header::HeaderMap::new();
-    let value = format!("{}", value.len());
+    let value = format!("{}", preprocessing_value.len());
     let header_value = http::header::HeaderValue::from_str(value.as_str()).unwrap();
     headers.insert(http::header::CONTENT_LENGTH, header_value);
     let mut body = BytesMut::with_capacity(value.len());
-    body.put(value.as_bytes());
+    body.put(preprocessing_value.as_bytes());
     let response = ProcessingResponse::new(&server_status::OK, &mime::JSON, &headers, &Some(body), &preprocessing_response);
     Ok(response)
 }

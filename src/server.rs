@@ -226,7 +226,7 @@ impl Server {
         Ok(processing_reponse)
     }
 
-    fn get_file_bytes(file_name: &String) -> Result<BytesMut, http::response::Response<BytesMut>> {
+    pub fn get_file_bytes(file_name: &str) -> Result<BytesMut, http::response::Response<BytesMut>> {
         let mut file = match std::fs::File::open(&file_name){
             Ok(f) => f,
             Err(_e) => return Err(Server::build_error_response(&server_status::NOT_FOUND, ""))
@@ -256,20 +256,13 @@ mod test {
 
     fn build_server() -> Server{
         let mut file = File::open("./config/config.json").unwrap();
-        let mut contents = String::new();
-        file.read_to_string(&mut contents).unwrap();
-        let server_config: config::ServerConfig = serde_json::from_str(contents.as_str()).unwrap();
-        let server_info_with_defaults = config::ServerInfo::add_defaults(&server_config.server);
-        let server_config_with_defaults = config::ServerConfig::new(&server_info_with_defaults, &server_config.services);
-        let i18n = i18n::I18n::new(server_info_with_defaults.locale.clone().unwrap().as_str(), server_info_with_defaults.locale_path.clone().unwrap().as_str());
-        let log_level = log::Log::get_level(server_info_with_defaults.logging.clone().unwrap().as_str());
-        let log = log::Log::new(log_level, &i18n);
-        let server = Server::new(server_config_with_defaults, i18n, log);
-        return server;
+        let mut config = String::new();
+        file.read_to_string(&mut config).unwrap();
+        build_server_from(&config)
     }
 
-    fn build_server_from(contents: &str) -> Server{
-        let server_config: config::ServerConfig = serde_json::from_str(contents).unwrap();
+    fn build_server_from(config: &str) -> Server{
+        let server_config: config::ServerConfig = serde_json::from_str(config).unwrap();
         let server_info_with_defaults = config::ServerInfo::add_defaults(&server_config.server);
         let server_config_with_defaults = config::ServerConfig::new(&server_info_with_defaults, &server_config.services);
         let i18n = i18n::I18n::new(server_info_with_defaults.locale.clone().unwrap().as_str(), server_info_with_defaults.locale_path.clone().unwrap().as_str());
@@ -320,19 +313,19 @@ mod test {
             Err(_e) => assert_eq!(true, false)
         }
         match Server::get_requested_service("/index/999", &server) {
-            Ok(service) => assert_eq!(true, false),
+            Ok(_service) => assert_eq!(true, false),
             Err(e) => assert_eq!(e.status(), server_status::INVALID_SERVICE.status)
         }
         match Server::get_requested_service("/index", &server) {
-            Ok(service) => assert_eq!(true, false),
+            Ok(_service) => assert_eq!(true, false),
             Err(e) => assert_eq!(e.status(), server_status::INVALID_SERVICE.status)
         }
         match Server::get_requested_service("/JUNK", &server) {
-            Ok(service) => assert_eq!(true, false),
+            Ok(_service) => assert_eq!(true, false),
             Err(e) => assert_eq!(e.status(), server_status::INVALID_SERVICE.status)
         }
         match Server::get_requested_service("/JUNK/0", &server) {
-            Ok(service) => assert_eq!(true, false),
+            Ok(_service) => assert_eq!(true, false),
             Err(e) => assert_eq!(e.status(), server_status::INVALID_SERVICE.status)
         }
     }
@@ -369,7 +362,7 @@ mod test {
             &None, 
             &None, 
             &None);
-        let mut response = Server::preprocess(&service_entry, &BytesMut::new());
+        response = Server::preprocess(&service_entry, &BytesMut::new());
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -392,7 +385,7 @@ mod test {
         );
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        let mut response = Server::preprocess(&service_entry, &body);
+        response = Server::preprocess(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -415,7 +408,7 @@ mod test {
         );
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        let mut response = Server::preprocess(&service_entry, &body);
+        response = Server::preprocess(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -438,7 +431,7 @@ mod test {
         );
         let mut body = BytesMut::new();
         body.put(&b"{\"path\":\"/file/path\"}"[..]);
-        let mut response = Server::preprocess(&service_entry, &body);
+        response = Server::preprocess(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
@@ -471,8 +464,8 @@ mod test {
             }
         };    
 
-        let mut response_info = config::ResponseInfo::new(config::TEXT_FILE, Some("Text goes here".to_string()), None);
-        let mut service_entry = config::ServiceEntry::new(
+        response_info = config::ResponseInfo::new(config::TEXT_FILE, Some("Text goes here".to_string()), None);
+        service_entry = config::ServiceEntry::new(
             0, 
             "name", 
             "description", 
@@ -481,7 +474,7 @@ mod test {
             &None, 
             &None
         );
-        let mut response = Server::preprocess(&service_entry, &BytesMut::new());
+        response = Server::preprocess(&service_entry, &BytesMut::new());
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
@@ -506,4 +499,17 @@ mod test {
         assert_eq!(response.headers().get("Content-Type").unwrap().to_str().unwrap(), mime::JSON.mime_type.as_str());
         assert_eq!(response.body(), "{\"name\":\"U.S. Comics Server\",\"version\":\"0.0.1\"}");        
     }
+
+    #[test]
+    fn test_get_file_bytes() {
+        match super::Server::get_file_bytes("./config/config.json") {
+            Ok(b) => {
+                assert_eq!(276, b.len());        
+            }
+            Err(_e) => {
+                assert_eq!(true, false);        
+            }
+        }
+    }
+
 }
