@@ -9,6 +9,30 @@
       "name": "ping",
       "description": "Pings the server",
       "response_info": { "code": 1, "value": "name=U.S. Comics Server;version=0.0.1"}
+    },
+    {
+      "id": 1,
+      "name": "text",
+      "description": "Text service",
+      "response_info": { "code": 0, "value": "Some text."}
+    },
+    {
+      "id": 2,
+      "name": "json text",
+      "description": "JSON text service",
+      "response_info": { "code": 1, "value": "name=Server;version=1.0;"}
+    },
+    {
+      "id": 3,
+      "name": "text file",
+      "description": "Text file service",
+      "response_info": { "code": 3, "file": "./:file"}
+    },
+    {
+      "id": 4,
+      "name": "binary file",
+      "description": "Binary file service",
+      "response_info": { "code": 2, "file": "./:file"}
     }
   ]
 }

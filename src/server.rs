@@ -229,7 +229,7 @@ impl Server {
     pub fn get_file_bytes(file_name: &str) -> Result<BytesMut, http::response::Response<BytesMut>> {
         let mut file = match std::fs::File::open(&file_name){
             Ok(f) => f,
-            Err(_e) => return Err(Server::build_error_response(&server_status::NOT_FOUND, ""))
+            Err(_e) => return Err(Server::build_error_response(&server_status::NOT_FOUND, file_name))
         };
 
         let mut data = Vec::new();
@@ -239,7 +239,7 @@ impl Server {
                 data2.extend_from_slice(&data);
                 return Ok(data2) 
             },
-            Err(_e) => return Err(Server::build_error_response(&server_status::INTERNAL_SERVER_ERROR, ""))
+            Err(_e) => return Err(Server::build_error_response(&server_status::INTERNAL_SERVER_ERROR, file_name))
         }
     }
 }
@@ -373,7 +373,7 @@ mod test {
             Err(_e) => assert_eq!(true, false)
         }
         
-        response_info = config::ResponseInfo::new(config::TEXT_FILE, None, Some("/file/path".to_string()));
+        response_info = config::ResponseInfo::new(config::TEXT_FILE, None, Some("./path/to/:file".to_string()));
         service_entry = config::ServiceEntry::new(
             0, 
             "name", 
@@ -384,19 +384,19 @@ mod test {
             &None
         );
         let mut body = BytesMut::new();
-        body.put(&b"{\"path\":\"/file/path\"}"[..]);
+        body.put(&b"{\"file\":\"my.file\"}"[..]);
         response = Server::preprocess(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
                 assert_eq!(r.mime, *mime::TEXT);
-                assert_eq!(r.file, Some("/file/path".to_string()));
+                assert_eq!(r.file, Some("./path/to/my.file".to_string()));
                 assert_eq!(r.response_info, response_info);        
             },
             Err(_e) => assert_eq!(true, false)
         }
         
-        response_info = config::ResponseInfo::new(config::BINARY_FILE, None, Some("/file/path".to_string()));
+        response_info = config::ResponseInfo::new(config::BINARY_FILE, None, Some("./path/to/:file".to_string()));
         service_entry = config::ServiceEntry::new(
             0, 
             "name", 
@@ -407,19 +407,19 @@ mod test {
             &None
         );
         let mut body = BytesMut::new();
-        body.put(&b"{\"path\":\"/file/path\"}"[..]);
+        body.put(&b"{\"file\":\"my.file\"}"[..]);
         response = Server::preprocess(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
                 assert_eq!(r.mime, *mime::BINARY);
-                assert_eq!(r.file, Some("/file/path".to_string()));
+                assert_eq!(r.file, Some("./path/to/my.file".to_string()));
                 assert_eq!(r.response_info, response_info);        
             },
             Err(_e) => assert_eq!(true, false)
         }
         
-        response_info = config::ResponseInfo::new(config::HANDLEBARS, None, Some("/file/path".to_string()));
+        response_info = config::ResponseInfo::new(config::HANDLEBARS, None, Some("./path/to/:file".to_string()));
         service_entry = config::ServiceEntry::new(
             0, 
             "name", 
@@ -430,13 +430,13 @@ mod test {
             &None
         );
         let mut body = BytesMut::new();
-        body.put(&b"{\"path\":\"/file/path\"}"[..]);
+        body.put(&b"{\"file\":\"my.file\"}"[..]);
         response = Server::preprocess(&service_entry, &body);
         match response {
             Ok(r) => {
                 assert_eq!(r.status, *server_status::OK);
                 assert_eq!(r.mime, *mime::HTML);
-                assert_eq!(r.file, Some("/file/path".to_string()));
+                assert_eq!(r.file, Some("./path/to/my.file".to_string()));
                 assert_eq!(r.response_info, response_info);        
             },
             Err(_e) => assert_eq!(true, false)
@@ -478,8 +478,8 @@ mod test {
         match response {
             Ok(_r) => assert_eq!(true, false),
             Err(e) => {
-                assert_eq!(e.status(), server_status::INVALID_PATH.status);
-                assert_eq!(*(e.body()), server_status::INVALID_PATH.name);
+                assert_eq!(e.status(), server_status::INVALID_FILE.status);
+                assert_eq!(*(e.body()), server_status::INVALID_FILE.name);
             }
         }
     }
@@ -502,9 +502,9 @@ mod test {
 
     #[test]
     fn test_get_file_bytes() {
-        match super::Server::get_file_bytes("./config/config.json") {
+        match super::Server::get_file_bytes("./cargo.toml") {
             Ok(b) => {
-                assert_eq!(276, b.len());        
+                assert_eq!(595, b.len());        
             }
             Err(_e) => {
                 assert_eq!(true, false);        

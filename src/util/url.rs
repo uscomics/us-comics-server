@@ -68,7 +68,7 @@ pub fn set_params(url: & str, template: & str) -> Result<String, server_status::
     let url_elements = url_clean.split("/");
     let template_elements = template.split("/");
     if url_elements.count() != template_elements.count() { 
-        let mut error = server_status::INVALID_PATH.clone();
+        let mut error = server_status::INVALID_URL_PATH.clone();
         error.context = format!("url: {:?}, template: {:?}", url, template);
         return Err(error); 
     }
@@ -218,8 +218,8 @@ mod test {
     fn test_set_params() {
         let mut params_set = set_params("/eat/at/joes", "/eat/at/joes").unwrap();
         assert_eq!(params_set, "/eat/at/joes");
-        match set_params("/eat/at/joes", "") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 496) };
-        match set_params("", "/:param1/:param2/:param3") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 496) };
+        match set_params("/eat/at/joes", "") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 492) };
+        match set_params("", "/:param1/:param2/:param3") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 492) };
         params_set = set_params("/eat/at/joes", "/:param1/:param2/:param3").unwrap();
         assert_eq!(params_set, "/eat/at/joes");
         params_set = set_params("/eat/at/joes/now", "/:param1/:param2/:param3/now").unwrap();
@@ -227,7 +227,7 @@ mod test {
     
         params_set = set_params("https://en.wikipedia.org/eat/at/joes", "/eat/at/joes").unwrap();
         assert_eq!(params_set, "/eat/at/joes");
-        match set_params("https://en.wikipedia.org/eat/at/joes", "") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 496) };
+        match set_params("https://en.wikipedia.org/eat/at/joes", "") { Ok(_p) => assert_eq!(true, false), Err(e) => assert_eq!(e.status, 492) };
         params_set = set_params("https://en.wikipedia.org/eat/at/joes", "/:param1/:param2/:param3").unwrap();
         assert_eq!(params_set, "/eat/at/joes");
         params_set = set_params("https://en.wikipedia.org/eat/at/joes/now", "/:param1/:param2/:param3/now").unwrap();

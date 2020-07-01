@@ -19,13 +19,19 @@ pub const OPIONS: u8 = 4;
 //   the to_json() function to convert name=value entries to a JSON string.
 // * A colon in a path represents a parameter. The body of the request MUST supply the values
 //   for these parameters.
-// * For binary, text, and handlebars files, the requested file is in the body. The file entry in
-//   the config maps the requested file to a file on the server.
+// * For binary, text, and handlebars files:
+//      * The requested file is in the body as JSON. The JSON has only a file member which contains only the file name. Example: {"file": "my.file"}" 
+//      * The file entry in the config must contain one :file param.
+//      * The file entry in the config maps the requested file to a file on the server.
+//      * Example: 
+//      * Given request body: {"file": "my.file"}
+//      * Given config file param: ./required/path/to/requested/text/data/:file
+//      * Server returns the file located at ./required/path/to/requested/text/data/my.file
 // 0 = Text           "response": { "type": 0, "value": "Text goes here" }
 // 1 = JSON           "response": { "type": 1, "value": "name=Server;version=1.0;"}
-// 2 = Binary file    "response": { "type": 2, "file": "./required/path/to/binary/data/file"}
-// 3 = Text file      "response": { "type": 3, "file": ".required/path/to/:requested/binary/data/:file"}
-// 4 = Handlebars     "response": { "type": 4, "value": "title=Handlebars template data;goes=here;" "file": "./required/path/to/handlebars/template"}
+// 2 = Binary file    "response": { "type": 2, "file": "./required/path/to/binary/data/:file"}
+// 3 = Text file      "response": { "type": 3, "file": "./required/path/to/requested/text/data/:file"}
+// 4 = Handlebars     "response": { "type": 4, "value": "title=Handlebars template data;goes=here;" "file": "./required/path/to/handlebars/template/:file"}
 // 5 = Computed       "response": { "type": 5 }
 pub const TEXT: u8 = 0;
 pub const JSON: u8 = 1;
