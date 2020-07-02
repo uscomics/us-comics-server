@@ -22,6 +22,7 @@ use crate::preprocessing::preprocessing_response::PreprocessingResponse;
 use crate::preprocessing::text_preprocessor::text_preprocessor;
 use crate::processing::binary_file_processor::binary_file_processor;
 // use crate::processing::computed_processor::computed_processor;
+use crate::processing::handlebars_file_processor::handlebars_file_processor;
 use crate::processing::json_processor::json_processor;
 use crate::processing::processing_response::ProcessingResponse;
 use crate::processing::text_file_processor::text_file_processor;
@@ -162,7 +163,7 @@ impl Server {
         let value_bytes = headers.get("X-US-COMICS-FILE").unwrap().as_bytes();
         let value = std::str::from_utf8(value_bytes).unwrap();
         let body = Server::get_file_bytes(&String::from(value))?;
-        Ok(response.body(body).unwrap())
+        return Ok(response.body(body).unwrap());
     }
 
     fn get_requested_service(path: &str, server: &Server) -> Result<config::ServiceEntry, http::response::Response<BytesMut>> {
@@ -210,7 +211,7 @@ impl Server {
             config::JSON => json_processor(&preprocessing_response),
             config::BINARY_FILE => binary_file_processor(&preprocessing_response),
             config::TEXT_FILE => text_file_processor(&preprocessing_response),
-            // config::HANDLEBARS => file_processor(&preprocessing_response),
+            config::HANDLEBARS => handlebars_file_processor(&preprocessing_response),
             // config::COMPUTED => computed_processor(&preprocessing_response),
             _ => {
                 return Err(Server::build_error_response(&server_status::INVALID_RESPONSE_CODE, ""));

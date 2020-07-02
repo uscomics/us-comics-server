@@ -1,6 +1,3 @@
-// https://stackoverflow.com/questions/28028854/how-do-i-match-enum-values-with-an-integer
-// https://github.com/rust-num/num-derive/blob/master/tests/trivial.rs
-
 #![allow(dead_code)]
 
 use crate::util::i18n;
