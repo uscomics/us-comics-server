@@ -29,7 +29,7 @@ mod test {
 
     #[test]
     fn test_text_file_processor() {
-        let response_info = ResponseInfo::new(TEXT_FILE, None, Some("/file/path".to_string()));
+        let response_info = ResponseInfo::new(TEXT_FILE, None, Some("./path/to/:file".to_string()));
         let service_entry = ServiceEntry::new(
             0, 
             "name", 
@@ -39,7 +39,7 @@ mod test {
             &None, 
             &None);
         let mut body = BytesMut::new();
-        body.put(&b"{\"path\":\"/file/path\"}"[..]);
+        body.put(&b"{\"file\":\"my.file\"}"[..]);
         let preprocessor_response = file_preprocessor(&service_entry, &body).unwrap();
         let response = text_file_processor(&preprocessor_response);
         match response {
@@ -48,7 +48,7 @@ mod test {
                 assert_eq!(r.mime, *mime::TEXT);
                 assert_eq!(r.headers.len(), 1);
                 assert_eq!(r.headers.contains_key("X-US-COMICS-FILE"), true);
-                assert_eq!(r.headers.get("X-US-COMICS-FILE").unwrap(), "/file/path");
+                assert_eq!(r.headers.get("X-US-COMICS-FILE").unwrap(), "./path/to/my.file");
                 assert_eq!(r.body, None);
                 assert_eq!(r.preprocessing_response, preprocessor_response);        
             },
