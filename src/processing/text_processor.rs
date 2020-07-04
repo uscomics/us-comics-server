@@ -7,7 +7,7 @@ use crate::util::server_status;
 
 
 pub fn text_processor(preprocessing_response: &PreprocessingResponse) -> Result<ProcessingResponse, server_status::ServerStatus> {
-    let value = match &preprocessing_response.value {
+    let preprocessing_value = match &preprocessing_response.value {
         Some(v) => v,
         None => {
             let mut error = server_status::INVALID_VALUE.clone();
@@ -16,12 +16,12 @@ pub fn text_processor(preprocessing_response: &PreprocessingResponse) -> Result<
         }
     };
     let mut headers = http::header::HeaderMap::new();
-    let header_name = http::header::HeaderName::from_lowercase(b"Content-Length").unwrap();
-    let value = format!("{}", value.len());
+    let header_name = http::header::HeaderName::from_lowercase(b"content-length").unwrap();
+    let value = format!("{}", preprocessing_value.len());
     let header_value = http::header::HeaderValue::from_str(value.as_str()).unwrap();
     headers.insert(header_name, header_value);
-    let mut body = BytesMut::with_capacity(value.len());
-    body.put(value.as_bytes());
+    let mut body = BytesMut::with_capacity(preprocessing_value.len());
+    body.put(preprocessing_value.as_bytes());
     let response = ProcessingResponse::new(&server_status::OK, &mime::TEXT, &headers, &Some(body), &preprocessing_response);
     Ok(response)
 }
