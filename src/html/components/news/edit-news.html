@@ -1,0 +1,72 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/news/edit-news.html
+        class EditNews extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.FILE_SELECTED, (message) => {
+                    if (message.component !== this.FileSelector) { return }
+
+                    const file = message.component.vars.selectedFile
+
+                    this.Preview.setSourceFromFile(file)
+                })
+            }
+            setNewsItem(newsItem) {
+                this.FileSelector.Element.value = ``
+                this.Title.vars.value = newsItem.title
+                this.Text.vars.value = newsItem.text
+                this.Title.Element.value = newsItem.title
+                this.Text.Element.value = newsItem.text
+            }
+            async validateNews() {
+                if (!this.FileSelector.vars.selectedFile) {
+                    showError(`File name is invalid.`)
+                    return false
+                }
+                await this.Title.validate()
+                if (!this.Title.vars.valid) {
+                    showError(`${this.Title.props.name} is invalid.`)
+                    return false
+                }
+                await this.Text.validate()
+                if (!this.Text.vars.valid) {
+                    showError(`${this.Text.props.name} is invalid.`)
+                    return false
+                }
+                return true
+            }
+            getNews() {
+                const news = {
+                    file: this.FileSelector.vars.selectedFile,
+                    title: this.Title.Element.value,
+                    text: this.Text.Element.value
+                }
+                
+                return news 
+            }
+            onSubmit() { Queue.broadcast(Messages.NEWS_EDITED, this) }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}" class="flex-col w100 h300px m5">
+            <include-html include-in="edit-news.html" src="./html/components/file-selector.html" component-class="FileSelector" component-id="{id}FileSelector"></include-html>
+            <include-html include-in="edit-news.html" src="./html/components/img.html" component-class="Img" component-id="{id}Preview"></include-html>
+            <include-html include-in="edit-news.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}Title">
+                <include-props>{ name: `Title`, placeholder: `Title`, label: `Title`, labelAboveField: false, required: true, size: 100, minlength: 2, maxlength: 150, tabIndex: 2, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `text` } </include-vars>
+            </include-html>
+            <include-html include-in="edit-news.html" src="./html/components/text-area.html" component-class="TextArea" component-id="{id}Text">
+                <include-props>{ name: `Text`, placeholder: `Text`, label: `Text`, labelAboveField: false, required: true, minlength: 2, maxlength: 400, cols: 50, rows: 8, tabIndex: 3, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `text` } </include-vars>
+            </include-html>
+            <div id="{id}ButtonWrapper" class="flex-col w100 m5">
+                <div id="{id}Button" class="button" onclick="$obj.onSubmit()">Submit</div>
+            </div>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

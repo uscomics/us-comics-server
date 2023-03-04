@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Vince Drives You</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Vince Drives You">
+    <meta name="keywords" content="Ride, Taxi, Airport">
+    <meta name="author" content="Dave Leeper">
+    <!-- https://ogp.me -->
+    <meta property="og:title" content="Vince Drives You" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.imdb.com/title/tt0117500/" />
+    <meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" />
+    <script type="text/javascript" src="./js/client/messages.js"></script>
+    <script type="text/javascript" src="./js/client/queue.js"></script>
+    <script type="text/javascript" src="./js/client/tree-node.js"></script>
+    <script type="text/javascript" src="./js/client/tree.js"></script>
+    <script type="text/javascript" src="./js/client/component-lifecycle.js"></script>
+    <script type="text/javascript" src="./js/client/javascript-web-token.js"></script>
+    <script type="text/javascript" src="./js/client/component.js"></script>
+    <script type="text/javascript" src="./js/client/slot-manager.js"></script>
+    <script type="text/javascript" src="./js/client/loader.js"></script>
+    <script type="text/javascript" src="./js/client/registry.js"></script>
+    <script type="text/javascript" src="./js/client/snackbar.js"></script>
+    <script type="text/javascript" src="./js/client/server-interaction/si-news.js"></script>
+    <script type="text/javascript" src="./js/client/server-interaction/si-photos.js"></script>
+    <script type="text/javascript" src="./js/client/server-interaction/si-users.js"></script>
+    <script type="text/javascript" src="./js/client/server-interaction/si-text.js"></script>
+    <script type="text/javascript" src="./js/client/test.js"></script>
+    <script type="text/javascript" src="./js/client/purify.min.js"></script>
+    <link rel="stylesheet" href="./css/styles.css">
+    <script>
+      function initializeApp() {
+        // const server = `http://localhost:8080/`
+        const server = `https://uscomicsserver.fly.dev/`
+        Registry.register(`Server`, server)
+
+        const params = new URLSearchParams(window.location.search)
+        const token = params.get(`token`)
+
+        JavascriptWebToken.storeCredentials(JSON.parse(token))
+        document.addEventListener(`DOMContentLoaded`, async () => { 
+          Loader.registerCustomTags()
+          await Loader.loadIncludes()
+          SlotManager.loadSlots()
+          Queue.broadcast(Messages.SITE_LOADED, null)
+        })
+      }
+      function goToIndexPage() {
+        let params = new URLSearchParams(window.location.search)
+
+        window.location.href = `/index?${params.toString()}`
+      }
+
+      function setCSSDefaults() {
+        const r = document.querySelector(`:root`)
+        var rs = getComputedStyle(r);
+        const blue50 = rs.getPropertyValue(`--blue-50`)
+        const black = rs.getPropertyValue(`--black`)
+        r.style.setProperty(`--button-color`, black);
+        r.style.setProperty(`--button-background-color`, blue50);
+        r.style.setProperty(`--button-border-color`, blue50);
+
+        const blueGray900 = rs.getPropertyValue(`--blue-gray-900`)
+        const blueGray50 = rs.getPropertyValue(`--blue-gray-50`)
+        const amber900 = rs.getPropertyValue(`--amber-500`)
+        r.style.setProperty(`--background-color`, blueGray900)
+        r.style.setProperty(`--primary-text-color`, blueGray50)
+        r.style.setProperty(`--secondary-color`, amber900)
+
+        r.style.setProperty(`--button-color`, blueGray900)
+        r.style.setProperty(`--button-background-color`, amber900)
+      }
+      setCSSDefaults()
+      initializeApp()
+    </script>
+  </head>
+  <body class="margin-5 bg-grey-e">
+
+    <include-html include-in="index.html" src="./html/components/snackbar.html" component-class="Snackbar" component-id="SnackbarError">
+      <include-props class="display-none">{ isError: true }</include-props>
+      <include-vars class="display-none">{ text: `Message.` }</include-vars>
+    </include-html>
+    <include-html include-in="index.html" src="./html/components/snackbar.html" component-class="Snackbar" component-id="SnackbarInfo">
+      <include-vars class="display-none">{ text: `Message.` }</include-vars>
+    </include-html>
+
+    <div id="AdminTabBarWrapper" class="w95 border-amber-500 border-b-solid border-2 m10">
+      <include-html include-in="admin-page.html" src="./html/components/tab-bar.html" component-class="TabBar" component-id="AdminTabBar">
+        <include-vars class="display-none">{ tabs: [`News`, `Photos`, `Users`, `Text`], activeTab: 0, tabsCentered: false }</include-vars>
+      </include-html>
+    </div>
+
+    <div id="AdminBody" class="flex-row">
+      <div id="AdminTabBars" class=" w125px border-amber-500 border-r-solid border-2 m5-r">
+        <include-html include-in="admin-page.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="AdminNewsTab">
+          <include-props class="display-none">{ tabBarId: `AdminTabBar`, tab: `News` }</include-props>
+        </include-html>
+        <slot-markup for-component-id="AdminNewsTab" for-slot="AdminNewsTabSlot">
+          <include-html include-in="admin-page.html" src="./html/components/tab-bar.html" component-class="TabBar" component-id="AdminNewsTabBar">
+            <include-vars class="display-none">{ tabs: [`Add News`, `Edit News`, `Delete News`], activeTab: 0, tabsInRow: false, tabsCentered: false }</include-vars>
+          </include-html>
+        </slot-markup>
+
+        <include-html include-in="admin-page.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="AdminPhotosTab">
+          <include-props class="display-none">{ tabBarId: `AdminTabBar`, tab: `Photos` }</include-props>
+        </include-html>
+        <slot-markup for-component-id="AdminPhotosTab" for-slot="AdminPhotosTabSlot">
+          <include-html include-in="admin-page.html" src="./html/components/tab-bar.html" component-class="TabBar" component-id="AdminPhotosTabBar">
+            <include-vars class="display-none">{ tabs: [`Add Photos`, `Edit Photos`, `Delete Photos`], activeTab: 0, tabsInRow: false, tabsCentered: false }</include-vars>
+          </include-html>
+        </slot-markup>
+
+        <include-html include-in="admin-page.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="AdminUsersTab">
+          <include-props class="display-none">{ tabBarId: `AdminTabBar`, tab: `Users` }</include-props>
+        </include-html>
+        <slot-markup for-component-id="AdminUsersTab" for-slot="AdminUsersTabSlot">
+          <include-html include-in="admin-page.html" src="./html/components/tab-bar.html" component-class="TabBar" component-id="AdminUsersTabBar">
+            <include-vars class="display-none">{ tabs: [`Add Users`, `Edit Users`, `Delete Users`], activeTab: 0, tabsInRow: false, tabsCentered: false }</include-vars>
+          </include-html>
+        </slot-markup>
+
+        <include-html include-in="admin-page.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="AdminTextTab">
+          <include-props class="display-none">{ tabBarId: `AdminTabBar`, tab: `Text` }</include-props>
+        </include-html>
+        <slot-markup for-component-id="AdminTextTab" for-slot="AdminTextTabSlot">
+          <include-html include-in="admin-page.html" src="./html/components/tab-bar.html" component-class="TabBar" component-id="AdminTextTabBar">
+            <include-vars class="display-none">{ tabs: [`Front Page`, `Reviews`], activeTab: 0, tabsInRow: false, tabsCentered: false }</include-vars>
+          </include-html>
+        </slot-markup>
+      </div>
+
+      <div id="WorkArea" class="w75">
+        <include-html include-in="admin-page.html" src="./html/components/admin/admin-news-tab-bar.html" component-class="AdminNewsTabBar" component-id="AdminNewsTabBarContent"></include-html>
+
+        <include-html include-in="admin-page.html" src="./html/components/admin/admin-photos-tab-bar.html" component-class="AdminPhotosTabBar" component-id="AdminPhotosTabBarContent"></include-html>
+
+        <include-html include-in="admin-page.html" src="./html/components/admin/admin-users-tab-bar.html" component-class="AdminUsersTabBar" component-id="AdminUsersTabBarContent"></include-html>
+        
+        <include-html include-in="admin-page.html" src="./html/components/admin/admin-text-tab-bar.html" component-class="AdminTextTabBar" component-id="AdminTextTabBarContent"></include-html>
+      </div>
+    </div>
+
+    <include-html include-in="admin-page.html" src="./html/components/action-button.html" component-class="ActionButton" component-id="MainPageActionButton" onclick="goToIndexPage()">
+      <include-vars class="display-none">{ title: `Main Page` }</include-vars>
+    </include-html>
+  </body>
+</html>

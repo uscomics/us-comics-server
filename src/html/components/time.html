@@ -1,0 +1,162 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/time.html
+        class Time extends Component {
+            afterMount() {
+                super.afterMount()
+                this.HourElement.value = (this.vars.hour).toString().padStart(2, '0')
+                this.MinuteElement.value = this.vars.minute.toString().padStart(2, '0')
+                this.MeridiemElement.value = this.vars.meridiem
+            }
+            roundToFive(minutes) {
+                if (3 > minutes) { return 0 }
+                if (8 > minutes) { return 5 }
+                if (13 > minutes) { return 10 }
+                if (18 > minutes) { return 15 }
+                if (23 > minutes) { return 20 }
+                if (28 > minutes) { return 25 }
+                if (33 > minutes) { return 30 }
+                if (38 > minutes) { return 35 }
+                if (43 > minutes) { return 40 }
+                if (48 > minutes) { return 45 }
+                if (53 > minutes) { return 55 }
+                return 60
+            }
+            updateHour() { this.vars.hour = parseInt(this.HourElement.value, 10) }
+            updateMinute() {
+                const index = this.MinuteElement.selectedIndex
+                const selectedOption = this.MinuteElement.options[index]
+                const selectedMinutes = parseInt(selectedOption.value, 10)
+
+                this.vars.minute = this.roundToFive(selectedMinutes) }
+            updateMeridiem() { this.vars.meridiem = this.MeridiemElement.value }
+            toString() { return `${this.Hour?.value}:${this.Minute?.value} ${this.Meridiem?.value}` }            
+            vars = {
+                hour: new Date().getHours() % 12,
+                minute: this.roundToFive(new Date().getMinutes()),
+                meridiem: (new Date().getHours() >= 12)? `PM` : `AM`
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --time-card-color: var(--background-color);
+            --time-card-background: #eeeeee;
+            --time-card-text-align: center;
+            --time-card-font-family: var(--primary-font-family);
+            --time-card-font-size: var(--caption-2-font-size);
+            --time-card-font-weight: var(--caption-2-font-weight);
+            --time-card-pad: 10px;
+            --time-card-border-radius: 6px;
+
+            --time-select-color: var(--background-color);
+            --time-select-background: #ffffff;
+            --time-select-appearance: none;
+            --time-select-text-align: center;
+            --time-select-font-family: var(--primary-font-family);
+            --time-select-font-size: var(--caption-2-font-size);
+            --time-select-font-weight: var(--caption-2-font-weight);
+            --time-select-cursor: pointer;
+            --time-select-pad: 6px 10px;
+            --time-select-border-color: #dddddd;
+            --time-select-border-width: 1px;
+            --time-select-border-style: solid;
+            --time-select-border-radius: 6px;
+            --time-select-outline: none;
+
+            --time-option-color: var(--background-color);
+            --time-option-background: #ffffff;
+            --time-option-appearance: none;
+            --time-option-text-align: center;
+            --time-option-font-family: var(--primary-font-family);
+            --time-option-font-size: var(--caption-2-font-size);
+            --time-option-font-weight: var(--caption-2-font-weight);
+            --time-option-cursor: pointer;
+            --time-option-outline: none;
+        }
+
+        .time-card {
+            color: var(--time-card-color);
+            background: var(--time-card-background);
+            text-align: var(--time-card-text-align);
+            font-family: var(--time-card-font-family);
+            font-size: var(--time-card-font-size);
+            font-weight: var(--time-card-font-weight);
+            padding: var(--time-card-pad);
+            border-radius: var(--time-card-border-radius);
+        }
+
+        .time-select {
+            color: var(--time-select-color);
+            background: var(--time-select-background);
+            -webkit-appearance: var(--time-select-appearance);
+            -moz-appearance: var(--time-select-appearance);
+            appearance: var(--time-select-appearance);
+            text-align: var(--time-select-text-align);
+            font-family: var(--time-select-font-family);
+            font-size: var(--time-select-font-size);
+            font-weight: var(--time-select-font-weight);
+            cursor: var(--time-select-cursor);
+            padding: var(--time-select-pad);
+            border-color: var(--time-select-border-color);
+            border-width: var(--time-select-border-width);
+            border-style: var(--time-select-border-style);
+            border-radius: var(--time-select-border-radius);
+            outline: var(--time-select-outline);
+        }
+
+        .time-option {
+            color: var(--time-option-color);
+            background: var(--time-option-background);
+            -webkit-appearance: var(--time-option-appearance);
+            -moz-appearance: var(--time-option-appearance);
+            appearance: var(--time-option-appearance);
+            text-align: var(--time-option-text-align);
+            font-family: var(--time-option-font-family);
+            font-size: var(--time-option-font-size);
+            font-weight: var(--time-option-font-weight);
+            cursor: var(--time-option-cursor);
+            outline: var(--time-option-outline);
+        }
+    </style>
+    <component-markup>
+        <span id="{id}" class="time-card" onchange="$obj.updateHour()">
+            <select id="{id}Hour" class="time-select">
+                <option id="{id}Hour01" class="time-option" value="01">01</option>
+                <option id="{id}Hour02" class="time-option" value="02">02</option>
+                <option id="{id}Hour03" class="time-option" value="03">03</option>
+                <option id="{id}Hour04" class="time-option" value="04">04</option>
+                <option id="{id}Hour05" class="time-option" value="05">05</option>
+                <option id="{id}Hour06" class="time-option" value="06">06</option>
+                <option id="{id}Hour07" class="time-option" value="07">07</option>
+                <option id="{id}Hour08" class="time-option" value="08">08</option>
+                <option id="{id}Hour09" class="time-option" value="09">09</option>
+                <option id="{id}Hour10" class="time-option" value="10">10</option>
+                <option id="{id}Hour11" class="time-option" value="11">11</option>
+                <option id="{id}Hour12" class="time-option" value="12">12</option>
+            </select>
+            <span>:</span>
+            <select id="{id}Minute" class="time-select" onchange="$obj.updateMinute()">
+                <option id="{id}Minute00" class="time-option" value="00">00</option>
+                <option id="{id}Minute05" class="time-option" value="05">05</option>
+                <option id="{id}Minute10" class="time-option" value="10">10</option>
+                <option id="{id}Minute15" class="time-option" value="15">15</option>
+                <option id="{id}Minute20" class="time-option" value="20">20</option>
+                <option id="{id}Minute25" class="time-option" value="25">25</option>
+                <option id="{id}Minute30" class="time-option" value="30">30</option>
+                <option id="{id}Minute35" class="time-option" value="35">35</option>
+                <option id="{id}Minute40" class="time-option" value="40">40</option>
+                <option id="{id}Minute45" class="time-option" value="45">45</option>
+                <option id="{id}Minute50" class="time-option" value="50">50</option>
+                <option id="{id}Minute55" class="time-option" value="55">55</option>
+            </select>
+            <select id="{id}Meridiem" class="time-select" onchange="$obj.updateMeridiem()">
+                <option id="{id}MeridiemAM" class="time-option" value="AM">AM</option>
+                <option id="{id}MeridiemPM" class="time-option" value="PM">PM</option>
+            </select>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+

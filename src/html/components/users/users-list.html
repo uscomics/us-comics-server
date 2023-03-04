@@ -1,0 +1,107 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/users/users-list.html
+        class UsersList extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.USER_SELECTED, (message) => { this.newsClicked(message.index) })
+                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                    if ((message.tabBar.id === `AdminUserTabBar`)
+                    && (message.tab === `Edit` && message.tab !== `Delete`)) { 
+                        this.loadUsers()
+                    }
+                })
+            }
+            afterMount() {
+                super.afterMount()
+                this.loadUsers() 
+            }
+            async loadUsers () {
+                const response = await SIUsers.get()
+
+                if (200 === response.status) { 
+                    let users = await response.json()
+
+                    this.vars.users = users.reverse()
+                    this.vars.userIndex = 0
+                    this.showUsers()
+                } else {
+                    showError(`Error retrieving users. Status code ${response.status}.`)
+                }
+            }
+            showUsers() {
+                this.clearUsers()
+                for (let loop = 0; loop < this.vars.users.length; loop++) {
+                    const user = this.vars.users[loop]
+                    const wrapperDiv = document.createElement(`div`)
+                    const wrapperId = `${this.id}UserWrapper${loop}`
+                    const userImage = document.createElement(`img`)
+                    const userImageId = `${this.id}UserImage${loop}`
+                    const usernameDiv = document.createElement(`div`)
+                    const userNameId = `${this.id}UserName${loop}`
+                    const imageURLPrefix = user.image?.startsWith(`http`)? `` : `./images/`
+                    const itemClicked = () => { 
+                        this.vars.userIndex = loop
+                        Queue.broadcast(Messages.USER_SELECTED, { index: loop, element: wrapperDiv, component: this })
+                    }
+                    
+                    wrapperDiv.id = wrapperId
+                    wrapperDiv.classList.add(`flex-col`)
+                    wrapperDiv.classList.add(`w50px`)
+                    wrapperDiv.classList.add(`cursor-pointer`)
+                    wrapperDiv.classList.add(`m3`)
+                    wrapperDiv.addEventListener("click", itemClicked)
+                    userImage.id = userImageId
+                    userImage.src = user.image? `${imageURLPrefix}${user.image}` : `${imageURLPrefix}generic-avatar.png`
+                    userImage.width = 46
+                    usernameDiv.id = userNameId
+                    usernameDiv.classList.add(`caption-2`)
+                    usernameDiv.classList.add(`center-text`)
+                    usernameDiv.innerText = user.userName
+                    wrapperDiv.appendChild(userImage)
+                    wrapperDiv.appendChild(usernameDiv)
+                    this.ListItemWrapperElement.appendChild(wrapperDiv)
+                }
+                this.selectUser()
+            }
+            clearUsers() { this.ListItemWrapperElement.removeChildren() }
+            clearSelection() {
+                for (let userElement of this.ListItemWrapperElement.children) {
+                    userElement.classList.remove(`border-amber-500`)
+                    userElement.classList.remove(`border-solid`)
+                    userElement.classList.remove(`border-2`)
+                }
+            }
+            selectUser() {
+                const userElement = this.ListItemWrapperElement.children[this.vars.userIndex]
+
+                userElement.classList.add(`border-amber-500`)
+                userElement.classList.add(`border-solid`)
+                userElement.classList.add(`border-2`)
+            }
+            getSelectedUser() { return this.vars.users[this.vars.userIndex] }
+            getSelectedUserElement() { return this.ListItemWrapperElement.children[this.vars.userIndex] }
+            newsClicked(index) {
+                this.clearSelection()
+                this.vars.userIndex = index
+                this.selectUser()
+            }
+            vars = {
+                users: [],
+                userIndex: 0
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}" class="flex-col bg-blue-gray-900 w100">
+            <span id="{id}Title" class="amber-500">Select A User</span>
+            <span id="{id}ListItemWrapper" class="flex-row flex-wrap flex-space-around "></span>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

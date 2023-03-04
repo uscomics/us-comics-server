@@ -1,0 +1,131 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/select.html
+        class Select extends Component {
+            afterMount() {
+                super.afterMount()
+                if (this.props.labelAboveField) { this.WrapperElement.setAttribute(`class`, `flex-col`) } 
+                else { this.WrapperElement.setAttribute(`class`, `flex-row`) }
+                this.setOptions()
+            }
+            setOptions() {
+                this.Element.removeChildren()
+                for (let loop = 0; loop < this.props.options.length; loop++) {
+                    const optionData = this.props.options[loop]
+                    const option = document.createElement(`option`)
+                    const optionId = `${this.id}Option${loop}`
+                    const onClick = () => { Queue.broadcast(Messages.OPTION_SELECTED, { component: this, element: this.Element, option: optionData })}
+
+                    option.id = optionId
+                    option.classList.add(`option`)
+                    option.value = optionData.value
+                    option.innerText = optionData.text
+                    option.addEventListener(`click`, onClick)
+                    if (0 === loop) { option.setAttribute(`selected`, true) }
+                    this.Element.appendChild(option)
+                }
+            }
+            getSelectedOption() {
+                const newSelection = this.Element.value
+
+                for (let loop = 0; loop < this.Element.children.length; loop++) {
+                    const child = this.Element.children[loop]
+                    const childValue = child.getAttribute(`value`)
+                    const childText = child.innerText
+
+                    if (newSelection === childValue) { return { index: loop, value: childValue, text: childText }}
+                }
+                return null
+            }
+            onSelectionChanged() {
+                Queue.broadcast(Messages.OPTION_SELECTED, { component: this,  })
+            }
+            props = {
+                label: ``,
+                name: ``,
+                options: [],
+                labelAboveField: false,
+                tabindex: 0
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --select-color: var(--primary-text-color);
+            --select-background-color: var(--background-color);
+            --select-padding: 0 10px 0 0;
+            --select-margin: 3px;
+            --select-cursor: pointer;
+            --select-font-family: var(--primary-font-family);
+            --select-font-size: var(--text-2-font-size);
+            --select-font-weight: var(--text-2-font-weight);
+
+            --select-label-color: var(--primary-text-color);
+            --select-label-padding: none;
+            --select-label-margin: 3px;
+            --select-label-cursor: default;
+            --select-label-font-family: var(--primary-font-family);
+            --select-label-font-size: var(--text-2-font-size);
+            --select-label-font-weight: bold;
+            --select-label-background-color: var(--background-color);
+            --select-label-border-color: hidden;
+            --select-label-border-width: 0;
+            --select-label-border-style: none;
+            --select-label-border-radius: 0px;
+            
+            --option-color: var(--primary-text-color);
+            --option-background-color: var(--background-color);
+            --option-padding: 0 10px 0 0;
+            --option-margin: 3px;
+            --option-cursor: pointer;
+            --option-font-family: var(--primary-font-family);
+            --option-font-size: var(--text-2-font-size);
+            --option-font-weight: var(--text-2-font-weight);
+        }
+
+        .select {
+            color: var(--select-color);
+            background-color:  var(--select-background-color);
+            padding:  var(--select-padding);
+            margin:  var(--select-margin);
+            cursor:  var(--select-cursor);
+            font-family: var(--select-font-family);
+            font-size: var(--select-font-size);
+            font-weight: var(--select-font-weight);
+        }
+
+        .select-label {
+            color: var(--select-label-color);
+            padding: var(--select-label-padding);
+            margin: var(--select-label-margin);
+            cursor: var(--select-label-cursor);
+            font-family: var(--select-label-font-family);
+            font-size: var(--select-label-font-size);
+            font-weight: var(--select-label-font-weight);
+            background-color: var(--select-label-background-color);
+            border-color: var(--select-label-border-color);
+            border-width: var(--select-label-border-width);
+            border-style: var(--select-label-border-style);
+            border-radius: var(--select-label-border-radius);
+        }
+
+        .option {
+            color: var(--option-color);
+            background-color:  var(--option-background-color);
+            padding:  var(--option-padding);
+            margin:  var(--option-margin);
+            cursor:  var(--option-cursor);
+            font-family: var(--option-font-family);
+            font-size: var(--option-font-size);
+            font-weight: var(--option-font-weight);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}Wrapper">
+            <label id="{id}Label" for="{id}" class="select-label">{label}</label>
+            <select id="{id}" name="{name}" class="select" tabindex="{tabindex}" onchange="$obj.onSelectionChanged()"></select>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

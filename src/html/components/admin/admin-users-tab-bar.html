@@ -1,0 +1,123 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/admin/admin-users-tab-bar.html
+        class AdminUsersTabBar extends Component {
+          initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.USER_EDITED, async (message) => { 
+                  if (this.UsersAddComponent.id === message.id) { await this.saveUser()}
+                  else if (this.UsersEditComponent.id === message.id) { await this.updateUser()}
+                })
+                Queue.register(this, Messages.USER_SELECTED, (message) => { 
+                  if (this.UsersEditList.id !== message.component.id) { return }
+
+                  const user = this.UsersEditList.getSelectedUser()
+
+                  this.UsersEditComponent.setUser(user)
+                })
+                Queue.register(this, TabBar.msgs.SHOW_TAB, async (message) => {
+                  if (message.tabBar.id === `AdminTabBar`) {
+                    if (message.tab === `Users`) { this.Element.show() }
+                    else { this.Element.hide() }
+                  }
+                })
+          }        
+          async saveUser() {
+            const user = this.UsersAddComponent.getUser()
+            const response = await SIUsers.add(user.userName, user.password, user.roles, user.title, user.name.first, user.name.last, user.file)
+
+            if (200 === response.status) {
+                const content = await response.json()
+
+                await this.UsersEditList.loadUsers()
+                await this.UsersDeleteList.loadUsers()
+                JavascriptWebToken.storeCredentials(content.jwt)
+                showInfo(`User added.`)
+            } else {
+                if (401 === response.status) { window.location.href = `/login` }
+                else { showError(`Error adding user. Status code ${response.status}.`) }
+            }
+          }          
+          async updateUser() {
+            if (!this.UsersEditComponent.validateUser()) { return }
+
+            const userId = this.UsersEditList.getSelectedUser().id
+            const user = this.UsersEditComponent.getUser()
+            const response = await SIUsers.update(user.userName, user.password, user.roles, user.title, user.name.first, user.name.last, user.file, userId)
+            if (200 !== response.status) {
+              if (401 === response.status) { window.location.href = `/login` }
+              else { showError(`Error updating user. Status code ${response.status}.`)}
+              return
+            }
+            await this.UsersEditList.loadUsers()
+            await this.UsersDeleteList.loadUsers()
+
+            const content = await response.json()
+
+            JavascriptWebToken.storeCredentials(content.jwt)
+            showInfo(`User updated.`)
+          }
+          async deleteUser() {
+            if (!confirm(`Delete this user?`)) { return }
+
+            const userIndex = this.UsersDeleteList.vars.userIndex
+            const id = this.UsersDeleteList.vars.users[userIndex].id
+            const response = await SIUsers.remove(id)
+
+            if (200 === response.status) {
+              const content = await response.json()
+
+              await this.UsersEditList.loadUsers()
+              await this.UsersDeleteList.loadUsers()
+              JavascriptWebToken.storeCredentials(content.jwt)
+              showInfo(`User deleted.`)
+            } else {
+              if (401 === response.status) { window.location.href = `/login` }
+              else { showError(`Error getting users. Status code ${response.status}.`) }
+            }
+          }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}" class="w100 display-none">
+            <div id="{id}Users" class="w100">
+              <div id="{id}UsersAdd" class="w100">
+                <include-html include-in="admin-users-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}UsersAddTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminUsersTabBar`, tab: `Add Users` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}UsersAddTabContent" for-slot="{id}UsersAddTabContentSlot">
+                  <include-html include-in="admin-users-tab-bar.html" src="./html/components/users/edit-user.html" component-class="EditUser" component-id="{id}UsersAddComponent"></include-html>
+                </slot-markup>
+              </div>
+    
+              <div id="{id}UsersEdit" class="w100">
+                <include-html include-in="admin-users-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}UsersEditTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminUsersTabBar`, tab: `Edit Users` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}UsersEditTabContent" for-slot="{id}UsersEditTabContentSlot">
+                  <include-html include-in="admin-users-tab-bar.html" src="./html/components/users/users-list.html" component-class="UsersList" component-id="{id}UsersEditList"></include-html>
+                  <div id="{id}Spacer" class="h10px"></div>
+                  <include-html include-in="admin-users-tab-bar.html" src="./html/components/users/edit-user.html" component-class="EditUser" component-id="{id}UsersEditComponent"></include-html>
+                </slot-markup>
+              </div>
+    
+              <div id="{id}UsersDelete" class="w100">
+                <include-html include-in="admin-users-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}UsersDeleteTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminUsersTabBar`, tab: `Delete Users` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}UsersDeleteTabContent" for-slot="{id}UsersDeleteTabContentSlot">
+                  <include-html include-in="admin-users-tab-bar.html" src="./html/components/users/users-list.html" component-class="UsersList" component-id="{id}UsersDeleteList"></include-html>
+                  <div id="{id}UserDeleteButton" class="button w100" onclick="$obj.deleteUser()">Delete</div>
+                </slot-markup>
+              </div>
+            </div>
+          </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

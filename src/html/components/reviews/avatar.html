@@ -1,0 +1,67 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/avatar.html
+        class Avatar extends Component {
+            afterMount() {
+                super.afterMount()
+                if (`medium` === this.props.avatarSize.toLowerCase()) { 
+                    if (this.Element.classList.contains(`avatar`)) { this.Element.classList.remove(`avatar`) }
+                    this.Element.classList.add(`avatar-medium`)
+                    this.ImgElement.width = 60
+                }
+            }
+            props = { 
+                imageURL: ``,
+                avatarSize: `small`,
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --avatar-width: 45px;
+            --avatar-height: 45px;
+            --avatar-medium-width: 60px;
+            --avatar-medium-height: 60px;
+            --avatar-overflow: hidden;
+            --avatar-text-align: center;
+            --avatar-pad: 0;
+            --avatar-margin: 5px;
+            --avatar-border-style: solid;
+            --avatar-border-width: 2px;
+            --avatar-border-color: var(--secondary-color);
+            --avatar-border-radius: 50%;
+        }
+
+        .avatar {
+            width: var(--avatar-width);
+            height: var(--avatar-height);
+            overflow: var(--avatar-overflow);
+            text-align: var(--avatar-text-align);
+            padding: var(--avatar-pad);
+            margin: var(--avatar-margin);
+            border-style: var(--avatar-border-style);
+            border-width: var(--avatar-border-width);
+            border-color: var(--avatar-border-color);
+            border-radius: var(--avatar-border-radius)
+        }
+        .avatar-medium {
+            width: var(--avatar-medium-width);
+            height: var(--avatar-medium-height);
+            overflow: var(--avatar-overflow);
+            text-align: var(--avatar-text-align);
+            padding: var(--avatar-pad);
+            margin: var(--avatar-margin);
+            border-style: var(--avatar-border-style);
+            border-width: var(--avatar-border-width);
+            border-color: var(--avatar-border-color);
+            border-radius: var(--avatar-border-radius)
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="avatar">
+            <img id="{id}Img" src="{imageURL}" width="45" alt="Avatar image" loading="lazy">
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

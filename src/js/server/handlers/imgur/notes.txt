@@ -1,0 +1,3 @@
+https://us-comics-server.fly.dev/ping?state=TEST_STATE#access_token=a6133a3958a4970a77d72f853afae31c172d9f71&expires_in=315360000&token_type=bearer&refresh_token=56eac5410cfe71698a249300b79f776a874a6910&account_username=USComics&account_id=14748678// access_token=ac01978c3254dc90be4e1264cbffa7e8d47798b1
+access_token=a6133a3958a4970a77d72f853afae31c172d9f71
+refresh_token=56eac5410cfe71698a249300b79f776a874a6910

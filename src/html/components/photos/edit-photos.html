@@ -1,0 +1,60 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/photos/edit-photos.html
+        class EditPhotos extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.FILE_SELECTED, (message) => {
+                    if (message.component !== this.FileSelector) { return }
+                    
+                    const file = message.component.vars.selectedFile
+
+                    this.Preview.setSourceFromFile(file)
+                })
+            }
+            setPhoto(photo) {
+                this.FileSelector.Element.value = ``
+                this.Text.vars.value = photo.text
+                this.Text.Element.value = photo.text
+            }
+            async validatePhoto() {
+                if (!this.FileSelector.vars.selectedFile) {
+                        showError(`File name is invalid.`)
+                        return false
+                    }
+                    await this.Text.validate(false)
+                    if (!this.Text.vars.valid) {
+                        showError(`${this.Text.props.name} is invalid.`)
+                        return false
+                    }
+                    return true
+            }
+            getPhoto() {
+                const news = {
+                    file: this.FileSelector.vars.selectedFile,
+                    text: this.Text.Element.value
+                }
+                
+                return news 
+            }
+            onSubmit() { Queue.broadcast(Messages.PHOTO_EDITED, this) }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}" class="flex-col w100 h300px m5">
+            <include-html include-in="edit-photos.html" src="./html/components/file-selector.html" component-class="FileSelector" component-id="{id}FileSelector"></include-html>
+            <include-html include-in="edit-photos.html" src="./html/components/img.html" component-class="Img" component-id="{id}Preview"></include-html>
+            <include-html include-in="edit-photos.html" src="./html/components/text-area.html" component-class="TextArea" component-id="{id}Text">
+                <include-props>{ name: `Text`, placeholder: `Text`, label: `Text`, labelAboveField: false, required: true, minlength: 2, maxlength: 400, cols: 50, rows: 8, tabIndex: 3, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `text` } </include-vars>
+            </include-html>
+            <div id="{id}ButtonWrapper" class="flex-col w100 m5">
+                <div id="{id}Button" class="button" onclick="$obj.onSubmit()">Submit</div>
+            </div>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

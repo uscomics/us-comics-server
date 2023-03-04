@@ -1,0 +1,31 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/reply-header.html
+        class ReplyHeader extends Component{
+            props = {
+                imageURL: ``,
+                firstName: ``,
+                lastName: ``,
+                title: ``,
+                date: ``
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}" class="flex-row">
+            <div id="{id}AvatarWrapper" class="margin-2">
+                <include-html include-in="reply-header.html" src="./html/components/reviews/avatar.html" component-class="Avatar" component-id="{id}Avatar">
+                    <include-props class="display-none">{ imageURL: `{imageURL}` }</include-props>
+                </include-html>
+            </div>
+            <div id="{id}NameAndDateWrapper" class="flex-col margin-2 cursor-default">
+                <div id="{id}Name" class="subtitle-2">{firstName} {lastName}</div>
+                <div id="{id}Date">{date}</div>
+            </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

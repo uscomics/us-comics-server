@@ -1,0 +1,100 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/dropdown-menu.html
+        class DropdownMenu extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.ON_CLICK, (message) => {
+                    if (this.MenuElement && !this.MenuElement.contains(message.target) && !this.SlotWarpperElement.contains(message.target) && this.MenuElement.isVisible()) {
+                        this.MenuElement.hide()
+                    }
+                })
+            }
+            afterMount() {
+                super.afterMount()
+                this.setMenu()
+            }
+            setMenu() {
+                this.MenuElement.removeChildren()
+                for (let loop = 0; loop < this.props.menuItems.length; loop++) {
+                    const menuItem = this.props.menuItems[loop]
+                    const menuItemId = `${this.id}MenuItem${loop}`
+                    const menuItemElement = document.createElement(`span`)
+                    const menuItemClicked = () => {
+                        Queue.broadcast(menuItem.message, menuItem )
+                        this.toggleMenu()
+                    }
+
+                    menuItemElement.id = menuItemId
+                    menuItemElement.innerText = menuItem.title
+                    menuItemElement.classList.add(`dropdown-menu-item`)
+                    menuItemElement.addEventListener(`click`, menuItemClicked)
+                    this.MenuElement.appendChild(menuItemElement)
+                }
+            }
+            toggleMenu() { this.MenuElement.toggleVisibility() }
+            props = {
+                menuItems: []
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --dropdown-menu-background-color: var(--background-color);
+            --dropdown-menu-min-width: 160px;
+            --dropdown-menu-box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            --dropdown-menu-z-index: 10;
+
+            --dropdown-menu-item-display: block;
+            --dropdown-menu-item-color: var(--secondary-color);
+            --dropdown-menu-item-text-decoration: none;
+            --dropdown-menu-item-font-family: var(--primary-font-family);
+            --dropdown-menu-item-font-size: var(--text-2-font-size);
+            --dropdown-menu-item-font-weight: var(--text-2-font-weight);
+            --dropdown-menu-item-pad: 12px 16px;
+            --dropdown-menu-item-cursor: pointer;
+
+            --dropdown-menu-item-hover-color: var(--background-color);
+            --dropdown-menu-item-hover-background-color: var(--secondary-color);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .dropdown-menu {
+            position: absolute;
+            background-color: var(--dropdown-menu-background-color);
+            min-width: var(--dropdown-menu-min-width);
+            box-shadow: var(--dropdown-menu-box-shadow);
+            z-index: var(--dropdown-menu-z-index);
+        }
+        .dropdown-menu-item {
+            display: var(--dropdown-menu-item-display);
+            color: var(--dropdown-menu-item-color);
+            text-decoration: var(--dropdown-menu-item-text-decoration);
+            font-family: var(--dropdown-menu-item-font-family);
+            font-size: var(--dropdown-menu-item-font-size);
+            font-weight: var(--dropdown-menu-item-font-weight);
+            padding: var(--dropdown-menu-item-pad);
+            cursor: var(--dropdown-menu-item-cursor)
+        }
+        .dropdown-menu-item:hover {
+            color: var(--dropdown-menu-item-hover-color);
+            background-color: var(--dropdown-menu-item-hover-background-color);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}">
+            <span id="{id}SlotWarpper" onclick="$obj.toggleMenu()">
+                <component-slot id="{id}Slot">DEFAULT ROOT FOR {id}</component-slot>
+            </span>
+            <div id="{id}Menu" class="flex-col dropdown-menu display-none"></div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

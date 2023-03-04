@@ -1,0 +1,165 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/photos/photos-list.html
+        class PhotosList extends Component { 
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.PHOTO_SELECTED, (message) => { this.photoClicked(message.index) })
+                Queue.register(this, TabBar.msgs.SHOW_TAB, async (message) => {
+                    if ((message.tabBar.id === `AdminPhotosTabBar`)
+                    && (message.tab === `Edit Photos` || message.tab === `Delete Photos`)) { 
+                        this.Element.classList.remove(`display-none`)
+                        await this.loadPhotos()
+                    }
+                    if ((message.tabBar.id === `TabBar`)
+                    && (message.tab === `Photos`)) {
+                        this.Element.classList.remove(`display-none`)
+                        await this.loadPhotos()
+                    }
+                })
+                Queue.register(this, Messages.MODAL_OK, (message) => { this.PhotoDialog.hide() })
+            }
+            async loadPhotos() {
+                const response = await SIPhotos.get()
+
+                if (200 === response.status) {
+                    const content = await response.json()
+                    
+                    this.vars.photos = content.reverse()
+                    this.vars.photoIndex = 0
+                    await this.showPhotos()
+                } else {
+                    showError(`Error retrieving photos. Status code ${response.status}.`)
+                }
+            }
+            async showPhotos() {
+                this.clearPhotos()
+                for (let loop = 0; loop < this.vars.photos.length; loop++) {
+                    const photo = this.vars.photos[loop]
+                    const wrapperDivElement = document.createElement(`div`)
+                    const wrapperDivId = `${this.id}PhotoWrapper${loop}`
+                    const imgElement = document.createElement(`img`)
+                    const imgId = `${this.id}Img${loop}`
+                    const imgSrc = `./images/${photo.file}`
+                    let varsObj = { tooltipText: photo.text }
+                    const imgtext = `./images/`
+                    const imgHeight = `300`
+                    const imgWidth = `46`
+                    const photoClicked = () => { 
+                        this.photoClicked(loop)
+                        Queue.broadcast(Messages.PHOTO_SELECTED, { index: loop, element: wrapperDivElement, component: this })
+                    }
+                    const newInclude = Component.createComponentInclude(`index.html`, `./html/components/tooltip.html`, `Tooltip`,  `${this.id}ToolTip${loop}`, null, varsObj)
+
+                    wrapperDivElement.id = wrapperDivId
+                    wrapperDivElement.classList.add(`tooltip`)
+                    wrapperDivElement.classList.add(`margin-5`)
+                    imgElement.id = imgId
+                    imgElement.src = imgSrc
+                    if (`large` === this.props.size.toLowerCase()) { imgElement.height = imgHeight }
+                    else { imgElement.width = imgWidth }
+                    imgElement.classList.add(`photo`)
+                    imgElement.addEventListener('click',  photoClicked, false)
+                    wrapperDivElement.appendChild(imgElement)
+                    wrapperDivElement.appendChild(newInclude)
+                    this.Element.appendChild(wrapperDivElement)
+                    await Loader.loadInclude(newInclude)
+                }
+            }
+            clearPhotos() { 
+                for (let loop = 0; loop < this.Element.children; loop++) {
+                    const tooltipId = `${this.id}ToolTip${loop}`
+
+                    // AdminPhotosTabBarContentPhotosEditListToolTip0
+                    if (Component.isObjectRegistered(tooltipId)) {
+                        ComponentLifecycle.unmount(tooltipId)
+                        ComponentLifecycle.unregisterComponentObject(tooltipId)
+                    }
+                }
+                this.Element.removeChildren() 
+            }
+            clearSelection() {
+                for (let photoElement of this.Element.children) {
+                    photoElement.classList.remove(`border-amber-500`)
+                    photoElement.classList.remove(`border-solid`)
+                    photoElement.classList.remove(`border-2`)
+                }
+            }
+            selectPhoto() {
+                const photoElement = this.Element.children[this.vars.photoIndex]
+
+                photoElement.classList.add(`border-amber-500`)
+                photoElement.classList.add(`border-solid`)
+                photoElement.classList.add(`border-2`)
+            }
+            getSelectedPhoto() { 
+                return this.vars.photos[this.vars.photoIndex] 
+            }
+            getSelectedPhotoElement() { return this.Element.children[this.vars.photoIndex] }
+            photoClicked(index) {
+                const photo = this.vars.photos[index]
+
+                if (`large` === this.props.size.toLowerCase()) {
+                    this.PhotoDialogSlotPhotoContentElement.src = `./images/${photo.file}`
+                    this.PhotoDialogSlotTextContentElement.innerText = photo.text
+                    this.PhotoDialog.show()
+                } else {
+                    this.clearSelection()
+                    this.vars.photoIndex = index
+                    this.selectPhoto()
+                }
+            }
+            props = {
+                size: `large`
+            }
+            vars = {
+                photos: [],
+                photoIndex: 0,
+                selectedPhotoURL: ``,
+                selectedPhotoText: ``
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --photo-cursor: pointer;
+
+            --photo-description-width: 100%;
+            --photo-description-height: 100px;
+            --photo-description-color: var(--blue-gray-900);
+            --photo-description-text-align: left;
+            --photo-description-white-space: pre-wrap;
+            --photo-description-font-family: var(--secondary-font-family);
+            --photo-description-font-size: var(--caption-1-font-size);
+            --photo-description-font-weight: font-weight: var(--caption-1-font-weight)
+        }
+
+        .photo { 
+            cursor: var(--photo-cursor);
+        }
+        .photo-description {
+            width: var(--photo-description-width);
+            height: var(--photo-description-height);
+            color: var(--photo-description-color);
+            text-align: var(--photo-description-text-align);
+            white-space: var(--photo-description-white-space);
+            font-family: var(--photo-description-font-family);
+            font-size: var(--photo-description-font-size);
+            font-weight: var(--photo-description-font-weight);
+        }
+    </style>
+    <component-markup>
+        <section id="{id}" class="flex-row w100 flex-wrap flex-space-around display-none"></section>
+        <include-html include-in="photos-list.html" src="./html/components/modal-dialog.html" component-class="ModalDialog" component-id="{id}PhotoDialog">
+            <include-props>{ cancelVisible: false }</include-props>
+        </include-html>
+        <slot-markup for-component-id="{id}PhotoDialog" for-slot="{id}PhotoDialogSlot">
+            <div id="{id}PhotoDialogSlotContent" class="flex-row">
+                <img id="{id}PhotoDialogSlotPhotoContent" height="400" loading="lazy">
+                <div id="{id}PhotoDialogSlotTextContent" class="p5 blue-gray-50"></div>
+            </div>
+        </slot-markup>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

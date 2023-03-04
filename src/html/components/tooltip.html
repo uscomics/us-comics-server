@@ -1,0 +1,70 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/tooltip.html
+        class Tooltip extends Component {
+            vars = {
+                tooltipText: `Tooltip text`
+            }     
+        }
+    </script>
+    <style>
+        :root {
+            --tooltip-width: 120px;
+            --tooltip-top: 65%;
+            --tooltip-left: 5%;
+            --tooltip-z-index: 1;
+            --tooltip-color: var(--black);
+            --tooltip-background-color: var(--white);
+            --tooltip-cursor: default;
+            --tooltip-text-align: center;
+            --tooltip-font-family: var(--primary-font-family);
+            --tooltip-font-size: var(--text-2-font-size);
+            --tooltip-font-weight: var(--text-2-font-weight);
+            --tooltip-border-color: var(--blue-gray-50);
+            --tooltip-border-width: 2px;
+            --tooltip-border-style: solid;
+            --tooltip-border-radius: 6px;
+            --tooltip-padding: 5px;
+            --tooltip-margin-left: 5px;
+        }
+
+        /* Tooltip container */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Tooltip text */
+        .tooltip .tooltiptext {
+            position: absolute;
+            visibility: hidden;
+            width: var(--tooltip-width);
+            top: var(--tooltip-top);
+            left: var(--tooltip-left);
+            z-index: var(--tooltip-z-index);
+            color: var(--tooltip-color);
+            background-color: var(--tooltip-background-color);
+            cursor: var(--tooltip-cursor);
+            text-align: var(--tooltip-text-align);
+            font-family: var(--tooltip-font-family);
+            font-size: var(--tooltip-font-size);
+            font-weight: var(--tooltip-font-weight);
+            border-color: var(--tooltip-border-color);
+            border-width: var(--tooltip-border-width);
+            border-style: var(--tooltip-border-style);
+            border-radius: var(--tooltip-border-radius);
+            padding: var(--tooltip-padding);
+            margin-left: var(--tooltip-margin-left);
+        }
+
+        /* Show the tooltip text when you mouse over the tooltip container */
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+    </style>
+    <component-markup>
+        <span id="{id}" class="tooltiptext">{tooltipText}</span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

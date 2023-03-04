@@ -1,0 +1,249 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/review-list.html
+        class ReviewList extends Component {
+            initialize(id) { 
+                super.initialize(id)
+
+                Queue.register(this, Loader.msgs.INCLUDES_LOADED, () => { 
+                    Queue.unregister(this, Loader.msgs.INCLUDES_LOADED)
+                    this.fetchReviews()
+                })
+                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                    if (message.tabBar.id !== `TabBar`) { return }
+                    if (message.tab !== `Reviews`) { return }
+                    this.Element.classList.remove(`display-none`)
+                })
+            }
+            fetchReviews() {
+                const server = Registry.get(`Server`)
+
+                fetch(`${server}${this.props.fetchURL}`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        let reviews = this.sortReviews(data)
+                        let cleanReviews = this.cleanReviews(reviews)
+                        let reviewsAndReplies = this.pairReviewsAndReplies(cleanReviews)
+                        let newDOMElements = this.createListElements(reviewsAndReplies)
+
+                        this.vars.reviews = reviewsAndReplies
+                        this.buildListElements(newDOMElements)
+                        this.setReviewCountAndAverage()
+                        this.updateAverageStars()
+                        this.vars.loadingClass = `display-none`
+                    })
+            }
+            sortReviews(data) {
+                const sortFunction = (a, b) => {
+                    const dateA = a.date.split("/")
+                    const dateB = b.date.split("/")
+
+                    if (dateA[2] !== dateB[2]) { return dateB[2] - dateA[2] }
+                    if (dateA[0] !== dateB[0]) { return dateB[0] - dateA[0] }
+                    return dateB[1] - dateA[1]
+                }
+                data.sort(sortFunction)
+                return data
+            }
+            cleanReviews(data) {
+                let results = []
+
+                for (const reviewOrReply of data) {
+                    reviewOrReply.id = this.getCleanId(reviewOrReply.id)
+                    results.push(reviewOrReply)
+                }
+                return results
+            }
+            isReply(data) { return !!data.replyingTo }
+            pairReviewsAndReplies(data) {
+                let result = []
+
+                for (const reviewOrReply of data) {
+                    let review = null
+                    let reply = null
+
+                    if (this.isReply(reviewOrReply)) { continue }
+                    review = reviewOrReply
+                    for (const reviewOrReply2 of data) {
+                        if (reviewOrReply === reviewOrReply2) { continue }
+                        if (!this.isReply(reviewOrReply2)) { continue }
+
+                        const reviewId = review.id.split(`_`)[1]
+
+                        if (reviewId !== reviewOrReply2.replyingTo.toString()) { continue }
+                        reply = reviewOrReply2
+                        break
+                    }
+                    result.push({ review, reply })
+                }
+                return result
+            }
+            getCleanId(id) {
+                return id.replace(`:`, `_`)
+            }
+            createListElements(data) {
+                let results = []
+
+                for (let loop = 0; loop < data.length; loop++) {
+                    let review = data[loop].review
+                    let reply = data[loop].reply
+                    let varsObj = (reply)? { replyId: reply.id  } : null
+
+                    if (!review.image) { review.image = `./images/generic-avatar.png` }
+
+                    let propsObj = { 
+                        reviewId: this.getCleanId(review.id),
+                        imageURL: review.image,
+                        firstName: review.name.first,
+                        lastName: review.name.last,
+                        date: review.date,
+                        city: review.city,
+                        state: review.state,
+                        rating: review.stars,
+                        review: review.review.replace(/\n/g, "\\n"),
+                        usefulCount: review.usefulCount,
+                        funnyCount: review.funnyCount,
+                        coolCount: review.coolCount
+                    }
+
+                    let newInclude = Component.createComponentInclude(`index.html`, `./html/components/reviews/review.html`, `Review`,  `Review${this.getCleanId(review.id)}`, propsObj, varsObj)
+
+                    results.push(newInclude)
+
+                    if (!reply) { continue }
+                    if (!reply.image) { reply.image = `./images/generic-avatar.png` }
+
+                    propsObj = { 
+                        reviewId: this.getCleanId(review.id),
+                        replyId: this.getCleanId(reply.id),
+                        imageURL: reply.image,
+                        firstName: reply.name.first,
+                        lastName: reply.name.last,
+                        title: reply.title,
+                        date: reply.date
+                    }
+
+                    varsObj = reply.reply? { reply: reply.reply.replace(/\n/g, "\\n") } : { reply: `` }
+
+                    newInclude = Component.createComponentInclude(`index.html`, `./html/components/reviews/reply.html`, `Reply`,  `Reply${this.getCleanId(reply.id)}`, propsObj, varsObj)
+                    results.push(newInclude)
+                }
+                return results
+            }
+            async buildListElements(newDOMElements) {
+                for (const element of newDOMElements) {
+                    this.Element.appendChild(element)
+                    await Loader.loadIncludes()
+                }
+            }
+            async addNewReview(review) {
+                if (!review.image) { review.image = `./images/generic-avatar.png` }
+
+                let propsObj =  { reviewId:this.getCleanId(review.id),
+                    imageURL: review.image,
+                    firstName: review.name.first,
+                    lastName: review.name.last,
+                    date: review.date,
+                    city: review.city,
+                    state: review.state,
+                    rating: review.stars,
+                    review: review.review.replace(/\n/g, "\\n"),
+                    usefulCount: review.usefulCount,
+                    funnyCount: review.funnyCount,
+                    coolCount: review.coolCoun
+                }
+
+                let newInclude = Component.createComponentInclude(`index.html`, `./html/components/reviews/review.html`, `Review`,  `Review${this.getCleanId(review.id)}`, propsObj, null)
+            
+                this.SummaryElement.after(newInclude)
+                await Loader.loadIncludes()
+            }
+            removeReviews() {
+                for (let reviewAndReply of this.vars.reviews) {
+                    const reviewId = `Review${this.getCleanId(reviewAndReply.review.id)}`
+                    const review = Component.getObject(reviewId)
+                    const reviewElement = document.getElementById(reviewId)
+
+                    review?.destroy()
+                    reviewElement?.remove()
+                    if (!reviewAndReply.reply) { continue }
+
+                    const replyId = `Reply${this.getCleanId(reviewAndReply.reply.id)}`
+                    const reply = Component.getObject(replyId)
+                    const replyElement = document.getElementById(replyId)
+
+                    reply?.destroy()
+                    replyElement?.remove()
+                }
+            }
+            setReviewCountAndAverage() {
+                if (!this.vars.reviews || 0 === this.vars.reviews.length) {
+                    this.vars.reviewCount = 0
+                    this.vars.reviewAverage = 0
+                    return
+                }
+
+                const sum = this.vars.reviews.reduce((partialSum, reviewReplyPair) => partialSum + reviewReplyPair.review.stars, 0)
+
+                this.vars.reviewCount = this.vars.reviews.length
+                this.vars.reviewAverage = (sum / this.vars.reviewCount).toPrecision(1)
+            }            
+            updateAverageStars() {
+                const starsObjectId =  `${this.id}Stars`
+                let starsObject = Component.getObject(starsObjectId)
+
+                if (!starsObject) { return }
+                starsObject.setStars(this.vars.reviewAverage)
+            }
+            props = {
+                fetchURL: `reviews`
+            }
+            vars = {
+                reviews: null,
+                loadingClass: `flex-row flex-space-between`,
+                reviewCount: 0,
+                reviewAverage: 0
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --review-list-card-display: flex;
+            --review-list-card-flex-direction: column;
+            --review-list-card-pad: 5px;
+            --review-list-card-margin: 5px;
+            --review-list-card-border-style: solid;
+            --review-list-card-border-width: 2px;
+            --review-list-card-border-color: var(--primary-text-color);
+        }
+
+        .review-list-card {
+            display: var(--review-list-card-display);
+            flex-direction: var(--review-list-card-flex-direction);
+            padding: var(--review-list-card-pad);
+            margin: var(--review-list-card-margin);
+            border-style: var(--review-list-card-border-style);
+            border-width: var(--review-list-card-border-width);
+            border-color: var(--review-list-card-border-color);
+        }
+
+    </style>
+    <component-markup>
+        <article id="{id}" class="review-list-card display-none">
+            <div id="{id}LoadingWrapper" class="{loadingClass}">
+                <div id="{id}LoadingText">Loading reviews...</div>
+                <include-html include-in="review-list.html" src="./html/components/loading.html" component-class="Loading" component-id="{id}Loading"></include-html>
+            </div>
+            <div id="{id}Summary" class="flex-col flex-space-between flex-center flex-align-baseline w33 m5-l">
+                <div id="{id}SummaryReviewCount">{reviewCount} Reviews</div>
+                <include-html include-in="review.html" src="./html/components/reviews/stars.html" component-class="Stars" component-id="{id}Stars">
+                    <include-props class="display-none">{ editable: false }</include-props>
+                    <include-vars class="display-none">{ rating: {reviewAverage} }</include-vars>
+                </include-html>
+                <div id="{id}SummaryReviewAverage" class="m10-b">{reviewAverage} Star Average</div>
+            </div>
+        </article>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

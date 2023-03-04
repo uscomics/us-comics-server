@@ -1,0 +1,102 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/reply.html
+        class Reply extends Component {
+            afterMount() { 
+                super.afterMount()
+                const credentials = JavascriptWebToken.getCredentials()
+
+                if (!credentials?.roles) { return }
+                if (!credentials.roles.includes("Admin")) { return }
+                if (!this.EditButtonElement) { return }
+
+                this.EditButtonElement.setAttribute(`class`, `text-button`)
+            }
+            getReviewElement() {
+                return document.getElementById(`Review${this.props.reviewId}`)
+            }
+            getReviewObject() {
+                return Component.getObject(`Review${this.props.reviewId}`)
+            }
+            getReplyElement() {
+                return document.getElementById(`Reply${this.props.replyId}`)
+            }
+            async edit() { 
+                const reviewObject = this.getReviewObject()
+                const replyDialogElement = document.getElementById(`ReplyDialog`)
+                const replyComponentObjectId = `Review${this.props.reviewId}`
+                const propsObj = { reviewId: this.props.reviewId, replyId: this.props.replyId }
+                const newInclude = Component.createComponentInclude(`index.html`, `./html/components/reviews/reply-dialog.html`, `ReplyDialog`,  `ReplyDialog`, propsObj, null)
+
+                if (replyDialogElement) { replyDialogElement.remove() }
+                if (Component.isObjectRegistered(`ReplyDialog`)) { Component.getObject(`ReplyDialog`).destroy() }
+                this.getReviewElement().appendChild(newInclude)
+                await Loader.loadIncludes()
+                Component.getObject(`ReplyDialog`).show()
+            }
+            showError(message) {
+                let errorSnackbar = Component.getObject(`SnackbarError`)
+                        
+                errorSnackbar.vars.text = message
+                errorSnackbar.show()
+            }
+            props = {
+                reviewId: ``,
+                replyId: ``,
+                imageURL: ``,
+                firstName: ``,
+                lastName: ``,
+                title: ``
+            }
+            vars = {
+                reply: ``,
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --reply-card-display: flex;
+            --reply-card-flex-direction: column;
+            --reply-card-pad: 5px;
+            --reply-card-margin: 5px 5px 5px 50px;
+            --reply-card-border-style: solid;
+            --reply-card-border-width: 2px;
+            --reply-card-border-color: var(--secondary-color);
+        }
+
+        .reply-card {
+            display: var(--reply-card-display);
+            flex-direction: var(--reply-card-flex-direction);
+            padding: var(--reply-card-pad);
+            margin: var(--reply-card-margin);
+            border-style: var(--reply-card-border-style);
+            border-width: var(--reply-card-border-width);
+            border-color: var(--reply-card-border-color);
+        }
+    </style>
+    <component-markup>
+        <section id="{id}" class="reply-card">
+            <div id="{id}HeaderWrapper">
+                <include-html include-in="reply.html" src="./html/components/reviews/reply-header.html" component-class="ReplyHeader" component-id="{id}ReplyHeader">
+                    <include-props class="display-none">
+                        { 
+                            imageURL: `{imageURL}`,
+                            firstName: `{firstName}`,
+                            lastName: `{lastName}`,
+                            title: `{title}`,
+                            date: `{date}`
+                        }          
+                    </include-props>
+                </include-html>
+            </div>
+            <section id="{id}ReplyBody" class="flex-col w100">
+                <div id="{id}Reply" class="whitespace-pre-wrap overflow-wrap-break border-tb-solid border-1 border-gray-7 p5 text-2 cursor-default">{reply}</div>
+            </section>
+            <div id="{id}EditButton" class="display-none" onclick="$obj.edit()">
+                <div id="{id}EditButtonText" class="margin-1">Edit</div> 
+            </div>
+        </section>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

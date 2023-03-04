@@ -1,0 +1,43 @@
+<custom-component>
+    <script>
+        class Button{
+            className() {return this.constructor.name}
+            initialize() { console.log(`Initialize.`)}
+            beforeMount() { console.log(`Before mount.`)}
+            afterMount() { console.log(`After mount.`)}
+            beforeUnmount() { console.log(`Before unmount.`)}
+            afterUnmount() { console.log(`After unmount.`)}
+            vars = {
+                x: `Button`,
+                y: `Y`
+            }
+            props = {
+                prop1: `value1`,
+                prop2: `value2`
+            }
+        }
+        const ddd = function() { 
+            alert(`clickity clackity`);
+            let button =  window.$components.objectRegistry.get(`Button1`)
+            console.log(button.componentObject.props.prop1)
+            button.componentObject.props.prop1 = `Should not assign a value to the prop`
+            console.log(button.componentObject.props.prop1)
+            console.log(button.componentObject.className())
+            ComponentLifecycle.unmount(`Button1`)
+            ComponentLifecycle.mount(`Button1`)
+        }
+    </script>
+    <test-script>
+    </test-script>
+    <style>
+        .buttonStyle {
+            color: green;
+            background-color: red;
+        }
+    </style>
+    <component-markup>
+        <button name="{y}" class="buttonStyle" onclick="ddd()">{x}</button>
+        <div>{y}</div>
+        <div>{prop1}<div>{prop2}</div></div>
+    </component-markup>
+</custom-component>

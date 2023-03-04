@@ -1,0 +1,108 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/admin/admin-text-tab-bar.html
+        class AdminTextTabBar extends Component {
+          initialize(id) {
+              super.initialize(id)
+              Queue.register(this, Messages.TEXT_EDITED, async (message) => { 
+                if (this.TextEditAboutComponent.id === message.id) { await this.updateAboutText()}
+                else if (this.TextEditReviewComponent.id === message.id) { await this.updateReviewText()}
+              })
+              Queue.register(this, TabBar.msgs.SHOW_TAB, async (message) => {
+                if (message.tabBar.id === `AdminTabBar`) {
+                  if (message.tab === `Text`) { this.Element.show() }
+                  else { this.Element.hide() }
+                }
+              })
+          }
+          onDescendantsMounted() {
+              super.onDescendantsMounted()
+              this.loadText()
+          } 
+          async loadText () {
+              const response = await SIText.get()
+
+              if (200 === response.status) { 
+                  let textRecords = await response.json()
+                  
+                  for (const text of textRecords) {
+                      if (`about` === text.for) { 
+                        this.TextEditAboutComponent.setText(text.text)
+                        this.vars.aboutTextRecord = text
+                      }
+                      else if (`reviews` === text.for) { 
+                        this.TextEditReviewComponent.setText(text.text)
+                        this.vars.reviewsTextRecord = text
+                      }
+                  }
+
+              } else { showError(`Error retrieving text. Status code ${response.status}.`) }
+          }
+          async updateAboutText() {
+            if (!this.TextEditAboutComponent.validateText()) { return }
+
+            const text = this.TextEditAboutComponent.getText()
+            const response = await SIText.update(text, this.vars.aboutTextRecord.id)
+            if (200 !== response.status) {
+              if (401 === response.status) { window.location.href = `/login` }
+              else { showError(`Error updating About text. Status code ${response.status}.`)}
+              return
+            }
+            const content = await response.json()
+
+            JavascriptWebToken.storeCredentials(content.jwt)
+            showInfo(`About Text updated.`)
+          }
+          async updateReviewText() {
+            if (!this.TextEditReviewComponent.validateText()) { return }
+
+            const text = this.TextEditReviewComponent.getText()
+            const response = await SIText.update(text, this.vars.reviewsTextRecord.id)
+            if (200 !== response.status) {
+              if (401 === response.status) { window.location.href = `/login` }
+              else { showError(`Error updating Review text. Status code ${response.status}.`)}
+              return
+            }
+            const content = await response.json()
+
+            JavascriptWebToken.storeCredentials(content.jwt)
+            showInfo(`Review Text updated.`)
+          }
+          vars = {
+            aboutTextRecord: null,
+            reviewsTextRecord: null
+          }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}" class="w100 display-none">
+            <div id="{id}Text" class="w100">
+              <div id="{id}AboutEdit" class="w100">
+                <include-html include-in="admin-text-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}TextEditAboutTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminTextTabBar`, tab: `Front Page` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}TextEditAboutTabContent" for-slot="{id}TextEditAboutTabContentSlot">
+                  <include-html include-in="admin-text-tab-bar.html" src="./html/components/text/edit-text.html" component-class="EditText" component-id="{id}TextEditAboutComponent"></include-html>
+                </slot-markup>
+              </div>
+    
+              <div id="{id}ReviewEdit" class="w100">
+                <include-html include-in="admin-text-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}TextEditReviewTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminTextTabBar`, tab: `Reviews` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}TextEditReviewTabContent" for-slot="{id}TextEditReviewTabContentSlot">
+                  <include-html include-in="admin-text-tab-bar.html" src="./html/components/text/edit-text.html" component-class="EditText" component-id="{id}TextEditReviewComponent"></include-html>
+                </slot-markup>
+              </div>
+
+            </div>
+          </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

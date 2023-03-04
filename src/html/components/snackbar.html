@@ -1,0 +1,138 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/snackbar.html
+        class Snackbar extends Component {
+            afterMount() { 
+                super.afterMount()
+                if (this.props.isError) { this.Element.classList.toggle(`snackbar-error`) }
+            }
+            show() {
+                this.Element.innerText = this.vars.text
+                this.Element.classList.toggle(`show`)
+                setTimeout(() => { this.Element.classList.toggle(`show`) }, 3000)
+            }
+            props = {
+                isError: false
+            }
+            vars = {
+                text: ``
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --snackbar-min-width: 250px;
+            --snackbar-color: var(--primary-text-color);
+            --snackbar-background-color: var(--background-color);
+            --snackbar-padding: none;
+            --snackbar-margin-left: -125px;
+            --snackbar-text-align: center;
+            --snackbar-font-family: var(--primary-font-family);
+            --snackbar-font-size: var(--text-2-font-size);
+            --snackbar-font-weight: var(--text-2-font-weight);
+            --snackbar-border-color: var(--amber-500);
+            --snackbar-border-width: 2px;
+            --snackbar-border-style: solid;
+            --snackbar-border-radius: 0px;
+            --snackbar-left: 50%;
+            --snackbar-top: 30px;
+            --snackbar-z-index: 10;
+
+            --snackbar-error-min-width: 250px;
+            --snackbar-error-color: var(--light-text-color);
+            --snackbar-error-background-color: var(--error-color);
+            --snackbar-error-padding: none;
+            --snackbar-error-margin-left: -125px;
+            --snackbar-error-text-align: center;
+            --snackbar-error-font-family: var(--primary-font-family);
+            --snackbar-error-font-size: var(--text-2-font-size);
+            --snackbar-error-font-weight: var(--text-2-font-weight);
+            --snackbar-error-border-color: var(--light-text-color);
+            --snackbar-error-border-width: 2px;
+            --snackbar-error-border-style: solid;
+            --snackbar-error-border-radius: 0px;
+            --snackbar-error-left: 50%;
+            --snackbar-error-top: 30px;
+            --snackbar-error-z-index: 10;
+        }
+
+        .snackbar {
+            visibility: hidden;
+            position: fixed;
+            min-width: var(--snackbar-min-width);
+            color: var(--snackbar-color);
+            background-color: var(--snackbar-background-color);
+            text-align: var(--snackbar-text-align);
+            font-family: var(--snackbar-font-family);
+            font-size: var(--snackbar-font-size);
+            font-weight: var(--snackbar-font-weight);
+            border-color: var(--snackbar-border-color);
+            border-width: var(--snackbar-border-width);
+            border-style: var(--snackbar-border-style);
+            border-radius: var(--snackbar-border-radius);
+            padding: var(--snackbar-padding);
+            margin-left: var(--snackbar-margin-left);
+            left: var(--snackbar-left);
+            top: var(--snackbar-top);
+            z-index: var(--snackbar-z-index);
+        }
+        .snackbar-error {
+            visibility: hidden;
+            position: fixed;
+            min-width: var(--snackbar-error-min-width);
+            color: var(--snackbar-error-color);
+            background-color: var(--snackbar-error-background-color);
+            text-align: var(--snackbar-error-text-align);
+            font-family: var(--snackbar-error-font-family);
+            font-size: var(--snackbar-error-font-size);
+            font-weight: var(--snackbar-error-font-weight);
+            border-color: var(--snackbar-error-border-color);
+            border-width: var(--snackbar-error-border-width);
+            border-style: var(--snackbar-error-border-style);
+            border-radius: var(--snackbar-error-border-radius);
+            padding: var(--snackbar-error-padding);
+            margin-left: var(--snackbar-error-margin-left);
+            left: var(--snackbar-error-left);
+            top: var(--snackbar-error-top);
+            z-index: var(--snackbar-error-z-index);
+        }
+
+        .snackbar.show {
+            visibility: visible;
+            -webkit-animation: snackbar-fadein 0.5s, snackbar-fadeout 0.5s 2.5s;
+            animation: snackbar-fadein 0.5s, snackbar-fadeout 0.5s 2.5s;
+        }
+
+        .snackbar-error.show {
+            visibility: visible;
+            -webkit-animation: snackbar-fadein 0.5s, snackbar-fadeout 0.5s 2.5s;
+            animation: snackbar-fadein 0.5s, snackbar-fadeout 0.5s 2.5s;
+        }
+
+        @-webkit-keyframes snackbar-fadein {
+            from {top: 0; opacity: 0;} 
+            to {top: 30px; opacity: 1;}
+        }
+
+        @keyframes snackbar-fadein {
+            from {top: 0; opacity: 0;}
+            to {top: 30px; opacity: 1;}
+        }
+
+        @-webkit-keyframes snackbar-fadeout {
+            from {top: 30px; opacity: 1;} 
+            to {top: 0; opacity: 0;}
+        }
+
+        @keyframes snackbar-fadeout {
+            from {top: 30px; opacity: 1;}
+            to {top: 0; opacity: 0;}
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="snackbar"></div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+

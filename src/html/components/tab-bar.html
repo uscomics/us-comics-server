@@ -1,0 +1,123 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/tab-bar.html
+        class TabBar extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, ComponentLifecycle.msgs.COMPONENT_AFTER_MOUNT, (component) => {
+                    if (this.vars.initialTabMounted) { return }
+                    if (this.id !== component.props?.tabBarId) { return }
+                    this.vars.mountedTabCount++
+                    if (this.vars.mountedTabCount < this.vars.tabs.length) { return }
+
+                    const tab = this.vars.tabs[this.vars.activeTab]
+                    const message = { tabBar: this, tab }
+
+                    Queue.broadcast(TabBar.msgs.SHOW_TAB, message )
+                    this.vars.initialTabMounted = true
+                })
+            }
+            afterMount() {
+                super.afterMount()
+                for (let tab of this.vars.tabs) {
+                    let tabId = `${this.id}Tab${tab.replace(' ', '_')}`
+                    let tabHTML = `<div id="${tabId}" class="tab" onclick="Component.getObject('${this.id}').setActiveTab('${tab}')">${tab}</div>`
+                    let temp = document.createElement('div')
+                    const message = { tabBar: this, tab }
+
+                    temp.innerHTML = tabHTML
+                    this.Element.appendChild(temp.firstChild)
+                    if (tab ===  this.vars.tabs[0]) { Queue.broadcast(Messages.SHOW_TAB, message )}
+                    else { Queue.broadcast(TabBar.msgs.HIDE_TAB, message )}
+                }
+                let activeTabName = this.vars.tabs[this.vars.activeTab]
+                let activeTabId = `${this.id}Tab${activeTabName.replace(' ', '_')}`
+                let activeTabElement = document.getElementById(activeTabId)
+
+                activeTabElement?.classList.toggle(`active-tab`)
+                if (!this.vars.tabsInRow) { this.Element.classList.replace(`flex-row`, `flex-col`)}
+                if (!this.vars.tabsCentered) { this.Element.classList.replace(`flex-align-center`, `flex-align-start`)}
+            }
+            setActiveTab(tabName) {
+                for (let loop = 0; loop < this.vars.tabs.length; loop++) {
+                    if (tabName !== this.vars.tabs[loop]) { continue }
+
+                    let previousActiveTabName = this.vars.tabs[this.vars.activeTab]
+                    let previousActiveTabId = `${this.id}Tab${previousActiveTabName.replace(' ', '_')}`
+                    let previousActiveTabElement = document.getElementById(previousActiveTabId)
+                    let newActiveTabName = this.vars.tabs[loop]
+                    let newActiveTabId = `${this.id}Tab${newActiveTabName.replace(' ', '_')}`
+                    let newActiveTabElement = document.getElementById(newActiveTabId)
+
+                    previousActiveTabElement?.classList.toggle(`active-tab`)
+                    newActiveTabElement?.classList.toggle(`active-tab`)
+                    this.vars.activeTab = loop
+                    Queue.broadcast(TabBar.msgs.HIDE_TAB, { tabBar: this, tab: previousActiveTabName })
+                    Queue.broadcast(TabBar.msgs.SHOW_TAB, { tabBar: this, tab: newActiveTabName })
+                    Queue.broadcast(Messages.REFRESH, this )
+                    break
+                }
+            }
+            vars = {
+                tabs: [],
+                activeTab: 0,
+                mountedTabCount: 0, 
+                initialTabMounted: false,
+                tabsInRow: true,
+                tabsCentered: true
+            }
+            static msgs = {
+                SHOW_TAB: `SHOW_TAB`,
+                HIDE_TAB: `HIDE_TAB`
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --tab-display: flex;
+            --tab-justify-content: center;
+            --tab-align-items: center;
+            --tab-height: 20px;
+            --tab-color: var(--primary-text-color);
+            --tab-background-color: var(--background-color);
+            --tab-text-align: center;
+            --tab-font-family: var(--primary-font-family);
+            --tab-font-size: var(--text-2-font-size);
+            --tab-font-weight: var(--text-1-font-weight);
+            --tab-cursor: pointer;
+            --tab-padding: 0 3px 0 3px;
+            --tab-margin: 10px;
+            --tab-text-decoration: underline;
+
+            --tab-active-color: var(--background-color);
+            --tab-active-background-color: var(--secondary-color);
+            --tab-active-text-decoration: none;
+        }        
+        .tab {
+            display: var(--tab-display);
+            justify-content: var(--tab-justify-content);
+            align-items: var(--tab-align-items);
+            height: var(--tab-height);
+            color: var(--tab-color);
+            background-color: var(--tab-background-color);
+            text-align: var(--tab-text-align);
+            text-decoration: var(--tab-text-decoration);
+            font-family: var(--tab-font-family);
+            font-size: var(--tab-font-size);
+            font-weight: var(--tab-font-weight);
+            cursor: var(--tab-cursor);
+            padding: var(--tab-padding);
+            margin: var(--tab-margin);
+        }
+        .active-tab {
+            color: var(--tab-active-color);
+            background-color: var(--tab-active-background-color);
+            text-decoration: var(--tab-active-text-decoration);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="flex-row flex-align-center"></div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

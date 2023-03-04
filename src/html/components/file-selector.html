@@ -1,0 +1,26 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/file-selector.html
+        class FileSelector extends Component {
+            setSelectedFile(event) { 
+                this.vars.selectedFile = event.target.files[0]
+                Queue.broadcast(Messages.FILE_SELECTED, { event, component: this })
+            }
+            props = {
+                acceptedFileTypes: `image/jpeg, image/png, image/jpg, image/gif`
+            }
+            vars = {
+                selectedFile: ``
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}Wrapper" class="flex-col">
+            <input id="{id}" type="file" accept="{acceptedFileTypes}" onchange="$obj.setSelectedFile(event)">
+        </div>    
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

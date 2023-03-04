@@ -1,0 +1,130 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/admin/admin-photos-tab-bar.html
+        class AdminPhotosTabBar extends Component { 
+          initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.PHOTO_EDITED, async (message) => { 
+                  if (this.PhotosAddComponent.id === message.id) { await this.savePhoto()}
+                  else if (this.PhotosEditComponent.id === message.id) { await this.updatePhoto()}
+                })
+                Queue.register(this, Messages.PHOTO_SELECTED, (message) => { 
+                  if (this.PhotosEditList.id !== message.component.id) { return }
+
+                  const news = this.PhotosEditList.getSelectedPhoto()
+
+                  this.PhotosEditComponent.setPhoto(news)
+                })
+                Queue.register(this, TabBar.msgs.SHOW_TAB, async (message) => {
+                  if (message.tabBar.id === `AdminTabBar`) {
+                    if (message.tab === `Photos`) { this.Element.show() }
+                    else { this.Element.hide() }
+                  }
+                })
+          }        
+          async savePhoto() {
+            const filename = this.PhotosAddComponent.FileSelector.vars.selectedFile
+            const text = this.PhotosAddComponent.Text.Element.value
+
+            const response = await SIPhotos.add(filename, text)
+
+            if (200 === response.status) {
+                const content = await response.json()
+
+                await this.PhotosEditList.loadPhotos()
+                await this.PhotosDeleteList.loadPhotos()
+                JavascriptWebToken.storeCredentials(content.jwt)
+                showInfo(`Photo added.`)
+            } else {
+                if (401 === response.status) { window.location.href = `/login` }
+                else { showError(`Error adding photo. Status code ${response.status}.`) }
+            }
+          }          
+          async updatePhoto() {
+            if (!this.PhotosEditComponent.validatePhoto()) { return }
+
+            const photoId = this.PhotosEditList.getSelectedPhoto().id
+            const photo = this.PhotosEditComponent.getPhoto()
+            const response = await SIPhotos.update(photo.file, photo.text, photoId)
+
+            if (200 !== response.status) {
+              if (401 === response.status) { window.location.href = `/login` }
+              else { showError(`Error updating photo. Status code ${response.status}.`) }
+              return
+            }
+            await this.PhotosEditList.loadPhotos()
+            await this.PhotosDeleteList.loadPhotos()
+
+            const content = await response.json()
+
+            JavascriptWebToken.storeCredentials(content.jwt)
+            showInfo(`Photo updated.`)
+          }
+          async deletePhoto() {
+            if (!confirm(`Delete this photo?`)) { return }
+
+            const photoIndex = this.PhotosDeleteList.vars.photoIndex
+            const id = this.PhotosDeleteList.vars.photos[photoIndex].id
+            const response = await SIPhotos.remove(id)
+
+            if (200 === response.status) {
+              const content = await response.json()
+
+              await this.PhotosEditList.loadPhotos()
+              await this.PhotosDeleteList.loadPhotos()
+              JavascriptWebToken.storeCredentials(content.jwt)
+              showInfo(`Photo deleted.`)
+            } else {
+              if (401 === response.status) { window.location.href = `/login` }
+              else { showError(`Error getting photos. Status code ${response.status}.`) }
+            }
+          }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}" class="w100 display-none">
+            <div id="{id}Photos" class="w100">
+              <div id="{id}PhotosAdd" class="w100">
+                <include-html include-in="admin-photos-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}PhotosAddTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminPhotosTabBar`, tab: `Add Photos` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}PhotosAddTabContent" for-slot="{id}PhotosAddTabContentSlot">
+                  <include-html include-in="admin-photos-tab-bar.html" src="./html/components/photos/edit-photos.html" component-class="EditPhotos" component-id="{id}PhotosAddComponent"></include-html>
+                </slot-markup>
+              </div>
+    
+              <div id="{id}PhotosEdit" class="w100">
+                <include-html include-in="admin-photos-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}PhotosEditTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminPhotosTabBar`, tab: `Edit Photos` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}PhotosEditTabContent" for-slot="{id}PhotosEditTabContentSlot">
+                  <include-html include-in="admin-photos-tab-bar.html" src="./html/components/photos/photos-list.html" component-class="PhotosList" component-id="{id}PhotosEditList">
+                    <include-props class="display-none">{ size: `small` }</include-props>
+                  </include-html>
+                  <div id="{id}Spacer" class="h10px"></div>
+                  <include-html include-in="admin-photos-tab-bar.html" src="./html/components/photos/edit-photos.html" component-class="EditPhotos" component-id="{id}PhotosEditComponent"></include-html>
+                </slot-markup>
+              </div>
+    
+              <div id="{id}PhotosDelete" class="w100">
+                <include-html include-in="admin-photos-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}PhotosDeleteTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminPhotosTabBar`, tab: `Delete Photos` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}PhotosDeleteTabContent" for-slot="{id}PhotosDeleteTabContentSlot">
+                  <include-html include-in="admin-photos-tab-bar.html" src="./html/components/photos/photos-list.html" component-class="PhotosList" component-id="{id}PhotosDeleteList">
+                    <include-props class="display-none">{ size: `small` }</include-props>
+                  </include-html>
+                  <div id="{id}PhotoDeleteButton" class="button w100" onclick="$obj.deletePhoto()">Delete</div>
+                </slot-markup>
+              </div>
+            </div>
+          </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

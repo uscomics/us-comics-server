@@ -1,0 +1,112 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/stars.html
+        class Stars extends Component {
+            onDescendantsMounted() { 
+                super.onDescendantsMounted()
+                this.setStars(this.vars.rating)
+
+                if (this.props.editable) {
+                    this.Star1.Element.classList.toggle(`cursor-pointer`)
+                    this.Star2.Element.classList.toggle(`cursor-pointer`)
+                    this.Star3.Element.classList.toggle(`cursor-pointer`)
+                    this.Star4.Element.classList.toggle(`cursor-pointer`)
+                    this.Star5.Element.classList.toggle(`cursor-pointer`)
+                } else {
+                    this.Star1.Element.classList.toggle(`cursor-default`)
+                    this.Star2.Element.classList.toggle(`cursor-default`)
+                    this.Star3.Element.classList.toggle(`cursor-default`)
+                    this.Star4.Element.classList.toggle(`cursor-default`)
+                    this.Star5.Element.classList.toggle(`cursor-default`)
+                }
+            }
+            setStars(rating) {
+                if (1 === this.vars.rating && 1 === rating) {
+                    this.vars.rating = 0
+                } else {
+                    this.vars.rating = rating
+                }
+                
+                if (1 >= this.vars.rating) {
+                    this.Star5.setValue(0)
+                    this.Star4.setValue(0)
+                    this.Star3.setValue(0)
+                    this.Star2.setValue(0)
+                    this.Star1.setValue(this.vars.rating)
+                } else if (2 >= this.vars.rating) {
+                    this.Star5.setValue(0)
+                    this.Star4.setValue(0)
+                    this.Star3.setValue(0)
+                    this.Star2.setValue(this.vars.rating - 1)
+                    this.Star1.setValue(1)
+                } else if (3 >= this.vars.rating) {
+                    this.Star5.setValue(0)
+                    this.Star4.setValue(0)
+                    this.Star3.setValue(this.vars.rating - 2)
+                    this.Star2.setValue(1)
+                    this.Star1.setValue(1)
+                } else if (4 >= this.vars.rating) {
+                    this.Star5.setValue(0)
+                    this.Star4.setValue(this.vars.rating - 3)
+                    this.Star3.setValue(1)
+                    this.Star2.setValue(1)
+                    this.Star1.setValue(1)
+                } else {
+                    this.Star5.setValue(this.vars.rating - 4)
+                    this.Star4.setValue(1)
+                    this.Star3.setValue(1)
+                    this.Star2.setValue(1)
+                    this.Star1.setValue(1)
+                }
+
+                const newRatingEvent = new CustomEvent(
+                    `newRating`,
+                    {
+                        bubbles: true,
+                        detail: {
+                            rating: this.vars.rating,
+                            component: this, 
+                            element: document.getElementById(this.id) 
+                        }
+                    }
+                )
+                const element = document.getElementById(this.id)
+
+                element.dispatchEvent(newRatingEvent)
+            }
+            editStars(rating) {
+                if (!this.props.editable) { return }
+                this.setStars(rating)
+            }
+            props = {
+                editable: true,
+            }
+            vars = {
+                rating: 0,
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}" class="flex-row flex-align-center w100px h20px">
+            <include-html include-in="index.html" src="./html/components/reviews/star.html" component-class="Star" component-id="{id}Star1" onclick="$obj.editStars(1)">
+                <include-vars class="display-none">{ value: 0 }</include-vars>
+            </include-html>
+            <include-html include-in="index.html" src="./html/components/reviews/star.html" component-class="Star" component-id="{id}Star2" onclick="$obj.editStars(2)">
+                <include-vars class="display-none">{ value: 0 }</include-vars>
+            </include-html>
+            <include-html include-in="index.html" src="./html/components/reviews/star.html" component-class="Star" component-id="{id}Star3" onclick="$obj.editStars(3)">
+                <include-vars class="display-none">{ value: 0 }</include-vars>
+            </include-html>
+            <include-html include-in="index.html" src="./html/components/reviews/star.html" component-class="Star" component-id="{id}Star4" onclick="$obj.editStars(4)">
+                <include-vars class="display-none">{ value: 0 }</include-vars>
+            </include-html>
+            <include-html include-in="index.html" src="./html/components/reviews/star.html" component-class="Star" component-id="{id}Star5" onclick="$obj.editStars(5)">
+                <include-vars class="display-none">{ value: 0 }</include-vars>
+            </include-html>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

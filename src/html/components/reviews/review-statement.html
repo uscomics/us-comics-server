@@ -1,0 +1,69 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/review-statement.html
+        class ReviewStatement extends Component { 
+            initialize(id) {
+                super.initialize(id)
+                this.loadText()
+                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                    if (message.tabBar.id !== `TabBar`) { return }
+                    if (message.tab !== `Reviews`) { return }
+
+                    const reviewWrapperElement = document.getElementById(`ReviewWrapper`)
+
+                    reviewWrapperElement?.classList.remove(`display-none`)
+                    this.Element.classList.remove(`display-none`)
+                })
+            }
+            async loadText () {
+                const response = await SIText.get()
+
+                if (200 === response.status) { 
+                    let textRecords = await response.json()
+                    for (const text of textRecords) {
+                        if (`reviews` === text.for) {
+                            this.vars.text = text.text
+                            break
+                        }
+                    }
+                } else { showError(`Error retrieving text. Status code ${response.status}.`) }
+            }
+            vars = {
+                text: `These are all genuine reviews from real customers. I can't add to them or edit them. I can only edit my replies, because occasionally I make a mistake.<br><br>We very much enjoy the feedback our customers give us. If you ride with us, feel free to let us know how we did.<br><br>Vince`
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --review-statement-card-display: flex;
+            --review-statement-card-flex-direction: column;
+            --review-statement-card-pad: 5px;
+            --review-statement-card-margin: 5px;
+            --review-statement-card-border-style: solid;
+            --review-statement-card-border-width: 2px;
+            --review-statement-card-border-color: var(--secondary-color);
+        }
+
+        .review-statement-card {
+            display: var(--review-card-display);
+            flex-direction: var(--review-statement-card-flex-direction);
+            padding: var(--review-statement-card-pad);
+            margin: var(--review-statement-card-margin);
+            border-style: var(--review-statement-card-border-style);
+            border-width: var(--review-statement-card-border-width);
+            border-color: var(--review-statement-card-border-color);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="flex-row flex-align-start review-statement-card display-none">
+            <div id="{id}AvatarWrapper">
+                <include-html include-in="review-header.html" src="./html/components/reviews/avatar.html" component-class="Avatar" component-id="{id}Avatar">
+                    <include-props class="display-none">{ imageURL: `https://s3-media0.fl.yelpcdn.com/buphoto/P5CU_mkQeRZtDwo6g9Vpeg/30s.jpg` }</include-props>
+                </include-html>
+            </div>
+            <div id="{id}Statment" class="text-1 margin-l-10 margin-b-10 whitespace-pre-wrap">{text}</div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

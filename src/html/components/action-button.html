@@ -1,0 +1,88 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/action-button.html
+        class ActionButton extends Component {
+            vars = {
+                title: ``
+            }
+        }
+    </script>
+    <style>
+        :root {
+            
+            --action-button-position: fixed;
+            --action-button-display: flex;
+            --action-button-justify-content: center;
+            --action-button-align-items: center;
+            --action-button-left: 50%;
+            --action-button-bottom: 20px;
+            --action-button-width: 100px;
+            --action-button-height: 100px;
+            --action-button-transform: translate(-50%, -50%);
+            --action-button-color: var(--background-color);
+            --action-button-background-color: var(--secondary-color);
+            --action-button-cursor: pointer;
+            --action-button-padding: 3px;
+            --action-button-margin: 0 auto;
+            --action-button-border-color: var(--secondary-color);
+            --action-button-border-width: var(--default-border-width);
+            --action-button-border-style: var(--default-border-style);
+            --action-button-border-radius: 50%;
+
+            --action-button-hover-filter: brightness(95%);
+
+            --action-button-active-filter: brightness(105%);
+
+            --action-button-title-text-align: center;
+            --action-button-title-font-family: var(--primary-font-family);
+            --action-button-title-font-size: var(--text-1-font-size);
+            --action-button-title-font-weight: var(--text-1-font-weight);
+        }
+
+        .action-button {
+            position: var(--action-button-position);
+            display: var(--action-button-display);
+            flex-direction: var(--action-button-flex-direction);
+            justify-content: var(--action-button-justify-content);
+            align-items: var(--action-button-align-items);
+            left: var(--action-button-left);
+            bottom: var(--action-button-bottom);
+            width: var(--action-button-width);
+            height: var(--action-button-height);
+            transform: var(--action-button-transform);
+            color: var(--action-button-color);
+            background-color: var(--action-button-background-color);
+            cursor: var(--action-button-cursor);
+            text-align: var(--action-button-text-align);
+            font-family: var(--action-button-font-family);
+            font-size: var(--action-button-font-size);
+            font-weight: var(--action-button-font-weight);
+            padding: var(--action-button-padding);
+            margin: var(--action-button-margin);
+            border-color: var(--action-button-border-color);
+            border-width: var(--action-button-border-width);
+            border-style: var(--action-button-border-style);
+            border-radius: var(--action-button-border-radius);
+        }
+        .action-button:hover {
+            filter: var(--action-button-hover-filter);
+        }
+        .action-button:active {
+            filter: var(--action-button-active-filter);
+        }
+        .action-button-title {
+            text-align: var(--action-button-title-text-align);
+            font-family: var(--action-button-title-font-family);
+            font-size: var(--action-button-title-font-size);
+            font-weight: var(--action-button-title-font-weight);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="action-button">
+            <div id="{id}Title" class="action-button-title">{title}</div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+

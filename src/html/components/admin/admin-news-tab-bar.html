@@ -1,0 +1,126 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/admin/admin-news-tab-bar.html
+        class AdminNewsTabBar extends Component {
+          initialize(id) {
+            super.initialize(id)
+            Queue.register(this, Messages.NEWS_EDITED, (message) => { 
+              if (this.NewsAddComponent.id === message.id) { this.saveNews()}
+              else if (this.NewsEditComponent.id === message.id) { this.updateNews()}
+            })
+            Queue.register(this, Messages.NEWS_SELECTED, (message) => { 
+              if (this.NewsEditList.id !== message.component.id) { return }
+
+              const news = this.NewsEditList.getSelectedNewsItem()
+
+              this.NewsEditComponent.setNewsItem(news)
+            })
+            Queue.register(this, TabBar.msgs.SHOW_TAB, async (message) => {
+              if (message.tabBar.id === `AdminTabBar`) {
+                if (message.tab === `News`) { this.Element.show() }
+                else { this.Element.hide() }
+              }
+            })
+          }
+          async saveNews() {
+            const vaidationResult = await this.NewsAddComponent.validateNews()
+
+            if (!vaidationResult) { return }
+            
+            const news = this.NewsAddComponent.getNews()
+            const response = await SINews.add(news.file, news.title, news.text)
+
+            if (200 !== response.status) {
+                showError(`Error adding news. Status code ${response.status}.`)
+                return
+            }
+
+            const content = await response.json()
+
+            await this.NewsEditList.loadNews()
+            await this.NewsDeleteList.loadNews()
+            JavascriptWebToken.storeCredentials(content.jwt)
+            showInfo(`News added.`)
+          }      
+          async updateNews() {
+            if (!this.NewsEditComponent.validateNews()) { return }
+
+            const newsId = this.NewsEditList.getSelectedNewsItem().id
+            const news = this.NewsEditComponent.getNews()
+            const response = await SINews.update(news.file, news.title, news.text, newsId)
+
+            if (200 !== response.status) {
+              if (401 === response.status) { window.location.href = `/login` }
+              else { showError(`Error updating news. Status code ${response.status}.`) }
+              return
+            }
+            await this.NewsEditList.loadNews()
+            await this.NewsDeleteList.loadNews()
+
+            const content = await response.json()
+
+            JavascriptWebToken.storeCredentials(content.jwt)
+            showInfo(`News updated.`)
+          }
+          async deleteNews() {
+            const news = this.NewsDeleteList.getSelectedNewsItem()
+
+            if (!confirm(`Delete news item ${news.title}?`)) { return }
+            
+            const response = await SINews.remove(news.id)
+
+            if (200 !== response.status) {
+                showError(`Error deleting news. Status code ${response.status}.`)
+                return
+            }
+
+            await this.NewsEditList.loadNews()
+            await this.NewsDeleteList.loadNews()
+            showInfo(`News item deleted.`)
+          }
+      }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}" class="w100">
+            <div id="{id}News" class="w100">
+              <div id="{id}NewsAdd" class="w100">
+                <include-html include-in="admin-news-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}NewsAddTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminNewsTabBar`, tab: `Add News` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}NewsAddTabContent" for-slot="{id}NewsAddTabContentSlot">
+                  <div id="{id}NewsAddTitle" class="w100 m5-b m5-l amber-500">Add A News Item</div>
+                  <include-html include-in="admin-news-tab-bar.html" src="./html/components/news/edit-news.html" component-class="EditNews" component-id="{id}NewsAddComponent"></include-html>
+                </slot-markup>        
+              </div>
+    
+              <div id="{id}NewsEdit" class="w100">
+                <include-html include-in="admin-news-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}NewsEditTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminNewsTabBar`, tab: `Edit News` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}NewsEditTabContent" for-slot="{id}NewsEditTabContentSlot">
+                  <include-html include-in="admin-news-tab-bar.html" src="./html/components/news/news-list.html" component-class="NewsList" component-id="{id}NewsEditList"></include-html>
+                  <div id="{id}NewsEditTitle" class="m15-t m10-b amber-500">Enter The New Information For The News Item</div>
+                  <include-html include-in="admin-news-tab-bar.html" src="./html/components/news/edit-news.html" component-class="EditNews" component-id="{id}NewsEditComponent"></include-html>
+                </slot-markup>
+              </div>
+    
+              <div id="{id}NewsDelete" class="w100">
+                <include-html include-in="admin-news-tab-bar.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="{id}NewsDeleteTabContent">
+                  <include-props class="display-none">{ tabBarId: `AdminNewsTabBar`, tab: `Delete News` }</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}NewsDeleteTabContent" for-slot="{id}NewsDeleteTabContentSlot">
+                  <include-html include-in="admin-news-tab-bar.html" src="./html/components/news/news-list.html" component-class="NewsList" component-id="{id}NewsDeleteList"></include-html>
+                  <div id="{id}NewsDeleteButton" class="button w100" onclick="$obj.deleteNews()">Delete</div>
+                </slot-markup>
+              </div>
+            </div>
+          </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

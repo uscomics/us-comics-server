@@ -1,0 +1,90 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/modal-dialog.html
+        class ModalDialog extends Component {
+            afterMount() {
+                super.afterMount()
+                if (!this.props.okVisible) { this.OkElement.remove() }
+                if (!this.props.cancelVisible) { this.CancelElement.remove() }
+            }
+            show() { this.Element.show() }
+            hide() { this.Element.hide() }
+            onCancel() { Queue.broadcast(Messages.MODAL_CANCEL, this) }
+            onOk() { Queue.broadcast(Messages.MODAL_OK, this) }
+            props = {
+                okLabel: `Ok`,
+                cancelLabel: `Cancel`,
+                okVisible: true,
+                cancelVisible: false
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --modal-position: fixed;
+            --modal-background-color: rgba(0,0,0,0.4);
+            --modal-width: 100%;
+            --modal-height: 100%;
+            --modal-left: 0;
+            --modal-top: 0;
+            --modal-z-index: 10;
+            --modal-overflow: auto;
+            --modal-cursor: default;
+
+            --modal-content-background-color: var(--blue-gray-900);
+            --modal-content-width: 90%;
+            --modal-content-padding: 5px;
+            --modal-content-margin: 20px;
+            --modal-content-border-width: 1px;
+            --modal-content-border-style: solid;
+            --modal-content-border-color: var(--amber-500);
+
+            --modal-close-color: var(--blue-50);
+            --modal-close-font-family: var(--primary-font-family);
+            --modal-close-font-size: 28px;
+            --modal-close-font-weight: bold;
+            --modal-close-margin-top: -10px;
+
+            --modal-close-hover-color: var(--blue-50);
+            --modal-close-hover-text-decoration: none;
+            --modal-close-hover-font-cursor: pointer;
+        }
+
+        .modal {
+            position: var(--modal-position);
+            background-color: rgb(0,0,0);
+            background-color: var(--modal-background-color);
+            width: var(--modal-width);
+            height: var(--modal-height);
+            left: var(--modal-left);
+            top: var(--modal-top);
+            z-index: var(--modal-z-index);
+            overflow: var(--modal-overflow);
+            cursor: var(--modal-cursor);
+        }
+
+        /* Modal Content/Box */
+        .modal-content {
+            background-color: var(--modal-content-background-color);
+            width: var(--modal-content-width);
+            padding: var(--modal-content-padding);
+            margin: var(--modal-content-margin);
+            border-width: var(--modal-content-border-width);
+            border-style: var(--modal-content-border-style);
+            border-color: var(--modal-content-border-color);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="flex-col flex-align-center modal t0 l0 r0 b0 w100 h100 display-none">
+            <div id="{id}ContentWrapper" class="flex-col flex-align-center modal-content">
+                <component-slot id="{id}Slot">DEFAULT CONTENT FOR {id}</component-slot>
+                <div id="{id}Buttons" class="flex-row flex-end">
+                    <div id="{id}Cancel" class="button flex-align-self-end" onclick="$obj.onCancel()">{cancelLabel}</div>
+                    <div id="{id}Ok" class="button flex-align-self-end" onclick="$obj.onOk()">{okLabel}</div>
+                </div>
+            </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

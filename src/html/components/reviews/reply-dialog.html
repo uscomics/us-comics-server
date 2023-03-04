@@ -1,0 +1,188 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/reply-dialog.html
+        class ReplyDialog extends Component {
+            initialize(id) {
+                super.initialize(id)
+                this.setDialogContents()
+            }
+            setDialogContents() {
+                const reviewObj = Component.getObject(`Review${this.props.reviewId}`)
+
+                this.vars.reviewImageURL = reviewObj.props.imageURL
+                this.vars.reviewFirstName = reviewObj.props.firstName
+                this.vars.reviewLastName = reviewObj.props.lastName
+                this.vars.reviewCity = reviewObj.props.city
+                this.vars.reviewState = reviewObj.props.state
+                this.vars.reviewDate = reviewObj.props.date
+                this.vars.reviewRating = reviewObj.props.rating
+                this.vars.review = reviewObj.props.review
+
+                this.vars.editingExistingReply = false
+                if (this.props.replyId && this.props.replyId !== `undefined`) {
+                    const replyObj = Component.getObject(`Reply${this.props.replyId}`)
+
+                    this.vars.reply = replyObj.vars.reply
+                    this.vars.editingExistingReply = true
+                }
+            }
+            onBlur(event) { this.updateReply() }
+            onInput(event) { this.updateReply() }
+            updateReply() { this.vars.reply = this.ReplyTextElement.value }
+            show() { this.Element.setAttribute(`class`, `display-block modal-x`) }
+            hide() {
+                this.Element?.setAttribute(`class`, `display-none modal-x`)
+                this.destroy()
+            }
+            async save() {
+                const credentials = JavascriptWebToken.getCredentials()
+
+                if (this.vars.editingExistingReply) {
+                    const replyNumber = this.props.replyId.split(`_`)[1]
+                    const replyText = this.vars.reply.replace(/\n/g, "\\n")
+                    const reply = {
+                        id: `review:${replyNumber}`,
+                        reply: DOMPurify.sanitize(replyText)
+                    }
+                    const server = Registry.get(`Server`)
+                    const response = await fetch(`${server}update-reply`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'Authorization': `'Bearer ${credentials.token}'`
+                        },
+                        body: JSON.stringify(reply)
+                    })
+
+                    if (200 === response.status) {
+                        const content = await response.json()
+                        const reviewList = Component.getObject(`ReviewList`)
+
+                        JavascriptWebToken.storeCredentials(content.jwt)
+                        reviewList.removeReviews()
+                        await reviewList.fetchReviews()
+                        showInfo(`Reply updated.`)
+                    } else {
+                        if (401 === response.status) { window.location.href = `/login` }
+                        else { showError(`Error updating reply. Status code ${response.status}.`) }
+                    }
+                } else {
+                    const reviewNumber = this.props.reviewId.split(`_`)[1]
+                    const reply = {
+                        replyingTo: reviewNumber,
+                        image: DOMPurify.sanitize(credentials.image),
+                        name: {
+                            first: DOMPurify.sanitize(credentials.name.first),
+                            last: DOMPurify.sanitize(credentials.name.last)
+                        },
+                        title: `Business Owner`,
+                        reply: this.vars.reply
+                    }
+                    const server = Registry.get(`Server`)
+                    const response = await fetch(`${server}add-reply`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'Authorization': `'Bearer ${credentials.token}'`
+                        },
+                        body: JSON.stringify(reply)
+                    });
+
+                    if (200 === response.status) {
+                        const content = await response.json()
+                        const reviewList = Component.getObject(`ReviewList`)
+
+                        JavascriptWebToken.storeCredentials(content.jwt)
+                        reviewList.removeReviews()
+                        await reviewList.fetchReviews()
+                        showInfo(`Reply added.`)
+                    } else {
+                        if (401 === response.status) { window.location.href = `/login` }
+                        else { showError(`Error adding reply. Status code ${response.status}.`) }
+                    }
+                }
+                this.hide()
+            }
+            props = {
+                reviewId: ``,
+                replyId: ``
+            }
+            vars = {
+                reviewImageURL: ``,
+                reviewFirstName: ``,
+                reviewLastName: ``,
+                reviewCity: ``,
+                reviewState: `AZ`,
+                reviewDate: ``,
+                review: ` `,
+                reviewRating: 0,
+                reply: ` `,
+                editingExistingReply: false
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --reply-text-width: 100%;
+            --reply-text-height: 100px;
+            --reply-text-color: var(--blue-gray-900);
+            --reply-text-text-align: left;
+            --reply-text-white-space: pre-wrap;
+            --reply-text-font-family: var(--secondary-font-family);
+            --reply-text-font-size: var(--caption-1-font-size);
+            --reply-text-font-weight: font-weight: var(--caption-1-font-weight)
+        }
+        .reply-text {
+            width: var(--reply-text-width);
+            height: var(--reply-text-height);
+            color: var(--reply-text-color);
+            text-align: var(--reply-text-text-align);
+            white-space: var(--reply-text-white-space);
+            font-family: var(--reply-text-font-family);
+            font-size: var(--reply-text-font-size);
+            font-weight: var(--reply-text-font-weight);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="modal-x display-none" onclick="$obj.hide()">
+              <div id="{id}Frame" class="modal-x-content" onclick="event.stopPropagation()">
+                <include-html include-in="reply-dialog.html" src="./html/components/reviews/review-header.html" component-class="ReviewHeader" component-id="{id}ReviewHeader">
+                    <include-props class="display-none">
+                        { 
+                            imageURL: `{reviewImageURL}`,
+                            firstName: `{reviewFirstName}`,
+                            lastName: `{reviewLastName}`,
+                            city: `{reviewCity}`,
+                            state: `{reviewState}`,
+                            date: `{reviewDate}`
+                        }          
+                    </include-props>
+                </include-html>
+                <include-html include-in="reply-dialog.html" src="./html/components/reviews/stars.html" component-class="Stars" component-id="{id}Stars">
+                    <include-props class="display-none">{ editable: false }</include-props>
+                    <include-vars class="display-none">{ rating: {reviewRating} }</include-vars>
+                </include-html>
+                <div id="{id}ReviewWrapper" class="flex-col margin-b-10 cursor-default">
+                    <h3 id="{id}ReviewTitle" class="subtitle-2">Review</h3>
+                    <p id="{id}Review" class="caption-1 whitespace-pre-wrap">{review}</p>
+                </div>
+                <div id="{id}ReplyWrapper" class="flex-col margin-b-5">
+                    <h3 id="{id}ReplyTitle" class="subtitle-2">Reply</h3>
+                    <textarea id="{id}ReplyText" name="reply" class="reply-text" autofocus onblur="$obj.onBlur(event)" oninput="$obj.onInput(event)">{reply}</textarea>
+                </div>
+                <div id="{id}Buttons" class="flex-row flex-wrap flex-end margin-t-10">
+                    <div id="{id}CancelButton" class="button" onclick="$obj.hide()">
+                        <div id="{id}CancelButtonText" class="margin-1">Cancel</div> 
+                    </div>
+                    <div id="{id}SaveButton" class="button" onclick="$obj.save()">
+                        <div id="{id}SaveButtonText" class="margin-1">Save</div> 
+                    </div>
+                </div>    
+            </div>
+          </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

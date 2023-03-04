@@ -1,0 +1,40 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/text/edit-text.html
+        class EditText extends Component {
+            setText(text) {
+                this.Text.vars.value = text
+                this.Text.Element.value = text
+            }
+            async validateText() {
+                await this.Text.validate()
+                if (!this.Text.vars.valid) {
+                    showError(`${this.Text.props.name} is invalid.`)
+                    return false
+                }
+                return true
+            }
+            getText() {
+                const text = this.Text.Element.value
+                
+                return text 
+            }
+            onSubmit() { Queue.broadcast(Messages.TEXT_EDITED, this) }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}" class="flex-col w100 h300px m5">
+            <include-html include-in="edit-text.html" src="./html/components/text-area.html" component-class="TextArea" component-id="{id}Text">
+                <include-props>{ name: `Text`, placeholder: `Text`, label: `Text`, labelAboveField: false, required: true, minlength: 2, maxlength: 2000, cols: 100, rows: 20, tabIndex: 1, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `text` } </include-vars>
+            </include-html>
+            <div id="{id}ButtonWrapper" class="flex-col w100 m5">
+                <div id="{id}Button" class="button" onclick="$obj.onSubmit()">Submit</div>
+            </div>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

@@ -1,0 +1,154 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/list.html
+        class List extends Component {
+            showList(optionalList, optionalImageFieldName, optionalTitleFieldName) {
+                if (optionalList) { this.vars.items = optionalList }
+                if (optionalImageFieldName) { this.vars.itemImageField = optionalImageFieldName }
+                if (optionalTitleFieldName) { this.vars.itemTitleField = optionalTitleFieldName }
+                this.clearList()
+                for (let loop = 0; loop < this.vars.items.length; loop++) {
+                    const item = this.vars.items[loop]
+                    const wrapperDiv = document.createElement(`div`)
+                    const wrapperDivId = `${this.id}ListItemWrapper${loop}`
+                    const itemImage = document.createElement(`img`)
+                    const itemImageId = `${this.id}ListItemImage${loop}`
+                    const titleDiv = document.createElement(`div`)
+                    const titleId = `${this.id}ListItemTitle${loop}`
+                    const itemClicked = () => { 
+                        this.vars.itemIndex = loop
+                        this.selectItem()
+                    }
+                    
+                    wrapperDiv.id = wrapperDivId
+                    wrapperDiv.classList.add(`list-item`)
+                    wrapperDiv.addEventListener("click", itemClicked)
+                    itemImage.id = itemImageId
+                    itemImage.src = `./images/promo/${item[this.vars.itemImageField]}`
+                    itemImage.classList.add(`list-item-image`)
+                    titleDiv.id = titleId
+                    titleDiv.classList.add(`list-item-title`)
+                    titleDiv.innerText = item[this.vars.itemTitleField]
+                    wrapperDiv.appendChild(itemImage)
+                    wrapperDiv.appendChild(titleDiv)
+                    this.ListWrapperElement.appendChild(wrapperDiv)
+                }
+                this.selectItem()
+            }
+            clearList() { this.ListWrapperElement.removeChildren() }
+            clearSelection() {
+                for (let character of this.ListWrapperElement.children) {
+                    character.classList.remove(`list-item-selected`)
+                    character.classList.add(`list-item`)
+                }
+            }
+            selectItem() {
+                const characterElement = this.ListWrapperElement.children[this.vars.itemIndex]
+
+                character.classList.remove(`list-item`)
+                character.classList.add(`list-item-selected`)
+                Queue.broadcast(List.msgs.LIST_ITEM_SELECTED, { index: this.vars.itemIndex, element: characterElement, component: this })
+            }
+            getSelectedItem() { return this.vars.items[this.vars.itemIndex] }
+            getSelectedElement() { return this.ListWrapperElement.children[this.vars.itemIndex] }
+            itemSelected(index) {
+                this.clearSelection()
+                this.vars.itemIndex = index
+                this.selectItem()
+            }
+            vars = {
+                title: ``,
+                items: [],
+                itemIndex: 0,
+                itemImageField: `image`,
+                itemTitleField: `title`
+            }
+            static msgs = {
+                LIST_ITEM_SELECTED: `LIST_ITEM_SELECTED`
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --list-display: flex;
+            --list-flex-direction: column;
+            --list-width: 100%;
+            --list-background-color: var(--bg-primary);
+
+            --list-title-color: var(--amber-500);
+
+            --list-item-padding: none;
+            --list-item-margin: 3px;
+            --list-item-cursor: pointer;
+            --list-item-border-color: var(--amber-500);
+            --list-item-border-style: none;
+            --list-item-border-width: 0;
+
+            --list-item-selected-padding: none;
+            --list-item-selected-margin: 3px;
+            --list-item-selected-cursor: pointer;
+            --list-item-selected-border-color: var(--amber-500);
+            --list-item-selected-border-style: solid;
+            --list-item-selected-border-width: 2px;
+
+            --list-item-title-color: var(--primary-text-color);
+            --list-item-title-background-color: var(--bg-primary);
+            --list-item-title-text-align: left;
+            --list-item-title-font-family: var(--primary-font-family);
+            --list-item-title-font-size: var(--text-2-font-size);
+            --list-item-title-font-weight: var(--text-2-font-weight);
+            --list-item-title-cursor: pointer;
+            --list-item-title-padding: none;
+            --list-item-title-margin: 3px;
+
+            --list-item-image-width: 100px;
+        }
+        
+        .list{
+            display: var(--list-display);
+            flex-direction: var(--list-flex-direction);
+            width: var(--list-width);
+            background-color: var(--list-background-color);
+        }
+        .list-item{
+            padding: var(--list-item-padding);
+            margin: var(--list-item-margin);
+            cursor: var(--list-item-cursor);
+            border-color: var(----list-item-border-color);
+            border-style: var(----list-item-border-style);
+            border-width: var(----list-item-border-width);
+        }    
+        .list-item-selected{
+            padding: var(--list-item-selected-padding);
+            margin: var(--list-item-selected-margin);
+            cursor: var(--list-item-selected-cursor);
+            border-color: var(----list-item-selected-border-color);
+            border-style: var(----list-item-selected-border-style);
+            border-width: var(----list-item-selected-border-width);
+        }
+        .list-item-title{
+            color: var(--list-item-title-color);
+            background-color: var(--list-item-background-color);
+            text-align: var(--list-item-title-text-align);
+            font-family: var(--list-item-title-font-family);
+            font-size: var(--list-item-title-font-size);
+            font-weight: var(--list-item-title-font-weight);
+            cursor: var(--list-item-title-cursor);
+            padding: var(--list-item-title-padding);
+            margin: var(--list-item-title-margin);
+        }
+        .list-item-image{
+            width: var(--list-item-image-width);
+        }
+    </style>
+    <component-markup>
+        <span id="{id}" class="list flex-col bg-blue-gray-900 w100">
+            <span id="{id}Title" class="amber-500">{title}</span>
+            <span id="{id}ListWrapper" class="flex-col flex-wrap flex-space-around"></span>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

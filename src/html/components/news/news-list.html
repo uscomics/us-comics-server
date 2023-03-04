@@ -1,0 +1,106 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/news/news-list.html
+        class NewsList extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.NEWS_SELECTED, (message) => { this.newsClicked(message.index) })
+                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                    if ((message.tabBar.id === `AdminNewsTabBar`)
+                    && (message.tab === `Edit` && message.tab !== `Delete`)) { 
+                        this.loadNews()
+                    }
+                })
+                this.loadNews() 
+            }
+            afterMount() {
+                super.afterMount()
+                this.loadNews() 
+            }
+            async loadNews () {
+                const response = await SINews.get()
+
+                if (200 === response.status) { 
+                    let news = await response.json()          
+                    this.vars.news = news.reverse()
+                    this.vars.newsIndex = 0
+                    this.showNews()
+                } else {
+                    showError(`Error retrieving news. Status code ${response.status}.`)
+                }
+            }
+            showNews() {
+                this.clearNews()
+                for (let loop = 0; loop < this.vars.news.length; loop++) {
+                    const news = this.vars.news[loop]
+                    const wrapperDiv = document.createElement(`div`)
+                    const wrapperDivId = `${this.id}NewsItemWrapper${loop}`
+                    const newsImage = document.createElement(`img`)
+                    const newsImageId = `${this.id}NewsItemImage${loop}`
+                    const titleDiv = document.createElement(`div`)
+                    const titleId = `${this.id}NewsItemImage${loop}`
+                    const itemClicked = () => { 
+                        this.vars.newsIndex = loop
+                        Queue.broadcast(Messages.NEWS_SELECTED, { index: loop, element: wrapperDiv, component: this })
+                    }
+                    
+                    wrapperDiv.id = wrapperDivId
+                    wrapperDiv.classList.add(`flex-col`)
+                    wrapperDiv.classList.add(`w50px`)
+                    wrapperDiv.classList.add(`cursor-pointer`)
+                    wrapperDiv.classList.add(`m3`)
+                    wrapperDiv.addEventListener("click", itemClicked)
+                    newsImage.id = newsImageId
+                    newsImage.src = `./images/${news.file}`
+                    newsImage.width = 46
+                    titleDiv.id = titleId
+                    titleDiv.classList.add(`caption-2`)
+                    titleDiv.classList.add(`center-text`)
+                    titleDiv.innerText = news.title
+                    wrapperDiv.appendChild(newsImage)
+                    wrapperDiv.appendChild(titleDiv)
+                    this.ListItemWrapperElement.appendChild(wrapperDiv)
+                }
+                this.selectNewsItem()
+            }
+            clearNews() { this.ListItemWrapperElement.removeChildren() }
+            clearSelection() {
+                for (let newsElement of this.ListItemWrapperElement.children) {
+                    newsElement.classList.remove(`border-amber-500`)
+                    newsElement.classList.remove(`border-solid`)
+                    newsElement.classList.remove(`border-2`)
+                }
+            }
+            selectNewsItem() {
+                const newsElement = this.ListItemWrapperElement.children[this.vars.newsIndex]
+
+                newsElement.classList.add(`border-amber-500`)
+                newsElement.classList.add(`border-solid`)
+                newsElement.classList.add(`border-2`)
+            }
+            getSelectedNewsItem() { return this.vars.news[this.vars.newsIndex] }
+            getSelectedNewsItemElement() { return this.ListItemWrapperElement.children[this.vars.newsIndex] }
+            newsClicked(index) {
+                this.clearSelection()
+                this.vars.newsIndex = index
+                this.selectNewsItem()
+            }
+            vars = {
+                news: [],
+                newsIndex: 0
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}" class="flex-col bg-blue-gray-900 w100">
+            <span id="{id}Title" class="amber-500">Select A News Item</span>
+            <span id="{id}ListItemWrapper" class="flex-row flex-wrap flex-space-around "></span>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

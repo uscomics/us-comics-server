@@ -1,0 +1,339 @@
+
+
+{
+    "textResponse": [
+        {
+            "name": "Ping server.",
+            "verb": "GET",
+            "path": "/ping",
+            "handler": "text.js",
+            "log": "INFO",
+            "args": {
+                "text": "The server is running."
+            }
+        }
+    ],
+    "fileLoaders": [
+        {
+            "name": "Load Index file.",
+            "verb": "GET",
+            "path": "/",
+            "handler": "file.js",
+            "log": "INFO",
+            "args": {
+                "file": "./html/index.html"
+            }
+        },
+        {
+            "name": "Load Index file.",
+            "verb": "GET",
+            "path": "/index",
+            "handler": "file.js",
+            "log": "INFO",
+            "args": {
+                "file": "./html/index.html"
+            }
+        },
+        {
+            "name": "Load Login page.",
+            "verb": "GET",
+            "path": "/login",
+            "handler": "file.js",
+            "log": "INFO",
+            "args": {
+                "file": "./html/login-page.html"
+            }
+        },
+        {
+            "name": "Load Admin file.",
+            "verb": "GET",
+            "path": "/admin",
+            "handler": "file.js",
+            "log": "INFO",
+            "args": {
+                "file": "./html/admin-page.html"
+            }
+        },
+        {
+            "name": "Load image file.",
+            "verb": "GET",
+            "path": "/image/:filename",
+            "handler": "file.js",
+            "log": "INFO",
+            "args": {
+                "file": "./images/temp/:filename"
+            }
+        }
+    ],
+    "database": [
+        {
+            "name": "Get character information.",
+            "verb": "GET",
+            "path": "/character",
+            "handler": "db-select.js",
+            "log": "INFO",
+            "args": {
+                "table": "character"
+            }
+        },
+        {
+            "name": "Add character information.",
+            "verb": "POST",
+            "path": "/character",
+            "handler": "add-character.js",
+            "log": "INFO",
+            "args": {
+                "table": "character"
+            }
+        },
+        {
+            "name": "Update character information.",
+            "verb": "PUT",
+            "path": "/character",
+            "handler": "update-character.js",
+            "log": "INFO",
+            "args": {
+                "table": "character"
+            }
+        },
+        {
+            "name": "Delete character information.",
+            "verb": "DELETE",
+            "path": "/character",
+            "handler": "db-delete.js",
+            "log": "INFO",
+            "args": {
+                "table": "character"
+            }
+        },
+        {
+            "name": "Get text information.",
+            "verb": "GET",
+            "path": "/text-info",
+            "handler": "db-select.js",
+            "log": "INFO",
+            "args": {
+                "table": "text"
+            }
+        },
+        {
+            "name": "Update text information.",
+            "verb": "POST",
+            "path": "/text-info-update",
+            "handler": "db-update.js",
+            "log": "INFO",
+            "args": {
+                "table": "text"
+            }
+        },
+        {
+            "name": "Get user information.",
+            "verb": "GET",
+            "path": "/user-info",
+            "handler": "db-select.js",
+            "log": "INFO",
+            "args": {
+                "table": "user"
+            }
+        },
+        {
+            "name": "Add user information.",
+            "verb": "POST",
+            "path": "/user-info",
+            "handler": "add-user.js",
+            "log": "INFO",
+            "args": {
+                "table": "user"
+            }
+        },
+        {
+            "name": "Update user information.",
+            "verb": "POST",
+            "path": "/user-info-update",
+            "handler": "update-user.js",
+            "log": "INFO",
+            "args": {
+                "table": "user"
+            }
+        },
+        {
+            "name": "Delete user information.",
+            "verb": "DELETE",
+            "path": "/user-info",
+            "handler": "db-delete.js",
+            "log": "INFO",
+            "args": {
+                "table": "user"
+            }
+        },
+        {
+            "name": "Get photo information.",
+            "verb": "GET",
+            "path": "/photo-info",
+            "handler": "db-select.js",
+            "log": "INFO",
+            "args": {
+                "table": "photo"
+            }
+        },
+        {
+            "name": "Add photo information.",
+            "verb": "POST",
+            "path": "/photo-info",
+            "handler": "add-photo.js",
+            "log": "INFO",
+            "args": {
+                "table": "photo"
+            }
+        },
+        {
+            "name": "Update photo information.",
+            "verb": "POST",
+            "path": "/photo-info-update",
+            "handler": "update-photo.js",
+            "log": "INFO",
+            "args": {
+                "table": "photo"
+            }
+        },
+        {
+            "name": "Delete photo information.",
+            "verb": "DELETE",
+            "path": "/photo-info",
+            "handler": "db-delete.js",
+            "log": "INFO",
+            "args": {
+                "table": "photo"
+            }
+        },
+        {
+            "name": "Get news information.",
+            "verb": "GET",
+            "path": "/news-info",
+            "handler": "db-select.js",
+            "log": "INFO",
+            "args": {
+                "table": "news"
+            }
+        },
+        {
+            "name": "Add news information.",
+            "verb": "POST",
+            "path": "/news-info",
+            "handler": "add-news.js",
+            "log": "INFO",
+            "args": {
+                "table": "news"
+            }
+        },
+        {
+            "name": "Update news information.",
+            "verb": "POST",
+            "path": "/news-info-update",
+            "handler": "update-news.js",
+            "log": "INFO",
+            "args": {
+                "table": "news"
+            }
+        },
+        {
+            "name": "Delete news information.",
+            "verb": "DELETE",
+            "path": "/news-info",
+            "handler": "db-delete.js",
+            "log": "INFO",
+            "args": {
+                "table": "news"
+            }
+        },
+        {
+            "name": "Get reviews.",
+            "verb": "GET",
+            "path": "/reviews",
+            "handler": "db-select.js",
+            "log": "INFO",
+            "args": {
+                "table": "review"
+            }
+        },
+        {
+            "name": "Add review.",
+            "verb": "POST",
+            "path": "/add-review",
+            "handler": "add-review.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Add reply.",
+            "verb": "POST",
+            "path": "/add-reply",
+            "handler": "add-reply.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Update reply.",
+            "verb": "POST",
+            "path": "/update-reply",
+            "handler": "update-reply.js",
+            "log": "INFO"
+        }
+    ],
+    "function": [
+        {
+            "name": "Login.",
+            "verb": "POST",
+            "path": "/login-attempt",
+            "handler": "login.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Get album list.",
+            "verb": "GET",
+            "path": "/albums",
+            "handler": "imgur/albums-select.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Add an album.",
+            "verb": "POST",
+            "path": "/album",
+            "handler": "imgur/album-add.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Delete an album.",
+            "verb": "DELETE",
+            "path": "/album/:id",
+            "handler": "imgur/album-delete.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Get image list.",
+            "verb": "GET",
+            "path": "/album/:albumId/images",
+            "handler": "imgur/images-select.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Get image.",
+            "verb": "GET",
+            "path": "/image/:id",
+            "handler": "imgur/image-select.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Add an image.",
+            "verb": "POST",
+            "path": "/image",
+            "handler": "imgur/image-add.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Delete an image.",
+            "verb": "DELETE",
+            "path": "/image/:id",
+            "handler": "imgur/image-delete.js",
+            "log": "INFO"
+        }
+    ]
+}

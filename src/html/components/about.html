@@ -1,0 +1,44 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/about.html
+        class About extends Component { 
+            initialize(id) {
+                super.initialize(id)
+                this.loadText()
+                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                    if (message.tabBar.id !== `TabBar`) { return }
+                    if (message.tab !== `Home`) {
+                        this.Element.classList.add(`display-none`)
+                        return 
+                    }
+                    this.Element.classList.remove(`display-none`)
+                })
+            }
+            async loadText () {
+                const response = await SIText.get()
+
+                if (200 === response.status) { 
+                    let textRecords = await response.json()
+                    for (const text of textRecords) {
+                        if (`about` === text.for) {
+                            this.vars.text = text.text
+                            break
+                        }
+                    }
+                } else { showError(`Error retrieving text. Status code ${response.status}.`) }
+            }
+            vars = {
+                text: `Vince Drives You is a Luxury SUV Transportation Service serving the Valley of the Sun. Advance reservations are required. I have an on-time pickup guarantee which means if you're not picked up on time you get a $50 discount on that trip, not a future credit. You can't do better anywhere.\n\nIf you are looking for a spacious, clean and comfortable trip then calling me is the only number you need to know. Rates start at $60 and hourly packages are available for your special events. There is never a surge charge, you will know your full fee when your trip is confirmed regardless of how far in advance your service is booked. I now have a Mercedes Sprinter with an 11 passenger capacity also available for larger party pick ups at the airport or for special events.`
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}" class="amber-500 p5 p10-t p10-r w45-m-100 caption-1 whitespace-pre-wrap">{text}</span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

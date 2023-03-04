@@ -1,0 +1,125 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/useful-funny-cool.html
+        class UsefulFunnyCool extends Component {
+            afterMount() {
+                super.afterMount()
+                
+                const credentials = JavascriptWebToken.getCredentials()
+
+                if (!credentials?.roles) { return }
+                if (!credentials.roles.includes("Admin")) { return }
+
+                const replyElement = document.getElementById(this.getReviewComponentObjectId())
+                const reviewElementId = this.getReviewComponentObjectId()
+                const reviewObject = Component.getObject(reviewElementId)
+
+                if (!replyElement) { return }
+                if (reviewObject.hasReply()) { return }
+
+                this.ReplyButtonElement.setAttribute(`class`, `ufc-text-button`)
+            }
+            getReviewComponentObjectId() { return this.id.slice(0, -3) }
+            incrimentUseful() { 
+                this.vars.usefulCount++
+                this.incriment(`useful`)
+            }
+            incrimentFunny() { 
+                this.vars.funnyCount++ 
+                this.incriment(`funny`)
+            }
+            incrimentCool() { 
+                this.vars.coolCount++ 
+                this.incriment(`cool`)
+            }
+            incriment(which) {
+                const reviewElementId = this.getReviewComponentObjectId()
+                const reviewObject = Component.getObject(reviewElementId)
+                const reviewId = reviewObject.props.reviewId.replace(`_`, `:`)
+                const payload = {
+                    id: reviewId,
+                }
+                const server = Registry.get(`Server`)
+                const response = fetch(`${server}increment-${which}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+            }
+            reply() { 
+                const reviewElementId = this.getReviewComponentObjectId()
+                const reviewObject = Component.getObject(`${reviewElementId}`)
+
+                reviewObject.reply()
+            }
+            vars = {
+                usefulCount: 0,
+                funnyCount: 0,
+                coolCount: 0,
+                replyId: ``,
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --ufc-card-display: flex;
+            --ufc-card-flex-direction: row;
+            --ufc-card-flex-wrap: wrap;
+            --ufc-card-color: var(--blue-gray-50);
+            --ufc-card-pad: 5px;
+            --ufc-card-margin: 5px;
+            --ufc-card-border-style: solid;
+            --ufc-card-border-width: 2px;
+            --ufc-card-border-color: var(--secondary-color);
+        }
+
+        .ufc-card {
+            display: var(--ufc-card-display);
+            flex-direction: var(--ufc-card-flex-direction);
+            padding: var(--ufc-card-pad);
+            margin: var(--ufc-card-margin);
+            border-style: var(--ufc-card-border-style);
+            border-width: var(--ufc-card-border-width);
+            border-color: var(--ufc-card-border-color);
+        }
+        .ufc-text-button {
+            padding: var(--button-padding);
+            margin: var(--button-margin);
+            cursor: var(--button-cursor);
+            font-family: var(--button-font-family);
+            font-size: var(--button-font-size);
+            font-weight: var(--button-font-weight);
+            color: var(--blue-gray-50);
+            text-decoration: underline;
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="flex-row flex-wrap margin-t-10">
+            <!--
+            <div id="{id}Useful" class="button" onclick="$obj.incrimentUseful()">
+                <div id="{id}UsefulIcon" class="margin-1">💡</div> 
+                <div id="{id}UsefulText" class="margin-1">Useful</div> 
+                <div id="{id}UsefulCount" class="margin-1">{usefulCount}</div> 
+            </div>
+            <div id="{id}Funny" class="button" onclick="$obj.incrimentFunny()">
+                <div id="{id}FunnyIcon" class="margin-1">😀</div> 
+                <div id="{id}FunnyText" class="margin-1">Funny</div> 
+                <div id="{id}FunnyCount" class="margin-1">{funnyCount}</div> 
+            </div>
+            <div id="{id}Cool" class="button" onclick="$obj.incrimentCool()">
+                <div id="{id}CoolIcon" class="margin-1">😎</div> 
+                <div id="{id}CoolText" class="margin-1">Cool</div> 
+                <div id="{id}CoolCount" class="margin-1">{coolCount}</div> 
+            </div>
+            -->
+            <div id="{id}ReplyButton" class="display-none" onclick="$obj.reply()">
+                <div id="{id}ReplyButtonText" class="margin-1">Reply</div> 
+            </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

@@ -1,0 +1,39 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/tab-content.html
+        class TabContent extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                    if (message.tabBar.id !== this.props.tabBarId) { return }
+                    if (message.tab !== this.props.tab) { return }
+
+                    let tabElement = document.getElementById(this.id)
+
+                    tabElement?.classList.remove(`display-none`)
+                })
+                Queue.register(this, TabBar.msgs.HIDE_TAB, (message) => {
+                    if (message.tabBar.id !== this.props.tabBarId) { return }
+                    if (message.tab !== this.props.tab) { return }
+
+                    let tabElement = document.getElementById(this.id)
+
+                    tabElement?.classList.add(`display-none`)
+                })
+            }
+            props = {
+                tabBarId: ``,
+                tab: ``
+            }     
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}" class="display-none w100 h100">
+            <component-slot id="{id}Slot"></component-slot>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

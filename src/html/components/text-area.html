@@ -1,0 +1,217 @@
+<script src="../../js/client/test.js"></script>
+
+<custom-component>
+    <script>
+        //# sourceURL=html/components/text-area.html
+        class TextArea extends Component {
+            afterMount() { 
+                super.afterMount()
+                if (this.props.autofocus) { this.Element.setAttribute('autofocus', true) } else { this.Element.removeAttribute('autofocus') }
+                if (this.props.disabled) { this.Element.setAttribute('disabled', true) } else { this.Element.removeAttribute('disabled') }
+                if (this.props.form) { this.Element.setAttribute('form', this.props.form) } else { this.Element.removeAttribute('form') }
+                if (this.props.maxlength) { this.Element.setAttribute('maxlength', this.props.maxlength) } else { this.Element.removeAttribute('maxlength') }
+                if (this.props.required) { this.Element.setAttribute('required', true) } else { this.Element.removeAttribute('required') }
+                if (this.props.cols) { this.Element.setAttribute('cols', `${this.props.cols}`) } else { this.Element.setAttribute('cols', `80`) }
+                if (this.props.labelAboveField) { 
+                    if (this.WrapperElement.classList.contains(`flex-row`)) { this.WrapperElement.classList.remove(`flex-row`) }
+                    this.WrapperElement.classList.add(`flex-col`) 
+                } else { 
+                    if (this.WrapperElement.classList.contains(`flex-col`)) { this.WrapperElement.classList.remove(`flex-col`) }
+                    this.WrapperElement.classList.add(`flex-row`) 
+                }
+            }
+            async onFocus(event) { 
+                const showErrors = `inline` === this.props.showValidationErrors
+
+                this.validate(showErrors) 
+            }
+            async onBlur(event) { 
+                const showErrors = `snackbar` === this.props.showValidationErrors
+
+                while (this.ErrorElement.firstChild) { 
+                    this.ErrorElement.removeChild(this.ErrorElement.firstChild) 
+                }
+                this.validate(showErrors)
+            }
+            async onInput(event) {
+                const showErrors = `inline` === this.props.showValidationErrors
+
+                this.validate(showErrors)
+                this.vars.value = this.Element.value
+            }
+            async validate(showErrors) {
+                this.vars.valid = false
+                while (this.ErrorElement.firstChild) { this.ErrorElement.removeChild(this.ErrorElement.firstChild) }
+                let testArray = [
+                    await test (`Test required`, `Ensure required field has a value.`, [async () => {
+                        let results = []
+
+                        if (!this.props.required) { return results }
+                        assert(0 < this.Element?.value?.length,                                 `Field '${this.props.label}' is required.`, results, true)
+                        return results
+                    }]),                    
+                    await test (`Test minlength`, `Ensure field is no shorter than ${this.props.minlength}.`, [async () => {
+                        let results = []
+
+                        if (!this.props.minlength) { return results }
+                        if (0 === this.Element?.value?.length) { return results }
+                        assert(this.props.minlength <= this.Element.value?.length,              `Field '${this.props.label}' has at least ${this.props.minlength} characters.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test maxlength`, `Ensure field is no longer than ${this.props.maxlength}.`, [async () => {
+                        let results = []
+
+                        if (!this.props.maxlength) { return results }
+                        assert(this.props.maxlength >= this.Element.value?.length,              `Field '${this.props.label}' has no more than ${this.props.maxlength} characters.`, results, true)
+                        return results
+                    }])
+                ]
+
+                if (this.vars.customValidationTests && Array.isArray(this.vars.customValidationTests) && 0 < this.vars.customValidationTests.length) {
+                    let customTestArray = await test (`Custom tests`, `Ensure field passes custom tests.`, this.vars.customValidationTests )
+                    testArray.push(customTestArray)
+                }
+
+                let results = await suite(`Validate field.`, `Ensure field meets all requirements.`, testArray)
+                this.vars.valid = (0 === results.failCount)
+                if (this.vars.valid) { 
+                    const newTextDataEvent = new CustomEvent(
+                        `newTextData`, 
+                        { 
+                            bubbles: true, 
+                            detail: { 
+                                text: () => this.vars.value, 
+                                component: this, 
+                                element: document.getElementById(this.id) 
+                            }
+                        }
+                    )
+                    this.vars.value = this.Element.value 
+                    this.Element.dispatchEvent(newTextDataEvent)
+                }
+                if (showErrors) { this.showErrors(results) }
+            }
+            showErrors(suiteResultsTree) {
+                if (`none` === this.props.showValidationErrors.toLowerCase()) { return }
+                else if (`inline` === this.props.showValidationErrors.toLowerCase()) {
+                    for (const test of suiteResultsTree.nodes) {
+                        for (const assertion of test.children) {
+                            let errorDiv = document.createElement(`div`)
+                            let mark = (assertion.passed)? `✓` : `✗`
+
+                            errorDiv.innerText = `${mark} ${assertion.description}`
+                            if (assertion.passed) { errorDiv.setAttribute(`class`, `caption-2 success`) }
+                            else { errorDiv.setAttribute(`class`, `caption-2 error`) }
+                            this.ErrorElement.appendChild(errorDiv)
+                        }
+                    }
+                } else if (`snackbar` === this.props.showValidationErrors.toLowerCase()) {
+                    let error = ``
+
+                    for (const test of suiteResultsTree.nodes) {
+                        for (const assertion of test.children) {
+                            let errorDiv = document.createElement(`div`)
+                            
+                            if (assertion.passed) { continue }
+                            if (0 < error.length) { error += `\n` }
+                            error += assertion.description
+                        }
+                    }
+                    if (0 <  error.length) { showError(error) }
+                }
+            }
+            props = {
+                autofocus: false,
+                cols: 80,
+                disabled: false,
+                form: ``,
+                maxlength: 400,
+                minlength: 0,
+                name: ``,
+                placeholder: ``,
+                required: false,
+                rows: 5,
+                tabIndex: 1,
+                wrap: `hard`,
+                showValidationErrors: `inline`
+            }
+            vars = {
+                value: ``,
+                customValidationTests: [],
+                valid: false
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --text-area-color: var(--primary-text-color);
+            --text-area-padding: none;
+            --text-area-margin: 3px;
+            --text-area-cursor: text;
+            --text-area-font-family: var(--primary-font-family);
+            --text-area-font-size: var(--text-2-font-size);
+            --text-area-font-weight: var(--text-2-font-weight);
+            --text-area-background-color: var(--background-color);
+            --text-area-border-color: var(--amber-500);
+            --text-area-border-width: 2px;
+            --text-area-border-style: solid;
+            --text-area-border-radius: 0px;
+
+            --text-area-label-color: var(--primary-text-color);
+            --text-area-label-padding: none;
+            --text-area-label-margin: 3px;
+            --text-area-label-cursor: default;
+            --text-area-label-font-family: var(--primary-font-family);
+            --text-area-label-font-size: var(--text-2-font-size);
+            --text-area-label-font-weight: bold;
+            --text-area-label-background-color: var(--background-color);
+            --text-area-label-border-color: hidden;
+            --text-area-label-border-width: 0;
+            --text-area-label-border-style: none;
+            --text-area-label-border-radius: 0px;
+        }
+
+        .text-area {
+            color: var(--text-area-color);
+            border-radius: var(--text-area-border-radius);
+            padding: var(--text-area-padding);
+            margin: var(--text-area-margin);
+            cursor: var(--text-area-cursor);
+            font-family: var(--text-area-font-family);
+            font-size: var(--text-area-font-size);
+            font-weight: var(--text-area-font-weight);
+            background-color: var(--text-area-background-color);
+        }
+        .text-area:focus {
+            border-color: var(--text-area-border-color);
+            border-width: var(--text-area-border-width);
+            border-style: var(--text-area-border-style);
+        }
+
+        .text-area-label {
+            color: var(--text-area-label-color);
+            padding: var(--text-area-label-padding);
+            margin: var(--text-area-label-margin);
+            cursor: var(--text-area-label-cursor);
+            font-family: var(--text-area-label-font-family);
+            font-size: var(--text-area-label-font-size);
+            font-weight: var(--text-area-label-font-weight);
+            background-color: var(--text-area-label-background-color);
+            border-color: var(--text-area-label-border-color);
+            border-width: var(--text-area-label-border-width);
+            border-style: var(--text-area-label-border-style);
+            border-radius: var(--text-area-label-border-radius);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}Wrapper" class="w100 h100">
+            <label id="{id}Label" for="{name}" class="text-area-label">{label}</label>
+            <div id="{id}InputWrapper w100 h100">
+                <textarea id="{id}" name="{name}" class="text-area w100 h100" onblur="$obj.onBlur(event)" oninput="$obj.onInput(event)" tabindex="{tabIndex}">{value}</textarea>
+                <div id="{id}Error"></div>
+            </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

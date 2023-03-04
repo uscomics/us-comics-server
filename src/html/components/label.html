@@ -1,0 +1,46 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/label.html
+        class Label extends Component {
+            props = {
+                label: ``,
+                for: ``
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --label-color: var(--primary-text-color);
+            --label-padding: none;
+            --label-margin: 3px;
+            --label-cursor: default;
+            --label-font-family: var(--primary-font-family);
+            --label-font-size: var(--text-2-font-size);
+            --label-font-weight: bold;
+            --label-background-color: var(--background-color);
+            --label-border-color: hidden;
+            --label-border-width: 0;
+            --label-border-style: none;
+            --label-border-radius: 0px;
+        }
+        .label {
+            color: var(--label-color);
+            padding: var(--label-padding);
+            margin: var(--label-margin);
+            cursor: var(--label-cursor);
+            font-family: var(--label-font-family);
+            font-size: var(--label-font-size);
+            font-weight: var(--label-font-weight);
+            background-color: var(--label-background-color);
+            border-color: var(--label-border-color);
+            border-width: var(--label-border-width);
+            border-style: var(--label-border-style);
+            border-radius: var(--label-border-radius);
+        }
+    </style>
+    <component-markup>
+        <label id="{id}" for="{for}" class="label">{label}</label>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

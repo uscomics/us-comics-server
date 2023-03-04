@@ -1,0 +1,22 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/component-slot-test.js
+        class ComponentSlotTest extends Component { }
+    </script>
+    <test-script>
+    </test-script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}">
+            <component-slot id="{id}Slot1">DEFAULT CONTENT (TEXT ONLY)</component-slot>
+        </div>
+    </component-markup>
+</custom-component>
+
+<!-- example slot-content tag -->
+<!--
+    <slot-markup for-component-id="ComponentSlotTest" for-slot="ComponentSlotTestSlot1">
+      <div id="SlotContent">SLOT CONTENT</div>
+    </slot-markup>
+-->

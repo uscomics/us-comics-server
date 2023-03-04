@@ -1,0 +1,37 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/write-review-button.html
+        class WriteReviewButton extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                    if (message.tabBar.id !== `TabBar`) { return }
+                    if (message.tab !== `Reviews`) { return }
+                    this.Element.classList.remove(`display-none`)
+                })
+            }
+            getReviewList() {
+                return document.getElementById(`ReviewList`)
+            }
+            async review() { 
+                if (!document.getElementById(`ReviewDialog`)) {
+                    let newInclude = Component.createComponentInclude(`index.html`, `./html/components/reviews/review-dialog.html`, `ReviewDialog`,  `ReviewDialog`, null, null)
+
+                    this.getReviewList().appendChild(newInclude)
+                    await Loader.loadIncludes()
+                }
+
+                const reviewDialog = Component.getObject(`ReviewDialog`)
+
+                reviewDialog.show()
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <div id="{id}" class="button w120px margin-10 z1 display-none" onclick="$obj.review()">Write a Review</div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

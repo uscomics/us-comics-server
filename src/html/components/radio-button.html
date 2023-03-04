@@ -1,0 +1,56 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/radio-button.html
+        class RadioButton extends Component {
+            props = {
+                label: ``,
+                name: ``,
+                value: ``,
+                tabindex: 0
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --radio-button-color: var(--primary-text-color);
+            --radio-button-background-color: var(--background-color);
+            --radio-button-padding: 0 10px 0 0;
+            --radio-button-margin: 3px;
+            --radio-button-cursor: pointer;
+
+            --radio-button-label-color: var(--primary-text-color);
+            --radio-button-label-background-color: var(--background-color);
+            --radio-button-label-padding: none;
+            --radio-button-label-margin: 3px;
+            --radio-button-label-cursor: pointer;
+            --radio-button-label-font-family: var(--primary-font-family);
+            --radio-button-label-font-size: var(--text-2-font-size);
+            --radio-button-label-font-weight: var(--text-2-font-weight);
+        }
+
+        .radio-button {
+            color: var(--radio-button-color);
+            background-color:  var(--radio-button-background-color);
+            padding:  var(--radio-button-padding);
+            margin:  var(--radio-button-margin);
+            cursor:  var(--radio-button-cursor);
+        }
+
+        .radio-button-label {
+            color: var(--radio-button-label-color);
+            background-color:  var(--radio-button-label-background-color);
+            padding:  var(--radio-button-label-padding);
+            margin:  var(--radio-button-label-margin);
+            cursor:  var(--radio-button-label-cursor);
+            font-family: var(--radio-button-label-font-family);
+            font-size: var(--radio-button-label-font-size);
+            font-weight: var(--radio-button-label-font-weight);
+        }
+    </style>
+    <component-markup>
+        <input id="{id}" class="radio-button" type="radio" name="{name}" value="{value}" tabindex="{tabindex}">
+        <label id="{id}Label" for="{id}" class="radio-button-label" >{label}</label>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

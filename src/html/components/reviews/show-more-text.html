@@ -1,0 +1,102 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/show-more-text.html
+        class ShowMoreText extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.REFRESH, (component) => {
+                    if (this.checkIfTextShouldBeTruncated()) { 
+                        const componentRootElement = document.querySelector(`#${this.id}`)
+                        const readMoreButtonElement = componentRootElement.querySelector(`#${this.id}ReadMoreButton`)
+
+                        readMoreButtonElement.classList.toggle(`display-none`)
+                    }
+                })
+            }
+            afterMount() {
+                super.afterMount()
+                const componentRootElement = document.querySelector(`#${this.id}`)
+
+                if (!this.checkIfTextShouldBeTruncated()) { 
+                    const readMoreButtonElement = componentRootElement.querySelector(`#${this.id}ReadMoreButton`)
+
+                    readMoreButtonElement.classList.toggle(`display-none`)
+                    return 
+                }
+            }
+            checkIfTextShouldBeTruncated() {
+                const componentRootElement = document.querySelector(`#${this.id}`)
+                const textElement = componentRootElement.querySelector(`#${this.id}Text`)
+
+                if (textElement.offsetHeight < textElement.scrollHeight || textElement.offsetWidth < textElement.scrollWidth) {
+                    return true
+                } else {
+                    return false
+                }
+            }
+            readMore() {
+                const componentRootElement = document.querySelector(`#${this.id}`)
+                const textElement = componentRootElement.querySelector(`#${this.id}Text`)
+
+                if (`Read More` === this.vars.readMore) { 
+                    this.vars.readMore = `Read Less` 
+                    textElement.style.height = `${textElement.scrollHeight}px`
+                }
+                else { 
+                    this.vars.readMore = `Read More`
+                    textElement.style.height = `4em`
+                }
+                textElement.classList.toggle(`line-clamp-4`)
+            }
+            vars = {
+                text: ``,
+                readMore: `Read More`
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --show-more-text-color: var(--blue-gray-50);
+            --show-more-text-height: 4em;
+            --show-more-text-white-space: pre-wrap;
+            --show-more-text-overflow-wrap: break-word;
+            --show-more-text-pad: 5px;
+            --show-more-text-margin: 5px;
+            --show-more-text-border-style: solid;
+            --show-more-text-border-width: 2px 0;
+            --show-more-text-border-color: var(--primary-text-color);
+            --show-more-text-font-family: var(--secondary-font-family);
+            --show-more-text-font-size: var(--text-2-font-size);
+            --show-more-text-font-weight: font-weight: var(--text-2-font-weight)
+        }
+
+        .line-clamp-4 {
+            overflow:       hidden;
+            display:        -webkit-box;
+            -line-clamp:    4;  /* truncate to 4 lines */
+        }
+
+        .show-more-text {
+            color: var(--show-more-text-color);
+            height: var(--show-more-text-height);
+            white-space: var(--show-more-text-white-space);
+            overflow-wrap: var(--show-more-text-overflow-wrap);
+            padding: var(--show-more-text-pad);
+            margin: var(--show-more-text-margin);
+            border-style: var(--show-more-text-border-style);
+            border-width: var(--show-more-text-border-width);
+            border-color: var(--show-more-text-border-color);
+            font-family: var(--show-more-text-font-family);
+            font-size: var(--show-more-text-font-size);
+            font-weight: var(--show-more-text-font-weight);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="flex-col margin-b-20 cursor-default">
+            <div id="{id}Text" class="line-clamp-4 show-more-text">{text}</div>
+            <div id="{id}ReadMoreButton" class="text-button" onclick="$obj.readMore()">{readMore}</div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

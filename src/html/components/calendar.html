@@ -1,0 +1,283 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/calendar.html
+        class Calendar extends Component {
+            initialize(id) {
+                super.initialize(id)
+                this.createCalendar()
+            }
+            afterMount() {
+                super.afterMount()
+                this.setCalendar()
+            }
+            createCalendar() {
+                let year = this.vars.year
+                let month = this.vars.month
+                let day = this.vars.day
+                let date = new Date(year, month, day)
+                let dayOfTheMonth = new Date(year, month, 1, 0, 0, 0, 0)
+                const tableBegin = `<table class="calendar">`                    
+                const tableEnd = `</table>`                    
+                const rowBegin = `<tr class="header">`                    
+                const rowEnd = `<tr>`                    
+                const headerCellBegin = `<th class="header-cell">`                    
+                const headerCellEnd = `</th>`                    
+                const cellBegin = `<td class="cell"`                    
+                const cellEnd = `</td>`                    
+                const pastCellBegin = `<td class="past-cell">`                    
+                const pastCellEnd = `</td>`                    
+                let table = `${tableBegin}${rowBegin}${headerCellBegin}SU${headerCellEnd}${headerCellBegin}MO${headerCellEnd}${headerCellBegin}TU${headerCellEnd}${headerCellBegin}WE${headerCellEnd}${headerCellBegin}TH${headerCellEnd}${headerCellBegin}FR${headerCellEnd}${headerCellBegin}SA${headerCellEnd}${rowEnd}${rowBegin}`
+                const isDateBeforeToday = (date) => {
+                    const now = new Date()
+
+                    if (now.getFullYear() > date.getFullYear()) { return true }
+                    if (now.getFullYear() < date.getFullYear()) { return false }
+                    if (now.getMonth() > date.getMonth()) { return true }
+                    if (now.getMonth() < date.getMonth()) { return false }
+                    if (now.getDate() > date.getDate()) { return true }
+                    return false
+                }
+
+                this.vars.monthName = dayOfTheMonth.toLocaleString('default', { month: 'long' });
+
+                // Add empty cells for the first row until the first day of the month
+                for (let loop = 0; loop < dayOfTheMonth.getDay(); loop++) { table += `${cellBegin}>${cellEnd}` }
+
+                // Cells with actual dates
+                while (dayOfTheMonth.getMonth() == month) {
+                    const begin = isDateBeforeToday(dayOfTheMonth)? pastCellBegin : `${cellBegin} id="${this.id}Day_${dayOfTheMonth.getDate()}_${dayOfTheMonth.getMonth()}_${dayOfTheMonth.getFullYear()}" onclick="Component.getObject('${this.id}').toggleDateSelected(${dayOfTheMonth.getDate()}, ${dayOfTheMonth.getMonth()}, ${dayOfTheMonth.getFullYear()})">`
+                    const workingDate = dayOfTheMonth.getDate()
+                    const workingDay = dayOfTheMonth.getDay()
+
+                    table += `${begin}${workingDate}${cellEnd}`
+                    if (workingDay % 7 == 6) { table += `${rowEnd}${rowBegin}` }     // sunday, last day of week - newline
+                    dayOfTheMonth.setDate(workingDate + 1)
+                }
+
+                // Add empty cells after last days of month for the last row
+                if (date.getDay() != 0) {
+                    for (let loop = date.getDay(); loop <= 7; loop++) { table += `${cellBegin}>${cellEnd}` }
+                }
+
+                table += `${rowEnd}${tableEnd}`
+                this.tableHTML = table
+            }
+            setCalendar() {
+                if (!this.tableHTML) { return }
+                
+                const calendarBody = document.getElementById(`${this.id}Body`)
+                calendarBody.innerHTML = this.tableHTML
+            }
+            resetCalendar() {
+                this.createCalendar()
+                this.setCalendar()
+            }
+            subtractMonth() {
+                let date = new Date(this.vars.year, this.vars.month, 1, 0, 0, 0, 0)
+
+                date.setMonth(date.getMonth() - 1)
+                this.vars.year = date.getFullYear()
+                this.vars.month = date.getMonth()
+                this.resetCalendar()
+            }
+            addMonth() {
+                let date = new Date(this.vars.year, this.vars.month, 1, 0, 0, 0, 0)
+
+                date.setMonth(date.getMonth() + 1)
+                this.vars.year = date.getFullYear()
+                this.vars.month = date.getMonth()
+                this.resetCalendar()
+            }
+            toggleDateSelected(day, month, year) {
+                if (null != this.vars.selectedDate) {
+                    let selectedCell = document.getElementById(`${this.id}Day_${this.vars.selectedDate.getDate()}_${this.vars.selectedDate.getMonth()}_${this.vars.selectedDate.getFullYear()}`)
+
+                    if (selectedCell) { selectedCell.classList.toggle(`cell-selected`) }    // Selected cell can disappear when month changes.
+                }
+
+                let selectedCell = document.getElementById(`${this.id}Day_${day}_${month}_${year}`)
+
+                selectedCell.classList.toggle(`cell-selected`)
+                this.vars.selectedDate = new Date(year, month, day)
+            }
+            props = {
+                pastDatesAreGray: true
+            }
+            vars = {
+                year: new Date().getFullYear(),
+                month: new Date().getMonth(),
+                monthName: new Date(new Date().getFullYear(), new Date().getMonth(), 1, 0, 0, 0, 0).toLocaleString('default', { month: 'long' }),
+                day: new Date().getDate(),
+                selectedDate: null
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --calendar-card-flex: column;
+            --calendar-card-width: 220px;
+            --calendar-card-overflow: hidden ;
+            --calendar-card-shadow: 3px 3px 9px #d9d9d9, -3px -3px 9px #ffffff;
+            --calendar-card-border-radius: 15px;
+            --calendar-card-padding: 5px;
+            --calendar-card-margin: 5px;
+
+            --calendar-border-collapse: collapse;
+
+            --calendar-title-display: flex;
+            --calendar-title-flex-direction: row;
+            --calendar-title-flex-justify-content: space-between;
+            --calendar-title-flex-align-items: baseline;
+            --calendar-title-width: 210px;
+            --calendar-title-height: 30px;
+            --calendar-title-color: var(--primary-text-color);
+            --calendar-title-text-align: center;
+            --calendar-title-font-family: var(--primary-font-family);
+            --calendar-title-font-size: var(--text-2-font-size);
+            --calendar-title-font-weight: var(--text-2-font-weight);
+            --calendar-title-margin-bottom: 10px;
+            --calendar-title-cursor: default;
+
+            --calendar-header-width: 210px;
+            --calendar-header-height: 30px;
+            --calendar-header-color: var(--primary-text-color)black;
+            --calendar-header-background-color: var(--blue-50);
+            --calendar-header-text-align: center;
+            --calendar-header-font-family: var(--primary-font-family);
+            --calendar-header-font-size: var(--text-2-font-size);
+            --calendar-header-font-weight: var(--text-1-font-weight);
+            --calendar-header-cursor: default;
+
+            --calendar-header-cell-width: 30px;
+            --calendar-header-cell-height: 30px;
+            --calendar-header-cell-color: var(--primary-text-color);
+            --calendar-header-cell-background-color: white;
+            --calendar-header-cell-text-align: center;
+            --calendar-header-cell-font-family: var(--primary-font-family);
+            --calendar-header-cell-font-size: var(--text-2-font-size);
+            --calendar-header-cell-font-weight: var(--text-1-font-weight);
+            --calendar-header-cell-cursor: default;
+            --calendar-header-cell-padding: 3px;
+
+            --calendar-cell-width: 30px;
+            --calendar-cell-height: 30px;
+            --calendar-cell-color: var(--primary-text-color);
+            --calendar-cell-background-color: white;
+            --calendar-cell-text-align: center;
+            --calendar-cell-font-family: var(--primary-font-family);
+            --calendar-cell-font-size: var(--text-2-font-size);
+            --calendar-cell-font-weight: var(--text-1-font-weight);
+            --calendar-cell-cursor: pointer;
+            --calendar-cell-padding: 3px;
+            --calendar-cell-background: radial-gradient(ellipse at center,  var(--blue-50) 0%,var(--blue-50) 47%,var(--blue-50) 47%,white 47%,white 48%);
+
+            --calendar-past-cell-width: 30px;
+            --calendar-past-cell-height: 30px;
+            --calendar-past-cell-color: var(--gray-a);
+            --calendar-past-cell-background-color: white;
+            --calendar-past-cell-text-align: center;
+            --calendar-past-cell-font-family: var(--primary-font-family);
+            --calendar-past-cell-font-size: var(--text-2-font-size);
+            --calendar-past-cell-font-weight: var(--text-1-font-weight);
+            --calendar-past-cell-cursor: cursor-not-allowed;
+            --calendar-past-cell-padding: 3px;
+        }
+
+        .calendar-card {
+            flex: var(--calendar-card-flex);
+            width: var(--calendar-card-width);
+            overflow: var(--calendar-card-overflow);
+            box-shadow: var(--calendar-card-shadow);
+            border-radius: var(--calendar-card-border-radius);
+            padding: var(--calendar-card-padding);
+            margin: var(--calendar-card-margin);
+        }
+        
+        .calendar {
+            border-collapse: var(--calendar-border-collapse);
+        }
+
+        .calendar-title {
+            display: var(--calendar-title-display);
+            flex-direction: var(--calendar-title-flex-direction);
+            justify-content: var(--calendar-title-flex-justify-content);
+            align-items: var(--calendar-title-flex-align-items);
+            width: var(--calendar-title-width);
+            height: var(--calendar-title-height);
+            color: var(--calendar-title-text-align);
+            text-align: var(--calendar-title-text-align);
+            font-family: var(--calendar-title-font-family);
+            font-size: var(--calendar-title-font-size);
+            font-weight: var(--calendar-title-font-weight);
+            margin-bottom: var(--calendar-title-margin-bottom);
+            cursor: var(--calendar-title-cursor);
+        }
+ 
+        .header {
+            width: var(--calendar-header-width);
+            height: var(--calendar-header-height);
+            color: var(--calendar-header-color);
+            background-color: var(--calendar-header-background-color);
+            text-align: var(--calendar-header-text-align);
+            font-family: var(--calendar-header-font-family);
+            font-size: var(--calendar-header-font-size);
+            font-weight: var(--calendar-header-font-weight);
+            cursor: var(--calendar-header-cursor);
+        }
+
+        .header-cell {
+            width: var(--calendar-header-cell-width);
+            height: var(--calendar-header-cell-height);
+            color: var(--calendar-header-cell-color);
+            background-color: var(--calendar-header-cell-background-color);
+            text-align: var(--calendar-header-cell-text-align);
+            font-family: var(--calendar-header-cell-font-family);
+            font-size: var(--calendar-header-cell-font-size);
+            font-weight: var(--calendar-header-cell-font-weight);
+            cursor: var(--calendar-header-cell-cursor);
+            padding: var(--calendar-header-cell-padding);
+        }
+
+        .cell {
+            width: var(--calendar-cell-width);
+            height: var(--calendar-cell-height);
+            color: var(--calendar-cell-color);
+            background-color: var(--calendar-cell-background-color);
+            text-align: var(--calendar-cell-text-align);
+            font-family: var(--calendar-cell-font-family);
+            font-size: var(--calendar-cell-font-size);
+            font-weight: var(--calendar-cell-font-weight);
+            cursor: var(--calendar-cell-cursor);
+            padding: var(--calendar-cell-padding);
+        }
+
+        .cell-selected {
+            background: var(--calendar-cell-background);
+        }
+
+        .past-cell {
+            width: var(--calendar-past-cell-width);
+            height: var(--calendar-past-cell-height);
+            color: var(--calendar-past-cell-color);
+            background-color: var(--calendar-past-cell-background-color);
+            text-align: var(--calendar-past-cell-text-align);
+            font-family: var(--calendar-past-cell-font-family);
+            font-size: var(--calendar-past-cell-font-size);
+            font-weight: var(--calendar-past-cell-font-weight);
+            cursor: var(--calendar-past-cell-cursor);
+            padding: var(--calendar-past-cell-padding);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="calendar-card">
+            <div id="{id}TitleBar" class="calendar-title">
+                <div id="{id}PreviousMonthButton" class="button w30px" onclick="$obj.subtractMonth()">&lt</div>
+                <div id="{id}Title">{monthName} {year}</div>
+                <div id="{id}NextMonthButton" class="button w30px" onclick="$obj.addMonth()">&gt</div>
+            </div>
+            <div id="{id}Body"></div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

@@ -1,0 +1,195 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/reviews/review-dialog.html
+        class ReviewDialog extends Component {
+            initialize(id) {
+                super.initialize(id)
+
+                Queue.register(this, ComponentLifecycle.msgs.COMPONENT_AFTER_MOUNT, (component) => { 
+                    const id = this.id
+                    const reviewHeaderEditableId = `${id}ReviewHeader`
+                    const firstNameId = `${reviewHeaderEditableId}EditableFirstName`
+                    const lastNameId = `${reviewHeaderEditableId}EditableLastName`
+                    const cityId = `${reviewHeaderEditableId}EditableCity`
+                    const stateId = `${reviewHeaderEditableId}EditableState`
+                    const avatarURLId = `${reviewHeaderEditableId}AvatarURL`
+
+                    if (firstNameId === component.id) { this.firstNameField = component }
+                    else if (lastNameId === component.id) { this.lastNameField = component }
+                    else if (cityId === component.id) { this.cityField = component }
+                    else if (stateId === component.id) { this.stateField = component }
+                    else if (avatarURLId === component.id) { this.avatarURLField = component }
+                })
+            }
+            afterMount() {
+                const element = document.getElementById(this.id)
+
+                element.addEventListener(`newTextData`, (e) => { 
+                    if (`FirstName` === e.detail.component.props.name) {
+                        this.vars.reviewFirstName = e.detail.text()
+                    } else if (`LastName` === e.detail.component.props.name) {
+                        this.vars.reviewLastName = e.detail.text()
+                    } else if (`City` === e.detail.component.props.name) {
+                        this.vars.reviewCity = e.detail.text()
+                    } else if (`State` === e.detail.component.props.name) {
+                        this.vars.reviewState = e.detail.text()
+                    } else if (`AvatarURL` === e.detail.component.props.name) {
+                        this.vars.reviewImageURL = e.detail.text()
+                    }
+                })
+                element.addEventListener(`newRating`, (e) => { this.vars.reviewRating = e.detail.rating })
+                super.afterMount()
+            }
+            onBlur(event) { this.updateReview() }
+            onInput(event) { this.updateReview() }
+            updateReview() { this.vars.review = this.ReviewTextElement.value }
+            show() { this.Element.setAttribute(`class`, `display-block modal-x`) }
+            hide() { 
+                this.Element.setAttribute(`class`, `display-none modal-x`)
+                this.destroy()
+            }
+            async save() {
+                if (!this.firstNameField || !this.lastNameField || !this.cityField || !this.stateField || !this.avatarURLField) {
+                    showError(`Error getting review data.`)
+                    return
+                }
+                if (!this.firstNameField.vars.valid) {
+                    showError(`${this.firstNameField.props.name} is invalid.`)
+                    return
+                }
+                if (!this.lastNameField.vars.valid) {
+                    showError(`${this.lastNameField.props.name} is invalid.`)
+                    return
+                }
+                if (!this.cityField.vars.valid) {
+                    showError(`${this.cityField.props.name} is invalid.`)
+                    return
+                }
+                if (!this.stateField.vars.valid) {
+                    showError(`${this.stateField.props.name} is invalid.`)
+                    return
+                }
+                if (!this.avatarURLField.vars.valid) {
+                    showError(`${this.avatarURLField.props.name} is invalid.`)
+                    return
+                }
+                if (5 > this.vars.review.length) {
+                    showError(`Review text is required and must be at least 5 characters.`)
+                    return
+                }
+
+                const review = {
+                    image: DOMPurify.sanitize(this.vars.reviewImageURL),
+                    name: {
+                        first: DOMPurify.sanitize(this.vars.reviewFirstName),
+                        last: DOMPurify.sanitize(this.vars.reviewLastName)
+                    },
+                    city: DOMPurify.sanitize(this.vars.reviewCity),
+                    state: DOMPurify.sanitize(this.vars.reviewState),
+                    date: this.vars.reviewDate,
+                    review: DOMPurify.sanitize(this.vars.review.trim()),
+                    stars: this.vars.reviewRating,
+                    usefulCount: 0,
+                    funnyCount: 0,
+                    coolCount: 0
+                }
+                const server = Registry.get(`Server`)
+                const response = await fetch(`${server}add-review`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(review)
+                })
+
+                if (200 === response.status) {
+                    const content = await response.json()
+                    const reviewList = Component.getObject(`ReviewList`)
+
+                    review.id = content.payload.newId
+                    reviewList.addNewReview(review)
+                    JavascriptWebToken.storeCredentials(content.jwt)
+                    showInfo(`Review added.`)
+                } else {
+                    showError(`Error adding review. Status code ${response.status}.`)
+                }
+                this.hide()
+            }
+            vars = {
+                reviewImageURL: `./images/generic-avatar.png`,
+                reviewFirstName: ``,
+                reviewLastName: ``,
+                reviewCity: ``,
+                reviewState: ``,
+                reviewDate: ``,
+                review: ` `,
+                reviewRating: 5,
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --photo-cursor: pointer;
+
+            --photo-hover-border-radius: 15px;
+
+            --review-text-width: 100%;
+            --review-text-height: 100px;
+            --review-text-color: var(--blue-gray-900);
+            --review-text-text-align: left;
+            --review-text-white-space: pre-wrap;
+            --review-text-font-family: var(--secondary-font-family);
+            --review-text-font-size: var(--caption-1-font-size);
+            --review-text-font-weight: font-weight: var(--caption-1-font-weight)
+        }
+        .review-text {
+            width: var(--review-text-width);
+            height: var(--review-text-height);
+            color: var(--review-text-color);
+            text-align: var(--review-text-text-align);
+            white-space: var(--review-text-white-space);
+            font-family: var(--review-text-font-family);
+            font-size: var(--review-text-font-size);
+            font-weight: var(--review-text-font-weight);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="modal-x display-none" onclick="$obj.hide()">
+              <div id="{id}Frame" class="modal-x-content h525px" onclick="event.stopPropagation()">
+                <div class="h160px">
+                    <include-html include-in="review-dialog.html" src="./html/components/reviews/stars.html" component-class="Stars" component-id="{id}Stars">
+                        <include-props class="display-none">{ editable: true }</include-props>
+                        <include-vars class="display-none">{ rating: {reviewRating} }</include-vars>
+                    </include-html>
+                    <include-html include-in="review-dialog.html" src="./html/components/reviews/review-header-editable.html" component-class="ReviewHeaderEditable" component-id="{id}ReviewHeader">
+                        <include-vars class="display-none">
+                            { 
+                                imageURL: `{reviewImageURL}`,
+                                firstName: `{reviewFirstName}`,
+                                lastName: `{reviewLastName}`,
+                                city: `{reviewCity}`,
+                                state: `{reviewState}`,
+                                date: `{reviewDate}`
+                            }          
+                        </include-vars>
+                    </include-html>
+                </div>
+                <div class="flex-col margin-b-5 margin-t-20">
+                    <h3 id="{id}ReviewTitle" class="subtitle-2">Review</h3>
+                    <textarea id="{id}ReviewText" name="review" class="review-text" onblur="$obj.onBlur(event)" oninput="$obj.onInput(event)" tabindex="6">{review}</textarea>
+                </div>
+                <div id="{id}Buttons" class="flex-row flex-wrap flex-end margin-t-10">
+                    <div id="{id}CancelButton" class="button" onclick="$obj.hide()">
+                        <div id="{id}CancelButtonText" class="margin-1">Cancel</div> 
+                    </div>
+                    <div id="{id}SaveButton" class="button" onclick="$obj.save()">
+                        <div id="{id}SaveButtonText" class="margin-1">Save</div> 
+                    </div>
+                </div>    
+            </div>
+          </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

@@ -1,0 +1,118 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/users/edit-user.html
+        class EditUser extends Component {
+            initialize(id) {
+                super.initialize(id)
+                Queue.register(this, Messages.FILE_SELECTED, (message) => {
+                    if (message.component !== this.FileSelector) { return }
+                    
+                    const file = message.component.vars.selectedFile
+
+                    this.Preview.setSourceFromFile(file)
+                })
+            }
+            setUser(user) {
+                this.FileSelector.Element.value = ``
+                this.Username.vars.value = user.userName
+                this.Password.vars.value = user.password
+                this.IsAdmin.Element.checked = user.roles.includes(`Admin`)
+                this.FirstName.Element.value = user.name.first
+                this.LastName.Element.value = user.name.last
+                this.Title.Element.value = user.title
+            }
+            async validateUser() {
+                if (!this.FileSelector.vars.selectedFile) {
+                    showError(`File name is invalid.`)
+                    return false
+                }
+                await this.Username.validate(false)
+                if (!this.Username.vars.valid) {
+                    showError(`${this.Username.props.name} is invalid.`)
+                    return false
+                }
+                await this.Password.validate(false)
+                if (!this.Password.vars.valid) {
+                    showError(`${this.Password.props.name} is invalid.`)
+                    return false
+                }
+                if (this.Password.Element.value !== this.PasswordAgain.Element.value) {
+                    showError(`${this.Password.props.name} is invalid.`)
+                    return false
+                }
+                await this.FirstName.validate(false)
+                if (!this.FirstName.vars.valid) {
+                    showError(`${this.FirstName.props.name} is invalid.`)
+                    return false
+                }
+                await this.LastName.validate(false)
+                if (!this.LastName.vars.valid) {
+                    showError(`${this.LastName.props.name} is invalid.`)
+                    return false
+                }
+                await this.Title.validate(false)
+                if (!this.Title.vars.valid) {
+                    showError(`${this.Title.props.name} is invalid.`)
+                    return false
+                }
+                return true
+            }
+            getUser() {
+                const news = {
+                    file: this.FileSelector.vars.selectedFile,
+                    userName: this.Username.Element.value,
+                    password: this.Password.Element.value,
+                    name: {
+                        first: this.FirstName.Element.value,
+                        last: this.LastName.Element.value,
+                    },
+                    roles: (this.IsAdmin.Element.checked)? [`Admin`] : [],
+                    title: this.Title.Element.value,
+                }
+                
+                return news 
+            }
+            onSubmit() { Queue.broadcast(Messages.USER_EDITED, this) }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}" class="flex-col w100 m5">
+            <include-html include-in="edit-user.html" src="./html/components/file-selector.html" component-class="FileSelector" component-id="{id}FileSelector"></include-html>
+            <include-html include-in="edit-user.html" src="./html/components/img.html" component-class="Img" component-id="{id}Preview"></include-html>
+            <include-html include-in="edit-user.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}Username">
+                <include-props>{ name: `Username`, placeholder: `Username`, label: `Username`, labelAboveField: false, required: true, size: 25, minlength: 2, maxlength: 25, tabIndex: 2, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `text` } </include-vars>
+            </include-html>
+            <include-html include-in="edit-user.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}Password">
+                <include-props>{ name: `Password`, label: `Password`, labelAboveField: false, required: true, size: 20,  minlength: 8, maxlength: 20, tabIndex: 3, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `password` } </include-vars>
+            </include-html>
+            <include-html include-in="edit-user.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}PasswordAgain">
+                <include-props>{ name: `ReenterPassword`, label: `Re-enter Password`, labelAboveField: false, required: true, size: 20,  minlength: 8, maxlength: 20, tabIndex: 4, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `password` } </include-vars>
+            </include-html>
+            <include-html include-in="reservations.html" src="./html/components/checkbox.html" component-class="Checkbox" component-id="{id}IsAdmin" checked="false">
+                <include-props class="display-none">{ label: `Is Admin?`, name: `IsAdmin`, tabindex: 5 }</include-props>
+            </include-html>
+            <include-html include-in="edit-user.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}FirstName">
+                <include-props>{ name: `FirstName`, label: `First Name`, labelAboveField: false, required: true, size: 25,  minlength: 2, maxlength: 25, tabIndex: 5, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `text` } </include-vars>
+            </include-html>
+            <include-html include-in="edit-user.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}LastName">
+                <include-props>{ name: `LastName`, label: `Last Name`, labelAboveField: false, required: true, size: 25,  minlength: 2, maxlength: 25, tabIndex: 6, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `text` } </include-vars>
+            </include-html>
+            <include-html include-in="edit-user.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}Title">
+                <include-props>{ name: `Title`, label: `Title`, labelAboveField: false, required: true, size: 25,  minlength: 2, maxlength: 25, tabIndex: 7, showValidationErrors: `snackbar` }</include-props>
+                <include-vars>{ type: `text` } </include-vars>
+            </include-html>
+            <div id="{id}ButtonWrapper" class="flex-col w100 m5">
+                <div id="{id}Button" class="button" onclick="$obj.onSubmit()">Submit</div>
+            </div>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

@@ -1,0 +1,81 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/news/news.html
+        class News extends Component {
+            initialize(id) { 
+                super.initialize(id)
+                Queue.register(this, Messages.SITE_LOADED, () => { this.loadNews() })
+            }
+            async loadNews () {
+                const response = await SINews.get()
+
+                if (200 !== response.status) { 
+                    showError(`Error retrieving news. Status code ${response.status}.`)
+                    return
+                }
+
+                let news = await response.json() 
+
+                this.vars.news = news.reverse()
+                this.vars.newsIndex = 0
+                this.showNews()
+                this.setNewsTimer()
+            }
+            setNewsTimer() {
+                const newsTimer = () => { this.nextNews() }
+                
+                this.vars.newsTimer = setInterval(newsTimer, 10000)
+            }
+            clearNewsTimer() { if (this.vars.newsTimer) { clearInterval(this.vars.newsTimer) }}
+            showNews() {
+                const news = this.vars.news[this.vars.newsIndex]
+
+                this.vars.newsPhotoURL = `./images/${news.file}`
+                this.vars.newsTitle = news.title
+                this.vars.newsText = news.text
+                this.NewsTitleElement.innerText = news.title
+                this.NewsTextElement.innerText = news.text
+            }
+            previousNews() {
+                this.vars.newsIndex--
+                if (this.vars.newsIndex < 0) { this.vars.newsIndex = this.vars.news.length - 1 }
+                this.showNews()
+            }
+            nextNews() {
+                this.vars.newsIndex++
+                if (this.vars.newsIndex >= this.vars.news.length) { this.vars.newsIndex = 0 }
+                this.showNews()
+            }
+            vars = {
+                newsIndex: 0,
+                news: [],
+                newsPhotoURL: ``,
+                newsTitle: ``,
+                newsText: ``,
+                newsTimer: null
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}" class="flex-col flex-center flex-align-center w500px h150px bg-blue-gray-900 z1 l30px t30px">
+            <span id="" class="flex-row">
+                <span id="{id}PreviousButton" class="button font-weight-700" onclick="$obj.previousNews()">◀</span>
+
+                <img id="{id}NewsPhoto" src="{newsPhotoURL}" height="130" onclick="$obj.clearNewsTimer()">
+
+                <span id="{id}TextWrapper" class="flex-col bg-blue-gray-50 w300px h130px" onclick="$obj.clearNewsTimer()">
+                    <div id="{id}NewsTitle" class="p5 blue-gray-900 subtitle-2 h50px"></div>
+                    <div id="{id}NewsText" class="p5 blue-gray-900 caption-1 h80px"></div>
+                </span>
+
+                <span id="{id}NextButton" class="button font-weight-700" onclick="$obj.nextNews()">▶</span>
+            </span>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

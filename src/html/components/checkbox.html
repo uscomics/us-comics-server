@@ -1,0 +1,58 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/radio-button.html
+        class Checkbox extends Component {
+            props = {
+                label: ``,
+                name: ``,
+                value: ``,
+                tabindex: 0
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --checkbox-color: var(--primary-text-color);
+            --checkbox-background-color: var(--background-color);
+            --checkbox-padding: 0 10px 0 0;
+            --checkbox-margin: 3px;
+            --checkbox-cursor: pointer;
+
+            --checkbox-label-color: var(--primary-text-color);
+            --checkbox-label-background-color: var(--background-color);
+            --checkbox-label-padding: none;
+            --checkbox-label-margin: 3px;
+            --checkbox-label-cursor: pointer;
+            --checkbox-label-font-family: var(--primary-font-family);
+            --checkbox-label-font-size: var(--text-2-font-size);
+            --checkbox-label-font-weight: var(--text-2-font-weight);
+        }
+
+        .checkbox {
+            color: var(--checkbox-color);
+            background-color:  var(--checkbox-background-color);
+            padding:  var(--checkbox-padding);
+            margin:  var(--checkbox-margin);
+            cursor:  var(--checkbox-cursor);
+        }
+
+        .checkbox-label {
+            color: var(--checkbox-label-color);
+            background-color:  var(--checkbox-label-background-color);
+            padding:  var(--checkbox-label-padding);
+            margin:  var(--checkbox-label-margin);
+            cursor:  var(--checkbox-label-cursor);
+            font-family: var(--checkbox-label-font-family);
+            font-size: var(--checkbox-label-font-size);
+            font-weight: var(--checkbox-label-font-weight);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}Wrapper" class="flex-row">
+            <input id="{id}" class="checkbox" type="checkbox" name="{name}" value="{value}" tabindex="{tabindex}">
+            <label id="{id}Label" for="{id}" class="checkbox-label" >{label}</label>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

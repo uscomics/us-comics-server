@@ -1,0 +1,375 @@
+<script src="../../js/client/test.js"></script>
+
+<custom-component>
+    <script>
+        //# sourceURL=html/components/text-field.html
+        class TextField extends Component {
+            initialize(id) {
+                super.initialize(id)
+
+                this.props.isPassword = `password` === this.vars.type.toLowerCase()
+                this.vars.valid = false
+            }
+            afterMount() { 
+                super.afterMount()
+
+                if (this.props.required) { this.Element.setAttribute(`required`, true) } else { this.Element.removeAttribute(`required`) }
+                if (this.props.readonly) { this.Element.setAttribute(`readonly`, true) } else { this.Element.removeAttribute(`readonly`) }
+                if (this.props.disabled) { this.Element.setAttribute(`disabled`, true) } else { this.Element.removeAttribute(`disabled`) }
+                if (this.props.autofocus) { this.Element.setAttribute(`autofocus`, true) } else { this.Element.removeAttribute(`autofocus`) }
+                if (this.props.autocomplete) { this.Element.setAttribute(`autocomplete`, true) } else { this.Element.removeAttribute(`autocomplete`) }
+                if (this.props.list) { this.Element.setAttribute(`list`, this.props.list) } else { this.Element.removeAttribute(`list`) }
+                if (this.props.min != Number.MAX_VALUE) { this.Element.setAttribute(`min`, this.props.min) }
+                if (this.props.max != Number.MIN_VALUE) { this.Element.setAttribute(`max`, this.props.max) }
+                if (this.props.labelAboveField) { this.WrapperElement.setAttribute(`class`, `flex-col`) } else { this.WrapperElement.setAttribute(`class`, `flex-row`) }
+                if (this.props.isPassword) { this.EyeElement.setAttribute(`class`, `button`) } else { this.EyeElement.setAttribute(`class`, `display-none`) }
+            }
+            async onFocus(event) {
+                const showErrors = `inline` === this.props.showValidationErrors
+
+                this.validate(showErrors)
+            }
+            async onBlur(event) { 
+                const showErrors = `snackbar` === this.props.showValidationErrors
+
+                while (this.ErrorElement.firstChild) {
+                    this.ErrorElement.removeChild(this.ErrorElement.firstChild);
+                }
+                this.validate(showErrors)
+            }
+            async onInput(event) {
+                const showErrors = `inline` === this.props.showValidationErrors
+
+                this.validate(showErrors)
+            }
+            async validate(showErrors) {
+                this.vars.valid = false
+                this.ErrorElement.removeChildren()
+                let testArray = [
+                    await test (`Test required`, `Ensure required field has a value.`, [async () => {
+                        let results = []
+
+                        if (!this.props.required) { return results }
+                        assert(0 < this.Element.value?.length,                             `Field '${this.props.label}' is required.`, results, true)
+                        return results
+                    }]),                    
+                    await test (`Test minlength`, `Ensure field is no shorter than ${this.props.minlength}.`, [async () => {
+                        let results = []
+
+                        if (!this.props.minlength) { return results }
+                        assert(this.props.minlength <= this.Element.value?.length,         `Field '${this.props.label}' has at least ${this.props.minlength} characters.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test maxlength`, `Ensure field is no longer than ${this.props.maxlength}.`, [async () => {
+                        let results = []
+
+                        if (!this.props.maxlength) { return results }
+                        assert(this.props.maxlength >= this.Element.value?.length,         `Field '${this.props.label}' has no more than ${this.props.maxlength} characters.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test min`, `Ensure field's value is not less than ${this.props.min}.`, [async () => {
+                        let results = []
+
+                        if (Number.MAX_VALUE === this.props.min) { return results }
+                        assert(this.props.min <= +this.Element.value,                      `Field '${this.props.label}' is not less than ${this.props.min}.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test max`, `Ensure field's value is not more than ${this.props.max}.`, [async () => {
+                        let results = []
+
+                        if (Number.MIN_VALUE === this.props.max) { return results }
+                        assert(this.props.max >= +this.Element.value,                      `Field '${this.props.label}' is not greater than ${this.props.max}.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test pattern`, `Ensure field matches the pattern ${this.props.pattern}.`, [async () => {
+                        let results = []
+
+                        if (0 === this.props.pattern.length) { return results }
+                        assert(new RegExp(this.props.pattern).test(this.Element.value),    `Field '${this.props.label}' matches the pattern ${this.props.pattern}.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test url`, `Ensure field is a valid url.`, [async () => {
+                        let results = []
+                        const isValidUrl = urlString => {
+                            const urlPattern = new RegExp('^(https?:\\/\\/)?'+                  // validate protocol
+                            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+                 // validate domain name
+                            '((\\d{1,3}\\.){3}\\d{1,3}))'+                                      // validate OR ip (v4) address
+                            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+                                  // validate port and path
+                            '(\\?[;&a-z\\d%_.~+=-]*)?'+                                         // validate query string
+                            '(\\#[-a-z\\d_]*)?$','i')                                           // validate fragment locator
+
+                            return !!urlPattern.test(urlString);
+                        }
+
+                        if (`url` !== this.vars.type.toLowerCase()) { return results }
+                        assert(isValidUrl(this.Element.value),                             `Field '${this.props.label}' is a valid url.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test email`, `Ensure field is a valid email.`, [async () => {
+                        let results = []
+                        const isValidEmail = emailString => {
+                            const emailPattern = new RegExp('^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3}','i')
+
+                            return !!emailPattern.test(emailString);
+                        }
+
+                        if (`email` !== this.vars.type.toLowerCase()) { return results }
+                        assert(isValidEmail(this.Element.value),                           `Field '${this.props.label}' is a valid email.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test phone`, `Ensure field is a valid phone number.`, [async () => {
+                        let results = []
+                        const isValidPhone = phoneString => {
+                            const phonePattern = new RegExp(`^[\+]?[(]?[0-9]{3}[)]?[- \.]?[0-9]{3}[- \.]?[0-9]{4,6}$`,`i`)
+
+                            return !!phonePattern.test(phoneString);
+                        }
+
+                        if (`tel` !== this.vars.type.toLowerCase()) { return results }
+                        assert(isValidPhone(this.Element.value),                           `Field '${this.props.label}' is a valid phone number.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test number`, `Ensure field is a valid number.`, [async () => {
+                        let results = []
+                        const isValidNumber = numberString => {
+                            const numberPattern = new RegExp('^\d+$')
+
+                            return !!numberPattern.test(numberString);
+                        }
+
+                        if (`number` !== this.vars.type.toLowerCase()) { return results }
+                        assert(isValidNumber(this.Element.value),                          `Field '${this.props.label}' is a valid number.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test date`, `Ensure field is a valid date.`, [async () => {
+                        let results = []
+                        const isValidDate = (dateString) => {
+                            // First check for the pattern
+                            if(!/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateString))
+                                return false;
+
+                            // Parse the date parts to integers
+                            var parts = dateString.split("-");
+                            var day = parseInt(parts[2], 10);
+                            var month = parseInt(parts[1], 10);
+                            var year = parseInt(parts[0], 10);
+
+                            // Check the ranges of month and year
+                            if(year < 1000 || year > 3000 || month == 0 || month > 12)
+                                return false;
+
+                            var monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+
+                            // Adjust for leap years
+                            if(year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
+                                monthLength[1] = 29;
+
+                            // Check the range of the day
+                            return day > 0 && day <= monthLength[month - 1];
+                        }
+
+                        if (`date` !== this.vars.type.toLowerCase()) { return results }
+                        assert(isValidDate(this.Element.value),                            `Field '${this.props.label}' is a valid date.`, results, true)
+                        return results
+                    }]),
+                    await test (`Test time`, `Ensure field is a valid time.`, [async () => {
+                        let results = []
+                        const isValidTime = (timeString) => {
+                            const timePattern = new RegExp('^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$')
+
+                            return !!timePattern.test(timeString);
+                        }
+
+                        if (`time` !== this.vars.type.toLowerCase()) { return results }
+                        assert(isValidTime(this.Element.value),                            `Field '${this.props.label}' is a valid time.`, results, true)
+                        return results
+                    }]),
+                ]
+
+                if (this.vars.customValidationTests && Array.isArray(this.vars.customValidationTests) && 0 < this.vars.customValidationTests.length) {
+                    let customTestArray = await test (`Custom tests`, `Ensure field passes custom tests.`, this.vars.customValidationTests )
+                    testArray.push(customTestArray)
+                }
+
+                let results = await suite(`Validate field.`, `Ensure field meets all requirements.`, testArray)
+                this.vars.valid = (0 === results.failCount)
+                if (this.vars.valid) { 
+                    const newTextDataEvent = new CustomEvent(
+                        `newTextData`, 
+                        { 
+                            bubbles: true, 
+                            detail: { 
+                                text: () => this.vars.value, 
+                                component: this, 
+                                element: document.getElementById(this.id) 
+                            }
+                        }
+                    )
+                    this.vars.value = this.Element.value 
+                    this.Element.dispatchEvent(newTextDataEvent)
+                }
+                if (showErrors) { this.showErrors(results) }
+            }
+            showErrors(suiteResultsTree) {
+                if (`none` === this.props.showValidationErrors.toLowerCase()) { return }
+                else if (`inline` === this.props.showValidationErrors.toLowerCase()) {
+                    for (const test of suiteResultsTree.nodes) {
+                        for (const assertion of test.children) {
+                            let errorDiv = document.createElement(`div`)
+                            let mark = (assertion.passed)? `✓` : `✗`
+
+                            errorDiv.innerText = `${mark} ${assertion.description}`
+                            if (assertion.passed) { errorDiv.setAttribute(`class`, `caption-2 success`) }
+                            else { errorDiv.setAttribute(`class`, `caption-2 error`) }
+                            this.ErrorElement.appendChild(errorDiv)
+                        }
+                    }
+                } else if (`snackbar` === this.props.showValidationErrors.toLowerCase()) {
+                    let error = ``
+
+                    for (const test of suiteResultsTree.nodes) {
+                        for (const assertion of test.children) {
+                            let errorDiv = document.createElement(`div`)
+                            
+                            if (assertion.passed) { continue }
+                            if (0 < error.length) { error += `\n` }
+                            error += assertion.description
+                        }
+                    }
+                    if (0 <  error.length) { showError(error) }
+                }
+            }
+            onShowHideClicked() {
+                if (`password` === this.vars.type.toLowerCase()) {
+                    this.vars.type = `text`
+                    this.vars.imageURL = `../images/eye-open.png`
+                } else if (this.props.isPassword) {
+                    this.vars.type = `password`
+                    this.vars.imageURL = `../images/eye-closed.png`
+                }
+            }
+            props = {
+                required: false,
+                size: 20,
+                minlength: 0,
+                maxlength: 50,
+                min: Number.MAX_VALUE,
+                max: Number.MIN_VALUE,
+                pattern: ``,
+                label: ``,
+                name: ``,
+                placeholder: ``,
+                readonly: false,
+                disabled: false,
+                autofocus: false,
+                autocomplete: ``,
+                list: ``,
+                labelAboveField: false,
+                isPassword: false,
+                tabindex: 0,
+                showValidationErrors: `inline`
+            }
+            vars = {
+                type: `text`, // date, datetime-local, email, month, number, password, tel, text, time, url, week
+                imageURL: `../images/eye-closed.png`,
+                value: ``,
+                customValidationTests: [],
+                valid: false
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --text-field-color: var(--primary-text-color);
+            --text-field-padding: none;
+            --text-field-margin: 3px;
+            --text-field-cursor: text;
+            --text-field-font-family: var(--primary-font-family);
+            --text-field-font-size: var(--text-2-font-size);
+            --text-field-font-weight: var(--text-2-font-weight);
+            --text-field-background-color: var(--background-color);
+            --text-field-border-color: var(--amber-500);
+            --text-field-border-width: 2px;
+            --text-field-border-style: solid;
+            --text-field-border-radius: 0px;
+
+            --text-field-label-color: var(--primary-text-color);
+            --text-field-label-padding: none;
+            --text-field-label-margin: 3px;
+            --text-field-label-cursor: default;
+            --text-field-label-font-family: var(--primary-font-family);
+            --text-field-label-font-size: var(--text-2-font-size);
+            --text-field-label-font-weight: bold;
+            --text-field-label-background-color: var(--background-color);
+            --text-field-label-border-color: hidden;
+            --text-field-label-border-width: 0;
+            --text-field-label-border-style: none;
+            --text-field-label-border-radius: 0px;
+        }
+        
+        .text-field {
+            color: var(--text-field-color);
+            border-radius: var(--text-field-border-radius);
+            padding: var(--text-field-padding);
+            margin: var(--text-field-margin);
+            cursor: var(--text-field-cursor);
+            font-family: var(--text-field-font-family);
+            font-size: var(--text-field-font-size);
+            font-weight: var(--text-field-font-weight);
+            background-color: var(--text-field-background-color);
+        }
+        .text-field:focus {
+            border-top-style: hidden;
+            border-right-style: hidden;
+            border-left-style: hidden;
+            border-bottom-color: var(--text-field-border-color);
+            border-bottom-width: var(--text-field-border-width);
+            border-bottom-style: var(--text-field-border-style);
+            outline: none;
+        }
+
+        .text-field-label {
+            color: var(--text-field-label-color);
+            padding: var(--text-field-label-padding);
+            margin: var(--text-field-label-margin);
+            cursor: var(--text-field-label-cursor);
+            font-family: var(--text-field-label-font-family);
+            font-size: var(--text-field-label-font-size);
+            font-weight: var(--text-field-label-font-weight);
+            background-color: var(--text-field-label-background-color);
+            border-color: var(--text-field-label-border-color);
+            border-width: var(--text-field-label-border-width);
+            border-style: var(--text-field-label-border-style);
+            border-radius: var(--text-field-label-border-radius);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}Wrapper">
+            <label id="{id}Label" for="{name}" class="text-field-label">{label}</label>
+            <div id="{id}InputAndErrorWrapper">
+                <div id="{id}InputWrapper" class="flex-row">
+                    <input 
+                        id="{id}" 
+                        class="text-field"
+                        type="{type}" 
+                        name="{name}"
+                        size="{size}"
+                        minlength="{minlength}"
+                        maxlength="{maxlength}"
+                        value="{value}"
+                        placeholder="{placeholder}"
+                        list="{list}"
+                        onfocus="$obj.onFocus(event)"
+                        onblur="$obj.onBlur(event)"
+                        oninput="$obj.onInput(event)"
+                        tabindex="{tabindex}"
+                    >
+                    <img id="{id}Eye" src="{imageURL}" width="25" onclick="$obj.onShowHideClicked()" loading="lazy">
+                </div>
+                <div id="{id}Error"></div>
+            </div>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
