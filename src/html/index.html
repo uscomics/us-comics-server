@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Vince Drives You</title>
+    <title>US Comics</title>
     <meta charset="UTF-8" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Vince Drives You">
-    <meta name="keywords" content="Ride, Taxi, Airport">
+    <meta name="description" content="U.S. Comics Admin">
+    <meta name="keywords" content="Comics">
     <meta name="author" content="Dave Leeper">
     <!-- https://ogp.me -->
-    <meta property="og:title" content="Vince Drives You" />
+    <meta property="og:title" content="US Comics" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.imdb.com/title/tt0117500/" />
-    <meta property="og:image" content="https://ia.media-imdb.com/images/rock.jpg" />
-    <meta property="og:image:width" content="500" />
-    <meta property="og:image:height" content="161" />    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://us-comics-server.fly.dev" />
+    <meta property="og:image" content="https://us-comics-server.fly.dev/images/logo.png" />
+    <meta property="og:image:width" content="848" />
+    <meta property="og:image:height" content="847" />    
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:description" content="Vince Drives You is a locally-owned-and-operated luxury transportation company serving clients all over Phoenix, AZ. Schedule our service!" />
-    <meta property="og:site_name" content="Vince Drives You" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:description" content="The best comics you've ever seen" />
+    <meta property="og:site_name" content="US Comics" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:label1" content="Est. reading time" />
     <meta name="twitter:data1" content="1 minute" />
+    <script type="text/javascript" src="./js/client/app.js"></script>
     <script type="text/javascript" src="./js/client/messages.js"></script>
     <script type="text/javascript" src="./js/client/queue.js"></script>
     <script type="text/javascript" src="./js/client/tree-node.js"></script>
@@ -45,44 +47,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script>
-      // KEYWORDS Airport transportation
-      function initializeApp() {
-        // const server = `http://localhost:8080/`
-        const server = `https://uscomicsserver.fly.dev/`
-        Registry.register(`Server`, server)
-        const params = new URLSearchParams(window.location.search)
-        const token = params.get(`token`)
-
-        JavascriptWebToken.storeCredentials(JSON.parse(token))
-        document.addEventListener(`DOMContentLoaded`, async () => { 
-          Loader.registerCustomTags()
-          await Loader.loadIncludes()
-          SlotManager.loadSlots()
-          Queue.broadcast(Messages.SITE_LOADED, null)
-        })
-      }
-      function setCSSDefaults() {
-        const r = document.querySelector(`:root`)
-        var rs = getComputedStyle(r);
-        const blue50 = rs.getPropertyValue(`--blue-50`)
-        const black = rs.getPropertyValue(`--black`)
-        r.style.setProperty(`--button-color`, black);
-        r.style.setProperty(`--button-background-color`, blue50);
-        r.style.setProperty(`--button-border-color`, blue50);
-
-        const blueGray900 = rs.getPropertyValue(`--blue-gray-900`)
-        const blueGray50 = rs.getPropertyValue(`--blue-gray-50`)
-        const amber900 = rs.getPropertyValue(`--amber-500`)
-        r.style.setProperty(`--background-color`, blueGray900)
-        r.style.setProperty(`--primary-text-color`, blueGray50)
-        r.style.setProperty(`--secondary-color`, amber900)
-
-        r.style.setProperty(`--button-color`, blueGray900)
-        r.style.setProperty(`--button-background-color`, amber900)
- 
-      }
-      initializeApp()
-      setCSSDefaults()
+      App.initializeApp()
+      App.setServer()
+      App.setJWT()
+      App.setCSSDefaults()
     </script>
   </head>
   <body id="Body" class="margin-5 bg-grey-e" onclick="Queue.broadcast(Messages.ON_CLICK, event)">

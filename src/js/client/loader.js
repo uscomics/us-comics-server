@@ -80,7 +80,7 @@ class Loader {
         }
         return [src, includeIn, componentClass, componentObjectId, repeat]
     }
-    static loadInclude = async function (include) {
+    static loadInclude = async function (include, keepTestingScript) {
         let [src, includeIn, componentClass, componentObjectId, repeat] = Loader.validateIncludeAttributes(include.attributes)
 
         if (!src || !includeIn) { return false }
@@ -95,7 +95,7 @@ class Loader {
             if (!componentClass) {
                 include.insertAdjacentHTML('afterend', text)
             } else {
-                let loadIncludeComponentResult = Loader.loadIncludeComponent(text, src, includeIn, componentClass, componentObjectId, include)
+                let loadIncludeComponentResult = Loader.loadIncludeComponent(text, src, includeIn, componentClass, componentObjectId, include, keepTestingScript)
                 if (!loadIncludeComponentResult) { return false }
             }
         }
@@ -136,10 +136,10 @@ class Loader {
             })
         }
     }
-    static loadIncludeComponent = function (text, src, includeIn, componentClass, componentObjectId, include) {
+    static loadIncludeComponent = function (text, src, includeIn, componentClass, componentObjectId, include, keepTestingScript) {
         let fragment = ComponentLifecycle.compile(text)
         let fragmentAlreadyRegistered = window?.$components?.fragmentRegistry?.has(componentClass)
-        let fragmentRegistered = fragmentAlreadyRegistered || ComponentLifecycle.registerDOMFragment(componentClass, fragment, false)
+        let fragmentRegistered = fragmentAlreadyRegistered || ComponentLifecycle.registerDOMFragment(componentClass, fragment, keepTestingScript)
 
         if (!fragmentRegistered) {
             console.error(`loadIncludeComponent: Failed to register component fragment. Include processing halted. Component class: ${componentClass}. File containing bad Include-html tag is ${includeIn}. Include file is ${src}.`)
@@ -173,7 +173,7 @@ class Loader {
 
         return true
     }
-    static loadIncludes = async function () {
+    static loadIncludes = async function (keepTestingScript = false) {
         let includes = document.getElementsByTagName('include-html')
 
         if (0 === includes.length) { 
@@ -182,7 +182,7 @@ class Loader {
         }
         for (let loop = 0; loop < includes.length; loop++) {
             const include = includes[loop]
-            let result = await Loader.loadInclude(include)
+            let result = await Loader.loadInclude(include, keepTestingScript)
             include.remove()
             if (!result) { 
                 return 

@@ -57,7 +57,7 @@
         {
             "name": "Load image file.",
             "verb": "GET",
-            "path": "/image/:filename",
+            "path": "/images/:filename",
             "handler": "file.js",
             "log": "INFO",
             "args": {

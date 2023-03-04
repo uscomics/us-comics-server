@@ -1,0 +1,112 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/drawer.html
+        class Drawer extends Component {
+            static location = { TOP: `TOP`, BOTTOM: `BOTTOM`, LEFT: `LEFT`, RIGHT: `RIGHT`}
+            afterMount() {
+                super.afterMount()
+                this.Element.classList.add(this.props.width)
+                this.Element.classList.add(this.props.height)
+                if (Drawer.location.TOP === this.props.location) { 
+                    this.Element.classList.add(`drawer-top`)
+                    this.Element.style.width = this.props.contentCrossAxisSize
+                    this.Element.style.height = this.props.contentMainAxisSize
+                }
+                else if (Drawer.location.BOTTOM === this.props.location) { 
+                    this.Element.classList.add(`drawer-bottom`) 
+                    this.Element.style.width = this.props.contentCrossAxisSize
+                    this.Element.style.height = this.props.contentMainAxisSize
+                }
+                else if (Drawer.location.LEFT === this.props.location) { 
+                    this.Element.classList.add(`drawer-left`) 
+                    this.Element.style.width = this.props.contentMainAxisSize
+                    this.Element.style.height = this.props.contentCrossAxisSize
+                }
+                else { 
+                    this.Element.classList.add(`drawer-right`) 
+                    this.Element.style.width = this.props.contentMainAxisSize
+                    this.Element.style.height = this.props.contentCrossAxisSize
+                }
+                this.setAppearance()
+            }
+            onButtonClicked() {
+                this.vars.open = !this.vars.open
+                this.setAppearance()
+            }
+            setAppearance() {
+                if (!this.vars.open) { 
+                    this.ContentSlotWrapperElement.classList.add(`display-none`) 
+                    if (Drawer.location.TOP === this.props.location) { this.ButtonElement.innerText = `▼` }
+                    else if (Drawer.location.BOTTOM === this.props.location) { this.ButtonElement.innerText = `▲` }
+                    else if (Drawer.location.LEFT === this.props.location) { this.ButtonElement.innerText = `▶` }
+                    else { this.ButtonElement.innerText = `◀` }
+                }
+                else { 
+                    this.ContentSlotWrapperElement.classList.remove(`display-none`) 
+                    if (Drawer.location.TOP === this.props.location) { this.ButtonElement.innerText = `▲` }
+                    else if (Drawer.location.BOTTOM === this.props.location) { this.ButtonElement.innerText = `▼` }
+                    else if (Drawer.location.LEFT === this.props.location) { this.ButtonElement.innerText = `◀` }
+                    else { this.ButtonElement.innerText = `▶` }
+                }
+            }
+            props = {
+                location: Drawer.location.LEFT,
+                contentMainAxisSize: `20%`,
+                contentCrossAxisSize: `100%`
+            }
+            vars = {
+                open: false
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --drawer-color: var(--primary-text-color);
+            --drawer-background-color: var(--background-color);
+            --drawer-padding: 0 0 0 0;
+            --drawer-margin: 0;
+            --drawer-cursor: pointer;
+        }
+
+        .drawer {
+            color: var(--drawer-color);
+            background-color:  var(--drawer-background-color);
+            padding:  var(--drawer-padding);
+            margin:  var(--drawer-margin);
+            cursor:  var(--drawer-cursor);
+        }
+        .drawer-top {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            top: 0; 
+        }
+        .drawer-bottom { 
+            position: absolute;
+            display: flex;
+            flex-direction: column-reverse;
+            bottom: 0; 
+        }
+        .drawer-left { 
+            position: absolute;
+            display: flex;
+            flex-direction: row;
+            left: 0; 
+        }
+        .drawer-right { 
+            position: absolute;
+            display: flex;
+            flex-direction: row-reverse;
+            right: 0; 
+        }
+
+    </style>
+    <component-markup>
+        <span id="{id}">
+            <span id="{id}ContentSlotWrapper"><component-slot id="{id}ContentSlot">DEFAULT CONTENT FOR {id}</component-slot></span>
+            <span id="{id}Button" class="button" onclick="$obj.onButtonClicked()">▶</span>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
