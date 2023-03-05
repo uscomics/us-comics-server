@@ -2,124 +2,109 @@
     <script>
         //# sourceURL=html/components/drawer.html
         class Drawer extends Component {
-            static location = { TOP: `TOP`, BOTTOM: `BOTTOM`, LEFT: `LEFT`, RIGHT: `RIGHT`}
-            afterMount() {
-                super.afterMount()
-                this.Element.classList.add(this.props.width)
-                this.Element.classList.add(this.props.height)
-                if (Drawer.location.TOP === this.props.location.toUpperCase()) { this.Element.classList.add(`drawer-top`) }
-                else if (Drawer.location.BOTTOM === this.props.location.toUpperCase()) { this.Element.classList.add(`drawer-bottom`) }
-                else if (Drawer.location.LEFT === this.props.location.toUpperCase()) { this.Element.classList.add(`drawer-left`) }
-                else { this.Element.classList.add(`drawer-right`) }
-                this.setAppearance()
+            openNav() {
+                this.ContentWrapperElement.style.width = this.props.contentWidth
             }
-            onButtonClicked() {
-                this.vars.open = !this.vars.open
-                this.setAppearance()
-            }
-            setAppearance() {
-                if (!this.vars.open) { 
-                    this.ContentSlotWrapperElement.classList.add(`display-none`) 
-                    if (Drawer.location.TOP === this.props.location.toUpperCase()) { 
-                        this.ButtonElement.innerText = `▼` 
-                        this.Element.style.width = this.props.contentCrossAxisSize
-                        this.Element.style.height = `20px`
-                    }
-                    else if (Drawer.location.BOTTOM === this.props.location.toUpperCase()) { 
-                        this.ButtonElement.innerText = `▲` 
-                        this.Element.style.width = this.props.contentCrossAxisSize
-                        this.Element.style.height = `20px`
-                    }
-                    else if (Drawer.location.LEFT === this.props.location.toUpperCase()) { 
-                        this.ButtonElement.innerText = `▶` 
-                        this.Element.style.width = `20px`
-                        this.Element.style.height = this.props.contentCrossAxisSize
-                    }
-                    else { 
-                        this.ButtonElement.innerText = `◀` 
-                        this.Element.style.width = `20px`
-                        this.Element.style.height = this.props.contentCrossAxisSize
-                    }
-                }
-                else { 
-                    this.ContentSlotWrapperElement.classList.remove(`display-none`) 
-                    if (Drawer.location.TOP === this.props.location.toUpperCase()) { 
-                        this.ButtonElement.innerText = `▲` 
-                        this.Element.style.width = this.props.contentCrossAxisSize
-                        this.Element.style.height = this.props.contentMainAxisSize
-                    }
-                    else if (Drawer.location.BOTTOM === this.props.location.toUpperCase()) { 
-                        this.ButtonElement.innerText = `▼` 
-                        this.Element.style.width = this.props.contentCrossAxisSize
-                        this.Element.style.height = this.props.contentMainAxisSize
-                    }
-                    else if (Drawer.location.LEFT === this.props.location.toUpperCase()) { 
-                        this.ButtonElement.innerText = `◀` 
-                        this.Element.style.width = this.props.contentMainAxisSize
-                        this.Element.style.height = this.props.contentCrossAxisSize
-                    }
-                    else { 
-                        this.ButtonElement.innerText = `▶` 
-                        this.Element.style.width = this.props.contentMainAxisSize
-                        this.Element.style.height = this.props.contentCrossAxisSize
-                    }
-                }
+            closeNav() {
+                this.ContentWrapperElement.style.width = `0`
             }
             props = {
-                location: Drawer.location.LEFT,
-                contentMainAxisSize: `20%`,
-                contentCrossAxisSize: `100%`
-            }
-            vars = {
-                open: false
+                contentWidth: `250px`
             }
         }
     </script>
     <style>
         :root {
-            --drawer-color: var(--primary-text-color);
-            --drawer-background-color: var(--background-color);
-            --drawer-padding: 0 0 0 0;
-            --drawer-margin: 0;
+            --drawer-position: fixed;
+            --drawer-height: 100%;
+            --drawer-width: 0;
+            --drawer-top: 0;
+            --drawer-left: 0;
+            --drawer-z-index: 1;
+            --drawer-background-color: var(--gray-e);
+            --drawer-overflow-x: hidden; 
+            --drawer-border-color: var(--primary-color);
+            --drawer-border-width: var(--default-border-width);
+            --drawer-border-style: var(--default-border-style);
+            --drawer-padding-top: 40px; 
+            --drawer-transition: 0.5s;
+            --drawer-padding-top-small-screen: 15px;
+
+            --drawer-a-display: block;
+            --drawer-a-color: #818181;
+            --drawer-a-text-decoration: none;
+            --drawer-a-font-family: var(--primary-font-family);
+            --drawer-a-font-size: var(--text-2-font-size);
+            --drawer-a-font-weight: normal;
+            --drawer-a-padding: 5px;
+            --drawer-a-transition: 0.3s;
+            --drawer-a-font-size-small-screen: 18px;
+
+            --drawer-close-button-position: absolute;
+            --drawer-close-button-top: 0;
+            --drawer-close-button-right: 5px;
+            --drawer-close-button-font-family: var(--primary-font-family);
+            --drawer-close-button-font-size: var(--text-1-font-size);
+            --drawer-close-button-font-weight: normal;
+
+            --drawer-open-button-position: absolute;
+            --drawer-open-button-top: 0;
+            --drawer-open-button-left: 0;
+            --drawer-open-button-cursor: pointer;
         }
 
         .drawer {
-            color: var(--drawer-color);
-            background-color:  var(--drawer-background-color);
-            padding:  var(--drawer-padding);
-            margin:  var(--drawer-margin);
-            cursor:  var(--drawer-cursor);
+            position: var(--drawer-position);
+            height: var(--drawer-height);
+            width: var(--drawer-width);
+            top: var(--drawer-top);
+            left: var(--drawer-left);
+            z-index: var(--drawer-z-index);
+            background-color: var(--drawer-background-color);
+            overflow-x: var(--drawer-overflow-x); 
+            border-color: var(--drawer-border-color);
+            border-width: var(--drawer-border-width);
+            border-style: var(--drawer-border-style);
+            padding-top: var(--drawer-padding-top); 
+            transition: var(--drawer-transition); 
         }
-        .drawer-top {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            top: 0; 
+
+        .drawer a {
+            display: var(--drawer-a-display);
+            color: var(--drawer-a-color);
+            text-decoration: var(--drawer-a-text-decoration);
+            font-family: var(----drawer-a-font-family);
+            font-size: var(--drawer-a-font-size);
+            font-weight: var(--drawer-a-font-weight);
+            padding: var(--drawer-a-padding);
+            transition: var(--drawer-a-transition);
         }
-        .drawer-bottom { 
-            position: absolute;
-            display: flex;
-            flex-direction: column-reverse;
-            bottom: 0; 
+        .drawer .drawer-close-button {
+            position: var(--drawer-close-button-position);
+            top: var(--drawer-close-button-top);
+            right: var(--drawer-close-button-right);
+            font-family: var(--drawer-close-button-font-family);
+            font-size: var(--drawer-close-button-font-size);
+            font-weight: var(--drawer-close-button-font-weight);
         }
-        .drawer-left { 
-            position: absolute;
-            display: flex;
-            flex-direction: row;
-            left: 0; 
+        .drawer-open-button {
+            position: var(--drawer-open-button-position);
+            top: var(--drawer-open-button-top);
+            left: var(--drawer-open-button-left);
+            cursor: var(--drawer-open-button-cursor);
         }
-        .drawer-right { 
-            position: absolute;
-            display: flex;
-            flex-direction: row-reverse;
-            right: 0; 
+
+        @media screen and (max-height: 450px) {
+            .drawer {padding-top: var(--drawer-padding-top-small-screen);}
+            .drawer a {font-size: var(--drawer-a-font-size-small-screen);}
         }
     </style>
     <component-markup>
-        <span id="{id}" class="drawer">
-            <span id="{id}ContentSlotWrapper" class="flex-grow-3"><component-slot id="{id}Slot">DEFAULT CONTENT FOR {id}</component-slot></span>
-            <span id="{id}Button" class="button" onclick="$obj.onButtonClicked()">▶</span>
-        </span>
+        <div id="{id}ContentWrapper" class="drawer">
+            <a id="{id}CloseButton}" class="drawer-close-button" href="javascript:void(0)" onclick="$obj.closeNav()">&times;</a>
+            <component-slot id="{id}Slot">DEFAULT CONTENT FOR {id}</component-slot>
+        </div>
+        <span id="{id}" class="drawer-open-button" onclick="$obj.openNav()">▶</span>
     </component-markup>
     <test-script>
     </test-script>

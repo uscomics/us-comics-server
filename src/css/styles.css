@@ -96,10 +96,10 @@
     --blue-gray-400: #78909C;     --blue-gray-500: #607D8B;     --blue-gray-600: #546E7A;     --blue-gray-700: #455A64;
     --blue-gray-800: #37474F;     --blue-gray-900: #263238;
 
-    --primary-color: var(--blue-f);           --secondary-color: var(--green-b);          --background-color: var(--white);
-    --primary-variant-color: var(--blue-a);   --secondary-variant-color: var(--green-7);  --disabled-color: var(--gray-d);
-    --success-color: var(--green-a);          --error-color: var(--red-e);                --warn-color: var(--yellow-e);
-    --info-color: var(--cyan-d);              --primary-text-color: var(--black);         --secondary-text-color: var(--gray-8);
+    --primary-color: var(--gray-4);             --secondary-color: var(--gray-8);           --background-color: var(--gray-e);
+    --primary-variant-color: var(--orange-50);  --secondary-variant-color: var(--blue-50);  --disabled-color: var(--gray-8);
+    --success-color: var(--green-a);            --error-color: var(--red-e);                --warn-color: var(--yellow-e);
+    --info-color: var(--cyan-d);                --primary-text-color: var(--black);         --secondary-text-color: var(--gray-8);
     --light-text-color: var(--white);
     --primary-font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     --secondary-font-family: TimesNewRoman, "Times New Roman", Times, Baskerville, Georgia, serif;
