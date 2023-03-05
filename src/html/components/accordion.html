@@ -1,0 +1,93 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/accordion.html
+        class Accordion extends Component {
+            afterMount() {
+                super.afterMount()
+                const acc = document.getElementsByClassName("accordion")
+
+                for (let loop = 0; loop < acc.length; loop++) {
+                    acc[loop].addEventListener("click", function() {
+                        this.classList.toggle("active")
+                        var panel = this.nextElementSibling
+                        if (panel.style.maxHeight) { panel.style.maxHeight = null } 
+                        else { panel.style.maxHeight = panel.scrollHeight + "px" } 
+                    })
+                }
+            }
+            vars = {
+                title: `Title`
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --accordion-color: var(gray-4);
+            --accordion-background-color: var(--gray-e);
+            --accordion-cursor: pointer;
+            --accordion-padding: 5px;
+            --accordion-width: 100%;
+            --accordion-font-family: var(--primary-font-family);
+            --accordion-font-size: var(--text-2-font-size);
+            --accordion-font-weight: bold;
+            --accordion-text-align: left;
+            --accordion-border-color: hidden;
+            --accordion-border-width: 0;
+            --accordion-border-style: none;
+            --accordion-border-radius: 0px;
+            --accordion-outline: none;
+            --accordion-transition: 0.4s;
+
+            --accordion-active-background-color: var(--gray-c);
+
+            --accordion-hover-background-color: var(--gray-c);
+
+            --accordion-panel-max-height: 0;
+            --accordion-panel-background-color: white;
+            --accordion-panel-padding: 0 18px;
+            --accordion-panel-overflow: hidden;
+            --accordion-panel-transition: max-height 0.2s ease-out;
+
+        }
+
+        .accordion {
+            color: var(--accordion-color);
+            background-color: var(--accordion-background-color);
+            cursor: var(--accordion-cursor);
+            padding: var(--accordion-padding);
+            width: var(--accordion-width);
+            font-family: var(--accordion-font-family);
+            font-size: var(--accordion-font-size);
+            font-weight: var(--accordion-font-weight);
+            text-align: var(--accordion-text-align);
+            border-color: var(--accordion-border-color);
+            border-width: var(--accordion-border-width);
+            border-style: var(--accordion-border-style);
+            text-align: left;
+            outline: var(--accordion-outline);
+            transition: var(--accordion-transition);
+        }
+        .active {
+            background-color: var(--accordion-active-background-color);
+        }
+        .accordion:hover {
+            background-color: var(--accordion-hover-background-color);
+        }
+
+        .accordion-panel {
+            max-height: var(--accordion-panel-max-height);
+            background-color: var(--accordion-panel-background-color);
+            padding: var(--accordion-panel-padding);
+            overflow: var(--accordion-panel-overflow);
+            transition: var(--accordion-panel-transition);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="accordion">{title}</div>
+        <div id="{id}Panel" class="accordion-panel">
+            <component-slot id="{id}Slot">DEFAULT CONTENT FOR {id}</component-slot>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

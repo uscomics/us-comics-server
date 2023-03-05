@@ -7,26 +7,10 @@
                 super.afterMount()
                 this.Element.classList.add(this.props.width)
                 this.Element.classList.add(this.props.height)
-                if (Drawer.location.TOP === this.props.location) { 
-                    this.Element.classList.add(`drawer-top`)
-                    this.Element.style.width = this.props.contentCrossAxisSize
-                    this.Element.style.height = this.props.contentMainAxisSize
-                }
-                else if (Drawer.location.BOTTOM === this.props.location) { 
-                    this.Element.classList.add(`drawer-bottom`) 
-                    this.Element.style.width = this.props.contentCrossAxisSize
-                    this.Element.style.height = this.props.contentMainAxisSize
-                }
-                else if (Drawer.location.LEFT === this.props.location) { 
-                    this.Element.classList.add(`drawer-left`) 
-                    this.Element.style.width = this.props.contentMainAxisSize
-                    this.Element.style.height = this.props.contentCrossAxisSize
-                }
-                else { 
-                    this.Element.classList.add(`drawer-right`) 
-                    this.Element.style.width = this.props.contentMainAxisSize
-                    this.Element.style.height = this.props.contentCrossAxisSize
-                }
+                if (Drawer.location.TOP === this.props.location.toUpperCase()) { this.Element.classList.add(`drawer-top`) }
+                else if (Drawer.location.BOTTOM === this.props.location.toUpperCase()) { this.Element.classList.add(`drawer-bottom`) }
+                else if (Drawer.location.LEFT === this.props.location.toUpperCase()) { this.Element.classList.add(`drawer-left`) }
+                else { this.Element.classList.add(`drawer-right`) }
                 this.setAppearance()
             }
             onButtonClicked() {
@@ -36,17 +20,49 @@
             setAppearance() {
                 if (!this.vars.open) { 
                     this.ContentSlotWrapperElement.classList.add(`display-none`) 
-                    if (Drawer.location.TOP === this.props.location) { this.ButtonElement.innerText = `▼` }
-                    else if (Drawer.location.BOTTOM === this.props.location) { this.ButtonElement.innerText = `▲` }
-                    else if (Drawer.location.LEFT === this.props.location) { this.ButtonElement.innerText = `▶` }
-                    else { this.ButtonElement.innerText = `◀` }
+                    if (Drawer.location.TOP === this.props.location.toUpperCase()) { 
+                        this.ButtonElement.innerText = `▼` 
+                        this.Element.style.width = this.props.contentCrossAxisSize
+                        this.Element.style.height = `20px`
+                    }
+                    else if (Drawer.location.BOTTOM === this.props.location.toUpperCase()) { 
+                        this.ButtonElement.innerText = `▲` 
+                        this.Element.style.width = this.props.contentCrossAxisSize
+                        this.Element.style.height = `20px`
+                    }
+                    else if (Drawer.location.LEFT === this.props.location.toUpperCase()) { 
+                        this.ButtonElement.innerText = `▶` 
+                        this.Element.style.width = `20px`
+                        this.Element.style.height = this.props.contentCrossAxisSize
+                    }
+                    else { 
+                        this.ButtonElement.innerText = `◀` 
+                        this.Element.style.width = `20px`
+                        this.Element.style.height = this.props.contentCrossAxisSize
+                    }
                 }
                 else { 
                     this.ContentSlotWrapperElement.classList.remove(`display-none`) 
-                    if (Drawer.location.TOP === this.props.location) { this.ButtonElement.innerText = `▲` }
-                    else if (Drawer.location.BOTTOM === this.props.location) { this.ButtonElement.innerText = `▼` }
-                    else if (Drawer.location.LEFT === this.props.location) { this.ButtonElement.innerText = `◀` }
-                    else { this.ButtonElement.innerText = `▶` }
+                    if (Drawer.location.TOP === this.props.location.toUpperCase()) { 
+                        this.ButtonElement.innerText = `▲` 
+                        this.Element.style.width = this.props.contentCrossAxisSize
+                        this.Element.style.height = this.props.contentMainAxisSize
+                    }
+                    else if (Drawer.location.BOTTOM === this.props.location.toUpperCase()) { 
+                        this.ButtonElement.innerText = `▼` 
+                        this.Element.style.width = this.props.contentCrossAxisSize
+                        this.Element.style.height = this.props.contentMainAxisSize
+                    }
+                    else if (Drawer.location.LEFT === this.props.location.toUpperCase()) { 
+                        this.ButtonElement.innerText = `◀` 
+                        this.Element.style.width = this.props.contentMainAxisSize
+                        this.Element.style.height = this.props.contentCrossAxisSize
+                    }
+                    else { 
+                        this.ButtonElement.innerText = `▶` 
+                        this.Element.style.width = this.props.contentMainAxisSize
+                        this.Element.style.height = this.props.contentCrossAxisSize
+                    }
                 }
             }
             props = {
@@ -65,7 +81,6 @@
             --drawer-background-color: var(--background-color);
             --drawer-padding: 0 0 0 0;
             --drawer-margin: 0;
-            --drawer-cursor: pointer;
         }
 
         .drawer {
@@ -99,11 +114,10 @@
             flex-direction: row-reverse;
             right: 0; 
         }
-
     </style>
     <component-markup>
-        <span id="{id}">
-            <span id="{id}ContentSlotWrapper"><component-slot id="{id}ContentSlot">DEFAULT CONTENT FOR {id}</component-slot></span>
+        <span id="{id}" class="drawer">
+            <span id="{id}ContentSlotWrapper" class="flex-grow-3"><component-slot id="{id}Slot">DEFAULT CONTENT FOR {id}</component-slot></span>
             <span id="{id}Button" class="button" onclick="$obj.onButtonClicked()">▶</span>
         </span>
     </component-markup>
