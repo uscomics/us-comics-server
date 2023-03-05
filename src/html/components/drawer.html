@@ -2,10 +2,10 @@
     <script>
         //# sourceURL=html/components/drawer.html
         class Drawer extends Component {
-            openNav() {
+            openDrawer() {
                 this.ContentWrapperElement.style.width = this.props.contentWidth
             }
-            closeNav() {
+            closeDrawer() {
                 this.ContentWrapperElement.style.width = `0`
             }
             props = {
@@ -101,10 +101,10 @@
     </style>
     <component-markup>
         <div id="{id}ContentWrapper" class="drawer">
-            <a id="{id}CloseButton}" class="drawer-close-button" href="javascript:void(0)" onclick="$obj.closeNav()">&times;</a>
+            <a id="{id}CloseButton}" class="drawer-close-button" href="javascript:void(0)" onclick="$obj.closeDrawer()">&times;</a>
             <component-slot id="{id}Slot">DEFAULT CONTENT FOR {id}</component-slot>
         </div>
-        <span id="{id}" class="drawer-open-button" onclick="$obj.openNav()">▶</span>
+        <span id="{id}" class="drawer-open-button" onclick="$obj.openDrawer()">▶</span>
     </component-markup>
     <test-script>
     </test-script>
