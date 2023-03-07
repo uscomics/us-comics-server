@@ -1,27 +1,31 @@
 class SIPhotos {
     static async get() {
-        const server = Registry.get(`Server`)
-        const response = await fetch(`${server}photo-info`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            }
-        })
+        try {
+            const server = Registry.get(`Server`)
+            const response = await fetch(`${server}photo-info`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            })
 
-        return response
+            return response
+        } catch (e) {
+            return { status: 401 }
+        }
     }
     static async add(file, text) {
-        const credentials = JavascriptWebToken.getCredentials()
-
-        if (!JavascriptWebToken.areCredentialsValid(credentials)) { return { status: 401 }}
-
-        const formData = new FormData()
-
-        formData.append("filename", file)
-        formData.append("text", text)
-
         try {
+            const credentials = JavascriptWebToken.getCredentials()
+
+            if (!JavascriptWebToken.areCredentialsValid(credentials)) { return { status: 401 }}
+    
+            const formData = new FormData()
+    
+            formData.append("filename", file)
+            formData.append("text", text)
+    
             const server = Registry.get(`Server`)
             const response = await fetch(`${server}photo-info`, {
                 method: 'POST',

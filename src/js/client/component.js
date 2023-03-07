@@ -166,8 +166,6 @@ class Component {
     }
     onDescendantsMounted() { Queue.broadcast(ComponentLifecycle.msgs.COMPONENT_DESCENDANTS_MOUNTED, this )}
     isMounted() { return window.$components.objectRegistry.get(this.id).mounted } 
-    beforeSlotLoaded(slot) { Queue.broadcast(ComponentLifecycle.msgs.COMPONENT_BEFORE_SLOT_LOADED, { component: this, slot })}
-    afterSlotLoaded(slot) { Queue.broadcast(ComponentLifecycle.msgs.COMPONENT_AFTER_SLOT_LOADED, { component: this, slot } )}
     destroy() { 
         Queue.broadcast(ComponentLifecycle.msgs.COMPONENT_BEFORE_DESTRUCTION, this)
 

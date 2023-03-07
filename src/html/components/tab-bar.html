@@ -2,6 +2,10 @@
     <script>
         //# sourceURL=html/components/tab-bar.html
         class TabBar extends Component {
+            static msgs = {
+                TAB_BAR_SHOW_TAB: `TAB_BAR_SHOW_TAB`,
+                TAB_BAR_HIDE_TAB: `TAB_BAR_HIDE_TAB`
+            }
             initialize(id) {
                 super.initialize(id)
                 Queue.register(this, ComponentLifecycle.msgs.COMPONENT_AFTER_MOUNT, (component) => {
@@ -13,7 +17,7 @@
                     const tab = this.vars.tabs[this.vars.activeTab]
                     const message = { tabBar: this, tab }
 
-                    Queue.broadcast(TabBar.msgs.SHOW_TAB, message )
+                    Queue.broadcast(TabBar.msgs.TAB_BAR_SHOW_TAB, message )
                     this.vars.initialTabMounted = true
                 })
             }
@@ -27,8 +31,8 @@
 
                     temp.innerHTML = tabHTML
                     this.Element.appendChild(temp.firstChild)
-                    if (tab ===  this.vars.tabs[0]) { Queue.broadcast(Messages.SHOW_TAB, message )}
-                    else { Queue.broadcast(TabBar.msgs.HIDE_TAB, message )}
+                    if (tab ===  this.vars.tabs[0]) { Queue.broadcast(TabBar.msgs.TAB_BAR_SHOW_TAB, message )}
+                    else { Queue.broadcast(TabBar.msgs.TAB_BAR_HIDE_TAB, message )}
                 }
                 let activeTabName = this.vars.tabs[this.vars.activeTab]
                 let activeTabId = `${this.id}Tab${activeTabName.replace(' ', '_')}`
@@ -52,8 +56,8 @@
                     previousActiveTabElement?.classList.toggle(`active-tab`)
                     newActiveTabElement?.classList.toggle(`active-tab`)
                     this.vars.activeTab = loop
-                    Queue.broadcast(TabBar.msgs.HIDE_TAB, { tabBar: this, tab: previousActiveTabName })
-                    Queue.broadcast(TabBar.msgs.SHOW_TAB, { tabBar: this, tab: newActiveTabName })
+                    Queue.broadcast(TabBar.msgs.TAB_BAR_HIDE_TAB, { tabBar: this, tab: previousActiveTabName })
+                    Queue.broadcast(TabBar.msgs.TAB_BAR_SHOW_TAB, { tabBar: this, tab: newActiveTabName })
                     Queue.broadcast(Messages.REFRESH, this )
                     break
                 }
@@ -65,10 +69,6 @@
                 initialTabMounted: false,
                 tabsInRow: true,
                 tabsCentered: true
-            }
-            static msgs = {
-                SHOW_TAB: `SHOW_TAB`,
-                HIDE_TAB: `HIDE_TAB`
             }
         }
     </script>

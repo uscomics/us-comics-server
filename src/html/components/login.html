@@ -2,6 +2,9 @@
     <script>
         //# sourceURL=html/components/login.html
         class Login extends Component {
+            static msgs = {
+                LOGIN_USER_LOGGED_IN: `LOGIN_USER_LOGGED_IN`,
+            }
             async login() {
                 let user = Component.getObject(`${this.id}LoginUser`)
                 let password = Component.getObject(`${this.id}LoginPassword`)
@@ -22,11 +25,9 @@
                     return
                 }
                 let token = await response.text()
-                let params = new URLSearchParams()
 
                 JavascriptWebToken.storeCredentials(JSON.parse(token))
-                params.append(`token`, token)
-                window.location.href = `/admin?${params.toString()}`
+                Queue.broadcast(Login.msgs.LOGIN_USER_LOGGED_IN, this)
             }
         }
     </script>

@@ -2,9 +2,12 @@
     <script>
         //# sourceURL=html/components/file-selector.html
         class FileSelector extends Component {
+            static msgs = {
+                FILE_SELECTED: `FILE_SELECTED`
+            }
             setSelectedFile(event) { 
                 this.vars.selectedFile = event.target.files[0]
-                Queue.broadcast(Messages.FILE_SELECTED, { event, component: this })
+                Queue.broadcast(FileSelector.msgs.FILE_SELECTED, { event, component: this })
             }
             props = {
                 acceptedFileTypes: `image/jpeg, image/png, image/jpg, image/gif`

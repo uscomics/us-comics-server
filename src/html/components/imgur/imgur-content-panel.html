@@ -1,0 +1,56 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/imgur/imgur-content-panel.html
+        class ImgurContentPanel extends Component {
+            initialize(id) {
+                super.initialize(id)
+
+                const callback = () => { this.reqisterWithQueue() }
+
+                Queue.register(this, Messages.SITE_LOADED, callback)
+            }
+            reqisterWithQueue() {
+                Queue.register(this, Drawer.msgs.DRAWER_BEFORE_OPENED, (drawer) => { this.Element.style.marginLeft = drawer.props.contentWidth })
+                Queue.register(this, Drawer.msgs.DRAWER_BEFORE_CLOSED, (drawer) => { this.Element.style.marginLeft = "0" })
+                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_ADD_ALBUM, (drawer) => {
+                    alert(`IMGUR_MENU_ADD_ALBUM`)
+                })
+                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_DELETE_ALBUM, (drawer) => {
+                    alert(`IMGUR_MENU_DELETE_ALBUM`)
+                })
+                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_LIST_ALBUMS, (drawer) => {
+                    alert(`IMGUR_MENU_LIST_ALBUMS`)
+                })
+                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_ADD_IMAGE, (drawer) => {
+                    alert(`IMGUR_MENU_ADD_IMAGE`)
+                })
+                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_DELETE_IMAGE, (drawer) => {
+                    alert(`IMGUR_MENU_DELETE_IMAGE`)
+                })
+                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_LIST_IMAGES, (drawer) => {
+                    alert(`IMGUR_MENU_LIST_IMAGES`)
+                })
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --imgur-content-panel-width: 100%;
+            --imgur-content-panel-height: 100%;
+            --imgur-content-panel-transition: margin-left 0.5s;
+        }
+        .imgur-content-panel {
+            width: var(--imgur-content-panel-width);
+            height: var(--imgur-content-panel-height);
+            transition: var(--imgur-content-panel-transition);
+        }
+    </style>
+    <component-markup>
+        <span id="{id}" class="imgur-content-panel">
+            <component-slot id="{id}Slot">CONTENT</component-slot>
+            <include-html include-in="index.html" src="./html/components/calendar.html" component-class="Calendar" component-id="Calendar"></include-html>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

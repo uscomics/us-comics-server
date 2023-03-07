@@ -1,7 +1,7 @@
 <custom-component>
     <script>
         //# sourceURL=html/components/component-slot-test.js
-        class ComponentSlotTest extends Component { }
+        class ComponentSlotTest extends SlottedComponent { }
     </script>
     <test-script>
     </test-script>
@@ -9,7 +9,7 @@
     </style>
     <component-markup>
         <div id="{id}">
-            <component-slot id="{id}Slot1">DEFAULT CONTENT (TEXT ONLY)</component-slot>
+            <component-slot id="{id}Slot1"></component-slot>
         </div>
     </component-markup>
 </custom-component>

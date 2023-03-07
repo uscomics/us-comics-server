@@ -33,6 +33,7 @@
     <script type="text/javascript" src="./js/client/component-lifecycle.js"></script>
     <script type="text/javascript" src="./js/client/javascript-web-token.js"></script>
     <script type="text/javascript" src="./js/client/component.js"></script>
+    <script type="text/javascript" src="./js/client/slotted-component.js"></script>
     <script type="text/javascript" src="./js/client/slot-manager.js"></script>
     <script type="text/javascript" src="./js/client/loader.js"></script>
     <script type="text/javascript" src="./js/client/registry.js"></script>
@@ -62,60 +63,16 @@
       <include-vars class="display-none">{ text: `Message.` }</include-vars>
     </include-html>
     
-    <div class="flex-row-m-col flex-space-around w100">
-      <div class="flex-col w50-m-100 border-b-solid border-amber-500 border-2 animate__animated animate__backInDown">
-        <h1 id="Title" class="amber-500 font-size-4-0em letter-spacing5 w100 center-text">Vince Drives You</h1>
-        <div class="flex-row flex-space-around">
-          <div id="Phone" class="amber-500 font-size-1-0em letter-spacing9 margin-b-10">(602) 545-8557</div>
-        </div>
-      </div>
-      <include-html include-in="index.html" src="./html/components/about.html" component-class="About" component-id="About"></include-html>
+    <div id="Header" class="flex-row flex-align-center">
+      <img id="Logo" class="m3 m40-l" src="./images/logo.png" width="50" height="50">
+      <h1 id="Title" class="header-4">U.S. Comics</h1>
     </div>
 
+    <include-html include-in="index.html" src="./html/components/drawer.html" component-class="Drawer" component-id="Drawer"></include-html>
+    <slot-markup class="display-none" for-component-id="Drawer" for-slot="DrawerSlot">
+      <include-html include-in="index.html" src="./html/components/imgur/imgur-menu.html" component-class="ImgurMenu" component-id="ImgurMenu"></include-html>
+    </slot-markup>  
 
-    <div id="TabBarWrapper" class="flex-col flex-align-center w100">
-      <include-html include-in="index.html" src="./html/components/tab-bar.html" component-class="TabBar" component-id="TabBar">
-        <include-vars class="display-none">{ tabs: [`Home`, `Reserve A Ride`, `Photos`, `Reviews`], activeTab: 0 }</include-vars>
-      </include-html>
-    </div>
-
-    <include-html include-in="index.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="HomeTab">
-      <include-props class="display-none">{ tabBarId: `TabBar`, tab: `Home` }</include-props>
-    </include-html>
-    <slot-markup for-component-id="HomeTab" for-slot="HomeTabSlot">
-      <div class="w100 relative-m-static">
-        <img src="../images/home.png" class="h100 center-img">
-        <div class="absolute-m-static flex-col flex-center flex-align-center w100 h150px t5px">
-          <include-html include-in="index.html" src="./html/components/news/news.html" component-class="News" component-id="News"></include-html>
-        </div>
-      </div>
-    </slot-markup>
-
-    <include-html include-in="index.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="ReserveARideTab">
-      <include-props class="display-none">{ tabBarId: `TabBar`, tab: `Reserve A Ride` }</include-props>
-    </include-html>
-    <slot-markup for-component-id="ReserveARideTab" for-slot="ReserveARideTabSlot">
-      <include-html include-in="index.html" src="./html/components/reservations/reservations.html" component-class="Reservations" component-id="Reservations"></include-html>
-    </slot-markup>
-
-    <include-html include-in="index.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="PhotosTab">
-      <include-props class="display-none">{ tabBarId: `TabBar`, tab: `Photos` }</include-props>
-    </include-html>
-    <slot-markup for-component-id="PhotosTab" for-slot="PhotosTabSlot">
-      <include-html include-in="index.html" src="./html/components/photos/photos-list.html" component-class="PhotosList" component-id="PhotosList"></include-html>
-    </slot-markup>
-
-    <include-html include-in="index.html" src="./html/components/tab-content.html" component-class="TabContent" component-id="ReviewsTab">
-      <include-props class="display-none">{ tabBarId: `TabBar`, tab: `Reviews` }</include-props>
-    </include-html>
-    <slot-markup for-component-id="ReviewsTab" for-slot="ReviewsTabSlot">
-      <div id="ReviewWrapper" class="display-none">
-        <include-html include-in="index.html" src="./html/components/reviews/review-statement.html" component-class="ReviewStatement" component-id="ReviewStatement"></include-html>
-        <div class="w100 h15px"></div>
-        <include-html include-in="index.html" src="./html/components/reviews/write-review-button.html" component-class="WriteReviewButton" component-id="WriteReviewButton"></include-html>
-        <div class="w100 h15px"></div>
-        <include-html include-in="index.html" src="./html/components/reviews/review-list.html" component-class="ReviewList" component-id="ReviewList"></include-html>
-      </div>
-    </slot-markup>
+    <include-html include-in="index.html" src="./html/components/imgur/imgur-content-panel.html" component-class="ImgurContentPanel" component-id="ImgurContentPanel"></include-html>
   </body>
 </html>

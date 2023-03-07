@@ -16,6 +16,8 @@
     mount                       <--> unmount                        Component placed in DOM, rendered to screen.
                                 before load slot                    Slots can be loaded once the parent containing the slot is mounted.
                                 after load slot
+                                before unload slot                  Slots can be unloaded after they have been loaded.
+                                after unload slot
     children mounted                                                The child components of a component have mounted.
     descendants mounted                                             All descendant components of a component have mounted.
     update                                                          Not truely a lifecycle state. This is when you'll set vars to replace
@@ -36,7 +38,9 @@ class ComponentLifecycle {
         COMPONENT_BEFORE_DESTRUCTION:       `COMPONENT_BEFORE_DESTRUCTION`,
         COMPONENT_AFTER_DESTRUCTION:        `COMPONENT_AFTER_DESTRUCTION`,
         COMPONENT_BEFORE_SLOT_LOADED:       `COMPONENT_BEFORE_SLOT_LOADED`,
-        COMPONENT_AFTER_SLOT_LOADED:        `COMPONENT_AFTER_SLOT_LOADED`
+        COMPONENT_AFTER_SLOT_LOADED:        `COMPONENT_AFTER_SLOT_LOADED`,
+        COMPONENT_BEFORE_SLOT_UNLOADED:     `COMPONENT_BEFORE_SLOT_UNLOADED`,
+        COMPONENT_AFTER_SLOT_UNLOADED:      `COMPONENT_AFTER_SLOT_UNLOADED`
         }
     static initialize() {
         window.$components = undefined
@@ -89,22 +93,32 @@ class ComponentLifecycle {
         }
     }
     static replaceNodeValue = (node, data, member) => {
+        if (`CalendarTitle` === node.id) {
+            const x = 1
+        }
         if (node.nodeValue) {
             if (!node.originalNodeValue) { node.originalNodeValue = node.nodeValue }
+            if (!node.replacements) { node.replacements = new Map() }
 
             const formattedMember = `{${member}}`
-
             const originalMatches = -1 !== node.originalNodeValue.indexOf(formattedMember)
             const matches = -1 !== node.nodeValue.indexOf(formattedMember)
             if (originalMatches || matches) {
                 // TODO: Thoroughly test this with multiple replacements in a single node value.
-                let value = (matches)? node.nodeValue : node.originalNodeValue
+                let nodeValue = (matches)? node.nodeValue : node.originalNodeValue
+
                 try {
-                    let memberData = data[member].toString()
-                
-                    node.nodeValue = value.replaceAll(formattedMember, memberData)
+                    const memberData = data[member].toString()
+
+                    node.replacements.set(member, memberData)
+                    for (let [key, value] of node.replacements) {
+                        const curlyBracesRegEx = new RegExp('{' + key + '}', 'g')
+
+                        nodeValue = nodeValue.replace(curlyBracesRegEx, value)
+                    }
+                    node.nodeValue = nodeValue
                 } catch (e) {
-                    console.warn(`Unable to replace node value containing ${member}. It's replacement value is ${data[member]}. Node id is ${node.id}`)
+                    console.warn(`Unable to replace node value containing ${member}. It's value is ${nodeValue}. It's replacement value is ${data[member]}. Node id is ${node.id}`)
                 }
             }
         }
@@ -116,16 +130,25 @@ class ComponentLifecycle {
         if (node.attributes) {
             for (const attr of node.attributes) {
                 if (!attr.originalAttributeValue) { attr.originalAttributeValue = attr.value }
-                const originalMatches = -1 !== attr.originalAttributeValue.indexOf(`{${member}}`)
-                const matches = -1 !== attr.value.indexOf(`{${member}}`)
-                let value = (matches)? attr.value : attr.originalAttributeValue
+                if (!attr.replacements) { attr.replacements = new Map() }
+
+                const formattedMember = `{${member}}`
+                const originalMatches = -1 !== attr.originalAttributeValue.indexOf(formattedMember)
+                const matches = -1 !== attr.value.indexOf(formattedMember)
+                let attrValue = (matches)? attr.value : attr.originalAttributeValue
 
                 if (originalMatches || matches) {
                     // TODO: Thoroughly test this with multiple replacements in a single attribute value.
                     try {
                         let memberData = data[member].toString()
                     
-                        attr.value = value.replaceAll(`{${member}}`, memberData)
+                        attr.replacements.set(member, memberData)
+                        for (let [key, value] of attr.replacements) {
+                            const curlyBracesRegEx = new RegExp('{' + key + '}', 'g')
+    
+                            attrValue = attrValue.replace(curlyBracesRegEx, value)
+                        }
+                        attr.value = attrValue
                     } catch (e) {
                         console.warn(`Unable to replace attribute containing ${member}. It's replacement value is ${data[member]}. Node id is ${node.id}`)
                     }
@@ -561,8 +584,8 @@ class ComponentLifecycle {
 
         let componentObjectInfo = window.$components.objectRegistry.get(componentObjectId)
         let fragment = window.$components.fragmentRegistry.get(componentObjectInfo.componentClass)
-        let markerId = `-ComponentBeginMarker${componentObjectId}`
-        let marker = document.getElementById(markerId)
+        let beginMarkerId = `-ComponentBeginMarker${componentObjectId}`
+        let beginMarker = document.getElementById(beginMarkerId)
 
         if (!fragment) { 
             console.error(`unregisterComponentObject: DOM fragment ${componentObjectInfo.componentClass} is not in registery.`)
@@ -576,14 +599,19 @@ class ComponentLifecycle {
             console.error(`unregisterComponentObject: Component object ${componentObjectId} is already mounted.`)
             return false 
         }
-        if (!marker) { 
+        if (!beginMarker) { 
             console.error(`UnregisterComponentObject: Marker for ${componentObjectId} is not in DOM.`)
             return false 
         }
         if (componentObjectInfo.componentObject.beforeMount) { componentObjectInfo.componentObject.beforeMount() }
 
+        let endMarkerId = `-ComponentEndMarker${componentObjectId}`
+        let endMarker = document.createElement(`script`)
+
+        endMarker.id = endMarkerId
+        beginMarker.after(endMarker)
         for (let child of componentObjectInfo.componentDOM) {
-            marker.after(child)
+            beginMarker.after(child)
         }
 
         componentObjectInfo.mounted = true
@@ -613,16 +641,22 @@ class ComponentLifecycle {
         }
 
         let fragment = window.$components.fragmentRegistry.get(componentObjectInfo.componentClass)
-        let markerId = `-ComponentBeginMarker${componentObjectId}`
-        let marker = document.getElementById(markerId)
+        let beginMarkerId = `-ComponentBeginMarker${componentObjectId}`
+        let beginMarker = document.getElementById(beginMarkerId)
+        let endMarkerId = `-ComponentEndMarker${componentObjectId}`
+        let endMarker = document.getElementById(endMarkerId)
         let markup = fragment.querySelector(`component-markup`)
 
         if (!fragment) { 
             console.error(`Unmount: Fragment ${componentObjectInfo.componentClass} is not in registery.`)
             return false 
         }
-        if (!marker) { 
-            console.error(`Unmount: Marker for ${componentObjectId}, ${markerId}, not in DOM.`)
+        if (!beginMarker) { 
+            console.error(`Unmount: Begin Marker for ${componentObjectId}, ${beginMarkerId}, not in DOM.`)
+            return false 
+        }
+        if (!endMarker) { 
+            console.error(`Unmount: End Marker for ${componentObjectId}, ${beginMarkerId}, not in DOM.`)
             return false 
         }
         if (!markup) { 
@@ -630,22 +664,27 @@ class ComponentLifecycle {
             return false 
         }
 
-        if (componentObjectInfo.componentObject.beforeMount) { componentObjectInfo.componentObject.beforeUnmount() }        
-        for (let loop = markup.children.length - 1; loop >= 0; loop--) {
-            marker.nextSibling.remove()
+        if (componentObjectInfo.componentObject.beforeMount) { componentObjectInfo.componentObject.beforeUnmount() } 
+        while (beginMarker.nextSibling && beginMarker.nextSibling.id !== endMarkerId) {
+            beginMarker.nextSibling.remove()
         }
+        endMarker.remove()
+        
         componentObjectInfo.mounted = false
         window.$components.objectRegistry.set(componentObjectId, componentObjectInfo)
         if (componentObjectInfo.componentObject.afterMount) { componentObjectInfo.componentObject.afterUnmount() }
         return true
     }
     static destroyComponentObject(componentObjectId) {
-        let markerId = `-ComponentBeginMarker${componentObjectId}`
-        let marker = document.getElementById(markerId)
+        let beginMarkerId = `-ComponentBeginMarker${componentObjectId}`
+        let endMarkerId = `-ComponentEndMarker${componentObjectId}`
+        let beginMarker = document.getElementById(beginMarkerId)
+        let endMarker = document.getElementById(endMarkerId)
         let component = Component.getObject(componentObjectId)
 
         if (component && component.isMounted()) { ComponentLifecycle.unmount(componentObjectId) }
         ComponentLifecycle.unregisterComponentObject(componentObjectId)
-        if (marker) { marker.remove() }
+        if (beginMarker) { beginMarker.remove() }
+        if (endMarker) { endMarker.remove() }
     }
 }

@@ -1,7 +1,13 @@
 <custom-component>
     <script>
         //# sourceURL=html/components/dropdown-menu.html
-        class DropdownMenu extends Component {
+        class DropdownMenu extends SlottedComponent {
+            static msgs = {
+                DROPDOWN_MENU_BEFORE_SHOW: `DROPDOWN_MENU_BEFORE_SHOW`,
+                DROPDOWN_MENU_AFTER_SHOW: `DROPDOWN_MENU_AFTER_SHOW`,
+                DROPDOWN_MENU_BEFORE_HIDE: `DROPDOWN_MENU_BEFORE_HIDE`,
+                DROPDOWN_MENU_AFTER_HIDE: `DROPDOWN_MENU_AFTER_HIDE`,
+            }
             initialize(id) {
                 super.initialize(id)
                 Queue.register(this, Messages.ON_CLICK, (message) => {
@@ -32,7 +38,13 @@
                     this.MenuElement.appendChild(menuItemElement)
                 }
             }
-            toggleMenu() { this.MenuElement.toggleVisibility() }
+            toggleMenu() { 
+                if (this.MenuElement.isVisible()) { Queue.broadcast(Calendar.msgs.DROPDOWN_MENU_BEFORE_HIDE, this) }
+                else { Queue.broadcast(Calendar.msgs.DROPDOWN_MENU_BEFORE_SHOW, this) }
+                this.MenuElement.toggleVisibility() 
+                if (!this.MenuElement.isVisible()) { Queue.broadcast(Calendar.msgs.DROPDOWN_MENU_AFTER_HIDE, this) }
+                else { Queue.broadcast(Calendar.msgs.DROPDOWN_MENU_AFTER_SHOW, this) }
+            }
             props = {
                 menuItems: []
             }
@@ -88,7 +100,7 @@
     <component-markup>
         <div id="{id}">
             <span id="{id}SlotWarpper" onclick="$obj.toggleMenu()">
-                <component-slot id="{id}Slot">DEFAULT ROOT FOR {id}</component-slot>
+                <component-slot id="{id}Slot"></component-slot>
             </span>
             <div id="{id}Menu" class="flex-col dropdown-menu display-none"></div>
         </div>

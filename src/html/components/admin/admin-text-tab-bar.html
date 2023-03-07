@@ -8,7 +8,7 @@
                 if (this.TextEditAboutComponent.id === message.id) { await this.updateAboutText()}
                 else if (this.TextEditReviewComponent.id === message.id) { await this.updateReviewText()}
               })
-              Queue.register(this, TabBar.msgs.SHOW_TAB, async (message) => {
+              Queue.register(this, TabBar.msgs.TAB_BAR_SHOW_TAB, async (message) => {
                 if (message.tabBar.id === `AdminTabBar`) {
                   if (message.tab === `Text`) { this.Element.show() }
                   else { this.Element.hide() }

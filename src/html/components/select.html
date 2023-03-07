@@ -2,6 +2,9 @@
     <script>
         //# sourceURL=html/components/select.html
         class Select extends Component {
+            static msgs = {
+                SELECT_OPTION_SELECTED: `SELECT_OPTION_SELECTED`
+            }
             afterMount() {
                 super.afterMount()
                 if (this.props.labelAboveField) { this.WrapperElement.setAttribute(`class`, `flex-col`) } 
@@ -14,7 +17,7 @@
                     const optionData = this.props.options[loop]
                     const option = document.createElement(`option`)
                     const optionId = `${this.id}Option${loop}`
-                    const onClick = () => { Queue.broadcast(Messages.OPTION_SELECTED, { component: this, element: this.Element, option: optionData })}
+                    const onClick = () => { Queue.broadcast(Select.msgs.SELECT_OPTION_SELECTED, { component: this, element: this.Element, option: optionData })}
 
                     option.id = optionId
                     option.classList.add(`option`)
@@ -36,9 +39,6 @@
                     if (newSelection === childValue) { return { index: loop, value: childValue, text: childText }}
                 }
                 return null
-            }
-            onSelectionChanged() {
-                Queue.broadcast(Messages.OPTION_SELECTED, { component: this,  })
             }
             props = {
                 label: ``,
@@ -123,7 +123,7 @@
     <component-markup>
         <div id="{id}Wrapper">
             <label id="{id}Label" for="{id}" class="select-label">{label}</label>
-            <select id="{id}" name="{name}" class="select" tabindex="{tabindex}" onchange="$obj.onSelectionChanged()"></select>
+            <select id="{id}" name="{name}" class="select" tabindex="{tabindex}"></select>
         </div>
     </component-markup>
     <test-script>

@@ -1,19 +1,23 @@
 <custom-component>
     <script>
         //# sourceURL=html/components/accordion.html
-        class Accordion extends Component {
-            afterMount() {
-                super.afterMount()
-                const acc = document.getElementsByClassName("accordion")
+        class Accordion extends SlottedComponent {
+            static msgs = {
+                ACCORDION_BEFORE_OPENED: `ACCORDION_BEFORE_OPENED`,
+                ACCORDION_AFTER_OPENED: `ACCORDION_AFTER_OPENED`,
+                ACCORDION_BEFORE_CLOSED: `ACCORDION_BEFORE_CLOSED`,
+                ACCORDION_AFTER_CLOSED: `ACCORDION_AFTER_CLOSED`,
+            }
+            click() {
+                const closing = !!this.PanelElement.style.maxHeight
 
-                for (let loop = 0; loop < acc.length; loop++) {
-                    acc[loop].addEventListener("click", function() {
-                        this.classList.toggle("active")
-                        var panel = this.nextElementSibling
-                        if (panel.style.maxHeight) { panel.style.maxHeight = null } 
-                        else { panel.style.maxHeight = panel.scrollHeight + "px" } 
-                    })
-                }
+                if (closing) { Queue.broadcast(Accordion.msgs.ACCORDION_BEFORE_CLOSED, this) }
+                else { Queue.broadcast(Accordion.msgs.ACCORDION_BEFORE_OPENED, this) }
+                this.Element.classList.toggle("active")
+                if (closing) { this.PanelElement.style.maxHeight = null } 
+                else { this.PanelElement.style.maxHeight = "100%" } 
+                if (closing) { Queue.broadcast(Accordion.msgs.ACCORDION_AFTER_CLOSED, this) }
+                else { Queue.broadcast(Accordion.msgs.ACCORDION_AFTER_OPENED, this) }
             }
             vars = {
                 title: `Title`
@@ -22,11 +26,12 @@
     </script>
     <style>
         :root {
+            --accordion-width: 100%;
             --accordion-color: var(gray-4);
             --accordion-background-color: var(--gray-e);
             --accordion-cursor: pointer;
             --accordion-padding: 5px;
-            --accordion-width: 100%;
+            --accordion-box-sizing: border-box;
             --accordion-font-family: var(--primary-font-family);
             --accordion-font-size: var(--text-2-font-size);
             --accordion-font-weight: normal;
@@ -42,20 +47,21 @@
 
             --accordion-hover-background-color: var(--gray-c);
 
+            --accordion-panel-width: 100%;
             --accordion-panel-max-height: 0;
             --accordion-panel-background-color: white;
-            --accordion-panel-padding: 0 18px;
             --accordion-panel-overflow: hidden;
             --accordion-panel-transition: max-height 0.2s ease-out;
 
         }
 
         .accordion {
+            width: var(--accordion-width);
             color: var(--accordion-color);
             background-color: var(--accordion-background-color);
             cursor: var(--accordion-cursor);
             padding: var(--accordion-padding);
-            width: var(--accordion-width);
+            box-sizing: var(--accordion-box-sizing);
             font-family: var(--accordion-font-family);
             font-size: var(--accordion-font-size);
             font-weight: var(--accordion-font-weight);
@@ -75,17 +81,19 @@
         }
 
         .accordion-panel {
+            width: var(--accordion-panel-width);
             max-height: var(--accordion-panel-max-height);
             background-color: var(--accordion-panel-background-color);
-            padding: var(--accordion-panel-padding);
             overflow: var(--accordion-panel-overflow);
             transition: var(--accordion-panel-transition);
         }
     </style>
     <component-markup>
-        <div id="{id}" class="accordion">{title}</div>
-        <div id="{id}Panel" class="accordion-panel">
-            <component-slot id="{id}Slot">DEFAULT CONTENT FOR {id}</component-slot>
+        <div id="{id}" class="accordion">
+            <div id="{id}Title" onclick="$obj.click()">{title}</div>
+            <div id="{id}Panel" class="accordion-panel">
+                <component-slot id="{id}Slot"></component-slot>
+            </div>
         </div>
     </component-markup>
     <test-script>

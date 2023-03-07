@@ -2,6 +2,10 @@
     <script>
         //# sourceURL=html/components/time.html
         class Time extends Component {
+            static msgs = {
+                TIME_BEFORE_TIME_CHANGE: `TIME_BEFORE_TIME_CHANGE`,
+                TIME_AFTER_TIME_CHANGE: `TIME_AFTER_TIME_CHANGE`
+            }
             afterMount() {
                 super.afterMount()
                 this.HourElement.value = (this.vars.hour).toString().padStart(2, '0')
@@ -22,14 +26,25 @@
                 if (53 > minutes) { return 55 }
                 return 60
             }
-            updateHour() { this.vars.hour = parseInt(this.HourElement.value, 10) }
+            updateHour() { 
+                Queue.broadcast(Time.msgs.TIME_BEFORE_TIME_CHANGE, { component: this, change: `hour` })
+                this.vars.hour = parseInt(this.HourElement.value, 10) 
+                Queue.broadcast(Time.msgs.TIME_AFTER_TIME_CHANGE, { component: this, change: `hour` })
+            }
             updateMinute() {
+                Queue.broadcast(Time.msgs.TIME_BEFORE_TIME_CHANGE, { component: this, change: `minute` })
                 const index = this.MinuteElement.selectedIndex
                 const selectedOption = this.MinuteElement.options[index]
                 const selectedMinutes = parseInt(selectedOption.value, 10)
 
-                this.vars.minute = this.roundToFive(selectedMinutes) }
-            updateMeridiem() { this.vars.meridiem = this.MeridiemElement.value }
+                this.vars.minute = this.roundToFive(selectedMinutes) 
+                Queue.broadcast(Time.msgs.TIME_AFTER_TIME_CHANGE, { component: this, change: `minute` })
+            }
+            updateMeridiem() { 
+                Queue.broadcast(Time.msgs.TIME_BEFORE_TIME_CHANGE, { component: this, change: `meridiem` })
+                this.vars.meridiem = this.MeridiemElement.value 
+                Queue.broadcast(Time.msgs.TIME_AFTER_TIME_CHANGE, { component: this, change: `meridiem` })
+            }
             toString() { return `${this.Hour?.value}:${this.Minute?.value} ${this.Meridiem?.value}` }            
             vars = {
                 hour: new Date().getHours() % 12,

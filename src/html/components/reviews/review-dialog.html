@@ -22,23 +22,23 @@
                 })
             }
             afterMount() {
+                super.afterMount()
                 const element = document.getElementById(this.id)
 
-                element.addEventListener(`newTextData`, (e) => { 
-                    if (`FirstName` === e.detail.component.props.name) {
-                        this.vars.reviewFirstName = e.detail.text()
-                    } else if (`LastName` === e.detail.component.props.name) {
-                        this.vars.reviewLastName = e.detail.text()
-                    } else if (`City` === e.detail.component.props.name) {
-                        this.vars.reviewCity = e.detail.text()
-                    } else if (`State` === e.detail.component.props.name) {
-                        this.vars.reviewState = e.detail.text()
-                    } else if (`AvatarURL` === e.detail.component.props.name) {
-                        this.vars.reviewImageURL = e.detail.text()
+                Queue.register(this, TextField.msgs.TEXT_AREA_NEW_TEXT, (message) => {
+                    if (`FirstName` === message.component.props.name) {
+                        this.vars.reviewFirstName = message.text
+                    } else if (`LastName` === message.component.props.name) {
+                        this.vars.reviewLastName = message.text
+                    } else if (`City` === message.component.props.name) {
+                        this.vars.reviewCity = message.text
+                    } else if (`State` === message.component.props.name) {
+                        this.vars.reviewState = message.text
+                    } else if (`AvatarURL` === message.component.props.name) {
+                        this.vars.reviewImageURL = message.text
                     }
                 })
                 element.addEventListener(`newRating`, (e) => { this.vars.reviewRating = e.detail.rating })
-                super.afterMount()
             }
             onBlur(event) { this.updateReview() }
             onInput(event) { this.updateReview() }

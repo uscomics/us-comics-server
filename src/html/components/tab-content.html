@@ -1,10 +1,10 @@
 <custom-component>
     <script>
         //# sourceURL=html/components/tab-content.html
-        class TabContent extends Component {
+        class TabContent extends SlottedComponent {
             initialize(id) {
                 super.initialize(id)
-                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                Queue.register(this, TabBar.msgs.TAB_BAR_SHOW_TAB, (message) => {
                     if (message.tabBar.id !== this.props.tabBarId) { return }
                     if (message.tab !== this.props.tab) { return }
 
@@ -12,7 +12,7 @@
 
                     tabElement?.classList.remove(`display-none`)
                 })
-                Queue.register(this, TabBar.msgs.HIDE_TAB, (message) => {
+                Queue.register(this, TabBar.msgs.TAB_BAR_HIDE_TAB, (message) => {
                     if (message.tabBar.id !== this.props.tabBarId) { return }
                     if (message.tab !== this.props.tab) { return }
 

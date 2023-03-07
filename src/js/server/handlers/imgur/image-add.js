@@ -1,9 +1,9 @@
-const Registry = require(`../utility/registry`)
-const {jwtValidation} = require(`../utility/jwt-validation`)
-const {jwtReplaceToken} = require(`../utility/jwt-replace-token`)
+const Registry = require(`../../utility/registry`)
+const {jwtValidation} = require(`../../utility/jwt-validation`)
+const {jwtReplaceToken} = require(`../../utility/jwt-replace-token`)
 const {formidable} = require(`formidable`)
 const fs = require(`fs`)
-const {log} = require(`../utility/log`)
+const {log} = require(`../../utility/log`)
 
 module.exports = (entry) => {
     return async (req, res, next) => {

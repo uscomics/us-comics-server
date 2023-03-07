@@ -2,14 +2,26 @@
     <script>
         //# sourceURL=html/components/snackbar.html
         class Snackbar extends Component {
+            static msgs = {
+                SNACKBAR_BEFORE_SHOW: `SNACKBAR_BEFORE_SHOW`,
+                SNACKBAR_AFTER_SHOW: `SNACKBAR_AFTER_SHOW`,
+                SNACKBAR_BEFORE_HIDE: `SNACKBAR_BEFORE_HIDE`,
+                SNACKBAR_AFTER_HIDE: `SNACKBAR_AFTER_HIDE`,
+            }
             afterMount() { 
                 super.afterMount()
                 if (this.props.isError) { this.Element.classList.toggle(`snackbar-error`) }
             }
             show() {
+                Queue.broadcast(Snackbar.mags.SNACKBAR_BEFORE_SHOW, this)
                 this.Element.innerText = this.vars.text
                 this.Element.classList.toggle(`show`)
-                setTimeout(() => { this.Element.classList.toggle(`show`) }, 3000)
+                setTimeout(() => { 
+                    Queue.broadcast(Snackbar.mags.SNACKBAR_BEFORE_HIDE, this)
+                    this.Element.classList.toggle(`show`) 
+                    Queue.broadcast(Snackbar.mags.SNACKBAR_AFTER_HIDE, this)
+                }, 3000)
+                Queue.broadcast(Snackbar.mags.SNACKBAR_AFTER_SHOW, this)
             }
             props = {
                 isError: false

@@ -2,14 +2,13 @@
     <script>
         //# sourceURL=html/components/action-button.html
         class ActionButton extends Component {
-            vars = {
-                title: ``
-            }
+            static msgs = { ACTION_BUTTON_CLICKED:  `ACTION_BUTTON_CLICKED` }
+            clicked() { Queue.broadcast(ActionButton.msgs.ACTION_BUTTON_CLICKED, this) }
+            vars = { title: `` }
         }
     </script>
     <style>
         :root {
-            
             --action-button-position: fixed;
             --action-button-display: flex;
             --action-button-justify-content: center;
@@ -78,7 +77,7 @@
         }
     </style>
     <component-markup>
-        <div id="{id}" class="action-button">
+        <div id="{id}" class="action-button" onclick="$obj.clicked()">
             <div id="{id}Title" class="action-button-title">{title}</div>
         </div>
     </component-markup>

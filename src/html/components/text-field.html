@@ -4,6 +4,9 @@
     <script>
         //# sourceURL=html/components/text-field.html
         class TextField extends Component {
+            static msgs = {
+                TEXT_FIELD_NEW_TEXT: `TEXT_FIELD_NEW_TEXT`
+            }
             initialize(id) {
                 super.initialize(id)
 
@@ -194,19 +197,8 @@
                 let results = await suite(`Validate field.`, `Ensure field meets all requirements.`, testArray)
                 this.vars.valid = (0 === results.failCount)
                 if (this.vars.valid) { 
-                    const newTextDataEvent = new CustomEvent(
-                        `newTextData`, 
-                        { 
-                            bubbles: true, 
-                            detail: { 
-                                text: () => this.vars.value, 
-                                component: this, 
-                                element: document.getElementById(this.id) 
-                            }
-                        }
-                    )
                     this.vars.value = this.Element.value 
-                    this.Element.dispatchEvent(newTextDataEvent)
+                    Queue.broadcast(TextField.msgs.TEXT_FIELD_NEW_TEXT, { text: this.vars.value, component: this, element: document.getElementById(this.id) })
                 }
                 if (showErrors) { this.showErrors(results) }
             }

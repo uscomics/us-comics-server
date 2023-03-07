@@ -2,6 +2,14 @@
     <script>
         //# sourceURL=html/components/list.html
         class List extends Component {
+            static msgs = {
+                LIST_BEFORE_ITEM_SELECTED:      `LIST_BEFORE_ITEM_SELECTED`,
+                LIST_AFTER_ITEM_SELECTED:       `LIST_AFTER_ITEM_SELECTED`,
+                LIST_BEFORE_ITEM_UNSELECTED:    `LIST_BEFORE_ITEM_UNSELECTED`,
+                LIST_AFTER_ITEM_UNSELECTED:     `LIST_AFTER_ITEM_UNSELECTED`,
+                LIST_BEFORE_CLEARED:            `LIST_BEFORE_CLEARED`,
+                LIST_AFTER_CLEARED:             `LIST_AFTER_CLEARED`
+            }
             showList(optionalList, optionalImageFieldName, optionalTitleFieldName) {
                 if (optionalList) { this.vars.items = optionalList }
                 if (optionalImageFieldName) { this.vars.itemImageField = optionalImageFieldName }
@@ -9,52 +17,81 @@
                 this.clearList()
                 for (let loop = 0; loop < this.vars.items.length; loop++) {
                     const item = this.vars.items[loop]
+                    const imageURL = item[this.vars.itemImageField]
+                    const title = item[this.vars.itemTitleField]
+
+                    if (!imageURL && !title) {
+                        console.warn(`Skipping list item that has no image URL and no title.`)
+                        continue
+                    }
+
                     const wrapperDiv = document.createElement(`div`)
                     const wrapperDivId = `${this.id}ListItemWrapper${loop}`
-                    const itemImage = document.createElement(`img`)
-                    const itemImageId = `${this.id}ListItemImage${loop}`
-                    const titleDiv = document.createElement(`div`)
-                    const titleId = `${this.id}ListItemTitle${loop}`
                     const itemClicked = () => { 
                         this.vars.itemIndex = loop
                         this.selectItem()
                     }
-                    
+
                     wrapperDiv.id = wrapperDivId
                     wrapperDiv.classList.add(`list-item`)
                     wrapperDiv.addEventListener("click", itemClicked)
-                    itemImage.id = itemImageId
-                    itemImage.src = `./images/promo/${item[this.vars.itemImageField]}`
-                    itemImage.classList.add(`list-item-image`)
-                    titleDiv.id = titleId
-                    titleDiv.classList.add(`list-item-title`)
-                    titleDiv.innerText = item[this.vars.itemTitleField]
-                    wrapperDiv.appendChild(itemImage)
-                    wrapperDiv.appendChild(titleDiv)
+
+                    if (imageURL) {
+                        const itemImage = document.createElement(`img`)
+                        const itemImageId = `${this.id}ListItemImage${loop}`
+
+                        itemImage.id = itemImageId
+                        itemImage.src = imageURL
+                        itemImage.classList.add(`list-item-image`)
+                        wrapperDiv.appendChild(itemImage)
+                    }
+                    if (title) {
+                        const titleDiv = document.createElement(`div`)
+                        const titleId = `${this.id}ListItemTitle${loop}`
+                        
+                        titleDiv.id = titleId
+                        titleDiv.classList.add(`list-item-title`)
+                        titleDiv.innerText = title
+                        wrapperDiv.appendChild(titleDiv)
+                    }
                     this.ListWrapperElement.appendChild(wrapperDiv)
                 }
                 this.selectItem()
             }
-            clearList() { this.ListWrapperElement.removeChildren() }
+            clearList() { 
+                Queue.broadcast(List.msgs.LIST_BEFORE_CLEARED, { index: loop, element: item, component: this })
+                this.ListWrapperElement.removeChildren() 
+                Queue.broadcast(List.msgs.LIST_AFTER_CLEARED, { index: loop, element: item, component: this })
+            }
             clearSelection() {
-                for (let character of this.ListWrapperElement.children) {
-                    character.classList.remove(`list-item-selected`)
-                    character.classList.add(`list-item`)
+                for (let loop = 0; loop < this.ListWrapperElement.children.length; loop++) {
+                    const item = this.ListWrapperElement.children[loop]
+
+                    Queue.broadcast(List.msgs.LIST_BEFORE_ITEM_UNSELECTED, { index: loop, element: item, component: this })
+                    item.classList.remove(`list-item-selected`)
+                    item.classList.add(`list-item`)
+                    Queue.broadcast(List.msgs.LIST_AFTER_ITEM_UNSELECTED, { index: loop, element: item, component: this })
                 }
             }
-            selectItem() {
-                const characterElement = this.ListWrapperElement.children[this.vars.itemIndex]
+            selectItem(index) {
+                if (this.vars.items.length >= index) {
+                    console.error(`Index ${index} is out of range for list ${this.id}.`)
+                    return
+                }
+                Queue.broadcast(List.msgs.LIST_BEFORE_ITEM_SELECTED, { index: this.vars.itemIndex, element: item, component: this })
+                this.vars.itemIndex = index
 
-                character.classList.remove(`list-item`)
-                character.classList.add(`list-item-selected`)
-                Queue.broadcast(List.msgs.LIST_ITEM_SELECTED, { index: this.vars.itemIndex, element: characterElement, component: this })
+                const item = this.ListWrapperElement.children[this.vars.itemIndex]
+
+                item.classList.remove(`list-item`)
+                item.classList.add(`list-item-selected`)
+                Queue.broadcast(List.msgs.LIST_AFTER_ITEM_SELECTED, { index: this.vars.itemIndex, element: item, component: this })
             }
             getSelectedItem() { return this.vars.items[this.vars.itemIndex] }
             getSelectedElement() { return this.ListWrapperElement.children[this.vars.itemIndex] }
             itemSelected(index) {
                 this.clearSelection()
-                this.vars.itemIndex = index
-                this.selectItem()
+                this.selectItem(index)
             }
             vars = {
                 title: ``,
@@ -62,9 +99,6 @@
                 itemIndex: 0,
                 itemImageField: `image`,
                 itemTitleField: `title`
-            }
-            static msgs = {
-                LIST_ITEM_SELECTED: `LIST_ITEM_SELECTED`
             }
         }
     </script>

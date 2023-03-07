@@ -1,0 +1,71 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/imgur/imgur-menu.html
+        class ImgurMenu extends Component {
+            static msgs = {
+                IMGUR_MENU_ADD_ALBUM: `IMGUR_MENU_ADD_ALBUM`,
+                IMGUR_MENU_DELETE_ALBUM: `IMGUR_MENU_DELETE_ALBUM`,
+                IMGUR_MENU_LIST_ALBUMS: `IMGUR_MENU_LIST_ALBUMS`,
+                IMGUR_MENU_ADD_IMAGE: `IMGUR_MENU_ADD_IMAGE`,
+                IMGUR_MENU_DELETE_IMAGE: `IMGUR_MENU_DELETE_IMAGE`,
+                IMGUR_MENU_LIST_IMAGES: `IMGUR_MENU_LIST_IMAGES`,
+            }
+            broadcast(msg) { Queue.broadcast(msg, this) }
+        }
+    </script>
+    <style>
+        :root {
+            --imgur-menu-item-a-color: var(--gray-4);
+            --imgur-menu-item-background-color: var(--gray-e);
+            --imgur-menu-item-overflow-x: hidden; 
+            --imgur-menu-item-a-font-family: var(--primary-font-family);
+            --imgur-menu-item-a-font-size: var(--text-2-font-size);
+            --imgur-menu-item-a-font-weight: normal;
+            --imgur-menu-item-cursor: pointer;
+            --imgur-menu-item-padding-left: 10px;
+
+            --imgur-menu-item-hover-background-color: var(--gray-c);
+        }
+
+        .imgur-menu-item {
+            color: var(--imgur-menu-item-a-color);
+            background-color: var(--imgur-menu-item-background-color);
+            overflow-x: var(--imgur-menu-item-overflow-x); 
+            font-family: var(--imgur-menu-item-a-font-family);
+            font-size: var(--imgur-menu-item-a-font-size);
+            font-weight: var(--imgur-menu-item-a-font-weight);
+            cursor: var(--imgur-menu-item-cursor);
+            padding-left: var(--imgur-menu-item-padding-left);
+        }
+        .imgur-menu-item:hover {
+            background-color: var(--imgur-menu-item-hover-background-color);
+        }
+    </style>
+    <component-markup>
+        <span id="{id}" class="w100">
+            <include-html include-in="imgur-menu.html" src="./html/components/accordion.html" component-class="Accordion" component-id="{id}Accordion">
+                <include-props>{title: `Imgur Connect`}</include-props>
+            </include-html>
+            <slot-markup for-component-id="{id}Accordion" for-slot="{id}AccordionSlot">
+                <include-html include-in="imgur-menu.html" src="./html/components/accordion.html" component-class="Accordion" component-id="{id}AccordionAlbums">
+                    <include-props>{title: `Imgur Albums`}</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}AccordionAlbums" for-slot="{id}AccordionAlbumsSlot">
+                    <div id={id}AccordionAlbumsList" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_LIST_ALBUMS)">List</div>
+                    <div id={id}AccordionAlbumsAdd" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_ADD_ALBUM)">Add</div>
+                    <div id={id}AccordionAlbumsDelete" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_DELETE_ALBUM)">Delete</div>
+                </slot-markup>
+                <include-html include-in="imgur-menu.html" src="./html/components/accordion.html" component-class="Accordion" component-id="{id}AccordionImages">
+                    <include-props>{title: `Imgur Images`}</include-props>
+                </include-html>
+                <slot-markup for-component-id="{id}AccordionImages" for-slot="{id}AccordionImagesSlot">
+                    <div id={id}AccordionImagesList" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_LIST_IMAGES)">List</div>
+                    <div id={id}AccordionImagesAdd" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_ADD_IMAGE)">Add</div>
+                    <div id={id}AccordionImagesDelete" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_DELETE_IMAGE)">Delete</div>
+                </slot-markup>
+            </slot-markup>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

@@ -4,6 +4,9 @@
     <script>
         //# sourceURL=html/components/text-area.html
         class TextArea extends Component {
+            static msgs = {
+                TEXT_AREA_NEW_TEXT: `TEXT_AREA_NEW_TEXT`
+            }
             afterMount() { 
                 super.afterMount()
                 if (this.props.autofocus) { this.Element.setAttribute('autofocus', true) } else { this.Element.removeAttribute('autofocus') }
@@ -75,19 +78,8 @@
                 let results = await suite(`Validate field.`, `Ensure field meets all requirements.`, testArray)
                 this.vars.valid = (0 === results.failCount)
                 if (this.vars.valid) { 
-                    const newTextDataEvent = new CustomEvent(
-                        `newTextData`, 
-                        { 
-                            bubbles: true, 
-                            detail: { 
-                                text: () => this.vars.value, 
-                                component: this, 
-                                element: document.getElementById(this.id) 
-                            }
-                        }
-                    )
                     this.vars.value = this.Element.value 
-                    this.Element.dispatchEvent(newTextDataEvent)
+                    Queue.broadcast(TextArea.msgs.TEXT_AREA_NEW_TEXT, { text: this.vars.value, component: this, element: document.getElementById(this.id) })
                 }
                 if (showErrors) { this.showErrors(results) }
             }

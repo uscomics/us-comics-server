@@ -2,31 +2,116 @@
     <script>
         //# sourceURL=html/components/calendar.html
         class Calendar extends Component {
-            initialize(id) {
-                super.initialize(id)
-                this.createCalendar()
+            static msgs = {
+                CALENDAR_BEFORE_MONTH_CHANGED: `CALENDAR_BEFORE_MONTH_CHANGED`,
+                CALENDAR_AFTER_MONTH_CHANGED: `CALENDAR_AFTER_MONTH_CHANGED`,
+                CALENDAR_BEFORE_SELECTED_DATE_CHANGED: `CALENDAR_BEFORE_SELECTED_DATE_CHANGED`,
+                CALENDAR_AFTER_SELECTED_DATE_CHANGED: `CALENDAR_AFTER_SELECTED_DATE_CHANGED`,
             }
             afterMount() {
                 super.afterMount()
-                this.setCalendar()
+                this.createCalendar()
             }
             createCalendar() {
-                let year = this.vars.year
-                let month = this.vars.month
-                let day = this.vars.day
-                let date = new Date(year, month, day)
-                let dayOfTheMonth = new Date(year, month, 1, 0, 0, 0, 0)
-                const tableBegin = `<table class="calendar">`                    
-                const tableEnd = `</table>`                    
-                const rowBegin = `<tr class="header">`                    
-                const rowEnd = `<tr>`                    
-                const headerCellBegin = `<th class="header-cell">`                    
-                const headerCellEnd = `</th>`                    
-                const cellBegin = `<td class="cell"`                    
-                const cellEnd = `</td>`                    
-                const pastCellBegin = `<td class="past-cell">`                    
-                const pastCellEnd = `</td>`                    
-                let table = `${tableBegin}${rowBegin}${headerCellBegin}SU${headerCellEnd}${headerCellBegin}MO${headerCellEnd}${headerCellBegin}TU${headerCellEnd}${headerCellBegin}WE${headerCellEnd}${headerCellBegin}TH${headerCellEnd}${headerCellBegin}FR${headerCellEnd}${headerCellBegin}SA${headerCellEnd}${rowEnd}${rowBegin}`
+                const year = this.vars.year
+                const month = this.vars.month
+                const day = this.vars.day
+                const date = new Date(year, month, day)
+                const dayOfTheMonth = new Date(year, month, 1, 0, 0, 0, 0)
+                let rowCount = 0
+                let emptyCellCount = 0
+                const makeTable = () => {
+                    const tableId = `${this.id}Table`
+                    const table = document.createElement(`table`)
+
+                    table.id = tableId
+                    table.classList.add(`calendar`)
+                    return table
+                }
+                const makeHeaderRow = () => {
+                    const headerRowId = `${this.id}TableHeaderRow`
+                    const headerRow = document.createElement(`tr`)
+
+                    headerRow.id = headerRowId
+                    headerRow.classList.add(`calendar-row`)
+                    return headerRow
+                }
+                const makeHeaderCell = (dayCode) => {
+                    const headerCellId = `${this.id}TableHeaderCell${dayCode}`
+                    const headerCell = document.createElement(`td`)
+
+                    headerCell.id = headerCellId
+                    headerCell.classList.add(`calendar-header-cell`)
+                    headerCell.innerText = dayCode
+                    return headerCell
+                }
+                const makeRow = () => {
+                    const headerRowId = `${this.id}TableRow${rowCount}`
+                    const headerRow = document.createElement(`tr`)
+
+                    rowCount++
+                    headerRow.id = headerRowId
+                    headerRow.classList.add(`calendar-row`)
+                    return headerRow
+                }
+                const makeEmptyCell = () => {
+                    const emptyCellId = `${this.id}TableEmptyCell${emptyCellCount}`
+                    const emptyCell = document.createElement(`td`)
+
+                    emptyCellCount++
+                    emptyCell.id = emptyCellId
+                    emptyCell.classList.add(`calendar-empty-cell`)
+                    return emptyCell
+                }
+                const makeCellId = (dayOfTheMonth) => { return `${this.id}TableCell_${dayOfTheMonth.getDate()}_${dayOfTheMonth.getMonth()}_${dayOfTheMonth.getFullYear()}` }
+                const getDateFromId = (id) => { 
+                    const dateElements = id.split(`_`)
+                    const year = dateElements[3]
+                    const month = dateElements[2]
+                    const day = dateElements[1]
+                    const date = new Date(year, month, day)
+
+                    return date
+                }
+                const makePastCell = (dayOfTheMonth) => {
+                    const pastCellId = makeCellId(dayOfTheMonth)
+                    const pastCell = document.createElement(`td`)
+
+                    pastCell.id = pastCellId
+                    pastCell.dayOfTheMonth = dayOfTheMonth
+                    pastCell.classList.add(`calendar-past-cell`)
+                    pastCell.innerText = dayOfTheMonth.getDate()
+                    return pastCell
+                }
+                const makeCell = (cellDayOfTheMonth, isSelected = false) => {
+                    const cellId = makeCellId(cellDayOfTheMonth)
+                    const cell = document.createElement(`td`)
+                    const className = isSelected? `calendar-cell-selected` : `calendar-cell`
+
+                    cell.id = cellId
+                    cell.dayOfTheMonth = cellDayOfTheMonth
+                    cell.classList.add(className)
+                    cell.innerText = cellDayOfTheMonth.getDate()
+
+                    const onClick = () => {
+                        Queue.broadcast(Calendar.msgs.CALENDAR_BEFORE_SELECTED_DATE_CHANGED, this)
+                        if (null != this.vars.selectedDate) {
+                            const currentlySelectedCellId = makeCellId(this.vars.selectedDate)
+                            const currentlySelectedCell = document.getElementById(currentlySelectedCellId)
+
+                            if (currentlySelectedCell) { currentlySelectedCell.classList.toggle(`calendar-cell-selected`) }    // Selected cell can disappear when month changes.
+                        }
+
+                        const selectedCell = document.getElementById(cellId)
+
+                        selectedCell.classList.toggle(`calendar-cell-selected`)
+                        this.vars.selectedDate = getDateFromId(selectedCell.id)
+                        Queue.broadcast(Calendar.msgs.CALENDAR_AFTER_SELECTED_DATE_CHANGED, this)
+                    }
+
+                    cell.addEventListener("click", onClick);
+                    return cell
+                }
                 const isDateBeforeToday = (date) => {
                     const now = new Date()
 
@@ -37,68 +122,82 @@
                     if (now.getDate() > date.getDate()) { return true }
                     return false
                 }
+                const table = makeTable()
+                const headerRow = makeHeaderRow()
+                const dayCodes = [`SU`, `MO`, `TU`, `WE`, `TH`, `FR`, `SA`]
+
+                table.appendChild(headerRow)
+                dayCodes.forEach(dayCode => {
+                    const headerCell = makeHeaderCell(dayCode)
+
+                    headerRow.appendChild(headerCell)
+                })
 
                 this.vars.monthName = dayOfTheMonth.toLocaleString('default', { month: 'long' });
 
+                let currentRow = makeRow()
+
                 // Add empty cells for the first row until the first day of the month
-                for (let loop = 0; loop < dayOfTheMonth.getDay(); loop++) { table += `${cellBegin}>${cellEnd}` }
+                table.appendChild(currentRow)
+                for (let loop = 0; loop < dayOfTheMonth.getDay(); loop++) { 
+                    const emptyCell = makeEmptyCell()
+                    
+                    currentRow.appendChild(emptyCell)
+                }
 
                 // Cells with actual dates
                 while (dayOfTheMonth.getMonth() == month) {
-                    const begin = isDateBeforeToday(dayOfTheMonth)? pastCellBegin : `${cellBegin} id="${this.id}Day_${dayOfTheMonth.getDate()}_${dayOfTheMonth.getMonth()}_${dayOfTheMonth.getFullYear()}" onclick="Component.getObject('${this.id}').toggleDateSelected(${dayOfTheMonth.getDate()}, ${dayOfTheMonth.getMonth()}, ${dayOfTheMonth.getFullYear()})">`
+                    if (isDateBeforeToday(dayOfTheMonth)) {
+                        const pastCell = makePastCell(dayOfTheMonth)
+                    
+                        currentRow.appendChild(pastCell)
+                    } else {
+                        const cell = makeCell(dayOfTheMonth, false)
+
+                        currentRow.appendChild(cell)
+                    }
+ 
                     const workingDate = dayOfTheMonth.getDate()
                     const workingDay = dayOfTheMonth.getDay()
 
-                    table += `${begin}${workingDate}${cellEnd}`
-                    if (workingDay % 7 == 6) { table += `${rowEnd}${rowBegin}` }     // sunday, last day of week - newline
+                    if (workingDay % 7 == 6) { // sunday, last day of week - new row
+                        currentRow = makeRow()
+                        table.appendChild(currentRow)
+                     }     
                     dayOfTheMonth.setDate(workingDate + 1)
                 }
 
                 // Add empty cells after last days of month for the last row
-                if (date.getDay() != 0) {
-                    for (let loop = date.getDay(); loop <= 7; loop++) { table += `${cellBegin}>${cellEnd}` }
+                if (0 !== dayOfTheMonth.getDay()) {
+                    for (let loop = dayOfTheMonth.getDay(); loop < 7; loop++) { 
+                        const emptyCell = makeEmptyCell()
+                    
+                        currentRow.appendChild(emptyCell)
+                    }
                 }
 
-                table += `${rowEnd}${tableEnd}`
-                this.tableHTML = table
-            }
-            setCalendar() {
-                if (!this.tableHTML) { return }
-                
-                const calendarBody = document.getElementById(`${this.id}Body`)
-                calendarBody.innerHTML = this.tableHTML
-            }
-            resetCalendar() {
-                this.createCalendar()
-                this.setCalendar()
+                this.BodyElement.removeChildren()
+                this.BodyElement.appendChild(table)
             }
             subtractMonth() {
                 let date = new Date(this.vars.year, this.vars.month, 1, 0, 0, 0, 0)
 
+                Queue.broadcast(Calendar.msgs.CALENDAR_BEFORE_MONTH_CHANGED, this)
                 date.setMonth(date.getMonth() - 1)
                 this.vars.year = date.getFullYear()
                 this.vars.month = date.getMonth()
-                this.resetCalendar()
+                this.createCalendar()
+                Queue.broadcast(Calendar.msgs.CALENDAR_AFTER_MONTH_CHANGED, this)
             }
             addMonth() {
                 let date = new Date(this.vars.year, this.vars.month, 1, 0, 0, 0, 0)
 
+                Queue.broadcast(Calendar.msgs.CALENDAR_BEFORE_MONTH_CHANGED, this)
                 date.setMonth(date.getMonth() + 1)
                 this.vars.year = date.getFullYear()
                 this.vars.month = date.getMonth()
-                this.resetCalendar()
-            }
-            toggleDateSelected(day, month, year) {
-                if (null != this.vars.selectedDate) {
-                    let selectedCell = document.getElementById(`${this.id}Day_${this.vars.selectedDate.getDate()}_${this.vars.selectedDate.getMonth()}_${this.vars.selectedDate.getFullYear()}`)
-
-                    if (selectedCell) { selectedCell.classList.toggle(`cell-selected`) }    // Selected cell can disappear when month changes.
-                }
-
-                let selectedCell = document.getElementById(`${this.id}Day_${day}_${month}_${year}`)
-
-                selectedCell.classList.toggle(`cell-selected`)
-                this.vars.selectedDate = new Date(year, month, day)
+                this.createCalendar()
+                Queue.broadcast(Calendar.msgs.CALENDAR_AFTER_MONTH_CHANGED, this)
             }
             props = {
                 pastDatesAreGray: true
@@ -117,7 +216,7 @@
             --calendar-card-flex: column;
             --calendar-card-width: 220px;
             --calendar-card-overflow: hidden ;
-            --calendar-card-shadow: 3px 3px 9px #d9d9d9, -3px -3px 9px #ffffff;
+            --calendar-card-shadow: none;
             --calendar-card-border-radius: 15px;
             --calendar-card-padding: 5px;
             --calendar-card-margin: 5px;
@@ -169,7 +268,7 @@
             --calendar-cell-font-weight: var(--text-1-font-weight);
             --calendar-cell-cursor: pointer;
             --calendar-cell-padding: 3px;
-            --calendar-cell-background: radial-gradient(ellipse at center,  var(--blue-50) 0%,var(--blue-50) 47%,var(--blue-50) 47%,white 47%,white 48%);
+            --calendar-cell-background: radial-gradient(ellipse at center,  var(--background-color) 0%,var(--background-color) 47%,var(--background-color) 47%,white 47%,white 48%);
 
             --calendar-past-cell-width: 30px;
             --calendar-past-cell-height: 30px;
@@ -181,6 +280,17 @@
             --calendar-past-cell-font-weight: var(--text-1-font-weight);
             --calendar-past-cell-cursor: cursor-not-allowed;
             --calendar-past-cell-padding: 3px;
+
+            --calendar-empty-cell-width: 30px;
+            --calendar-empty-cell-height: 30px;
+            --calendar-empty-cell-color: var(--gray-a);
+            --calendar-empty-cell-background-color: white;
+            --calendar-empty-cell-text-align: center;
+            --calendar-empty-cell-font-family: var(--primary-font-family);
+            --calendar-empty-cell-font-size: var(--text-2-font-size);
+            --calendar-empty-cell-font-weight: var(--text-1-font-weight);
+            --calendar-empty-cell-cursor: cursor-not-allowed;
+            --calendar-empty-cell-padding: 3px;
         }
 
         .calendar-card {
@@ -213,7 +323,7 @@
             cursor: var(--calendar-title-cursor);
         }
  
-        .header {
+        .calendar-row {
             width: var(--calendar-header-width);
             height: var(--calendar-header-height);
             color: var(--calendar-header-color);
@@ -225,7 +335,7 @@
             cursor: var(--calendar-header-cursor);
         }
 
-        .header-cell {
+        .calendar-header-cell {
             width: var(--calendar-header-cell-width);
             height: var(--calendar-header-cell-height);
             color: var(--calendar-header-cell-color);
@@ -238,7 +348,7 @@
             padding: var(--calendar-header-cell-padding);
         }
 
-        .cell {
+        .calendar-cell {
             width: var(--calendar-cell-width);
             height: var(--calendar-cell-height);
             color: var(--calendar-cell-color);
@@ -251,11 +361,11 @@
             padding: var(--calendar-cell-padding);
         }
 
-        .cell-selected {
+        .calendar-cell-selected {
             background: var(--calendar-cell-background);
         }
 
-        .past-cell {
+        .calendar-past-cell {
             width: var(--calendar-past-cell-width);
             height: var(--calendar-past-cell-height);
             color: var(--calendar-past-cell-color);
@@ -267,13 +377,26 @@
             cursor: var(--calendar-past-cell-cursor);
             padding: var(--calendar-past-cell-padding);
         }
+
+        .calendar-empty-cell {
+            width: var(--calendar-empty-cell-width);
+            height: var(--calendar-empty-cell-height);
+            color: var(--calendar-empty-cell-color);
+            background-color: var(--calendar-empty-cell-background-color);
+            text-align: var(--calendar-empty-cell-text-align);
+            font-family: var(--calendar-empty-cell-font-family);
+            font-size: var(--calendar-empty-cell-font-size);
+            font-weight: var(--calendar-empty-cell-font-weight);
+            cursor: var(--calendar-empty-cell-cursor);
+            padding: var(--calendar-empty-cell-padding);
+        }
     </style>
     <component-markup>
         <div id="{id}" class="calendar-card">
             <div id="{id}TitleBar" class="calendar-title">
-                <div id="{id}PreviousMonthButton" class="button w30px" onclick="$obj.subtractMonth()">&lt</div>
+                <div id="{id}PreviousMonthButton" class="button w30px" onclick="$obj.subtractMonth()">◀</div>
                 <div id="{id}Title">{monthName} {year}</div>
-                <div id="{id}NextMonthButton" class="button w30px" onclick="$obj.addMonth()">&gt</div>
+                <div id="{id}NextMonthButton" class="button w30px" onclick="$obj.addMonth()">▶</div>
             </div>
             <div id="{id}Body"></div>
         </div>

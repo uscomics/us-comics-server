@@ -4,7 +4,7 @@
         class WriteReviewButton extends Component {
             initialize(id) {
                 super.initialize(id)
-                Queue.register(this, TabBar.msgs.SHOW_TAB, (message) => {
+                Queue.register(this, TabBar.msgs.TAB_BAR_SHOW_TAB, (message) => {
                     if (message.tabBar.id !== `TabBar`) { return }
                     if (message.tab !== `Reviews`) { return }
                     this.Element.classList.remove(`display-none`)

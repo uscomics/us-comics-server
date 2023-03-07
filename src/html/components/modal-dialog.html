@@ -1,16 +1,32 @@
 <custom-component>
     <script>
         //# sourceURL=html/components/modal-dialog.html
-        class ModalDialog extends Component {
+        class ModalDialog extends SlottedComponent {
+            static msgs = {
+                MODAL_DIALOG_BEFORE_SHOW: `MODAL_DIALOG_BEFORE_SHOW`,
+                MODAL_DIALOG_AFTER_SHOW: `MODAL_DIALOG_AFTER_SHOW`,
+                MODAL_DIALOG_BEFORE_HIDE: `MODAL_DIALOG_BEFORE_HIDE`,
+                MODAL_DIALOG_AFTER_HIDE: `MODAL_DIALOG_AFTER_HIDE`,
+                MODAL_DIALOG_CANCEL: `MODAL_DIALOG_CANCEL`,
+                MODAL_DIALOG_OK: `MODAL_DIALOG_OK`,
+            }
             afterMount() {
                 super.afterMount()
                 if (!this.props.okVisible) { this.OkElement.remove() }
                 if (!this.props.cancelVisible) { this.CancelElement.remove() }
             }
-            show() { this.Element.show() }
-            hide() { this.Element.hide() }
-            onCancel() { Queue.broadcast(Messages.MODAL_CANCEL, this) }
-            onOk() { Queue.broadcast(Messages.MODAL_OK, this) }
+            show() { 
+                Queue.broadcast(ModalDialog.mags.MODAL_DIALOG_BEFORE_SHOW, this)
+                this.Element.show() 
+                Queue.broadcast(ModalDialog.mags.MODAL_DIALOG_AFTER_SHOW, this)
+            }
+            hide() { 
+                Queue.broadcast(ModalDialog.mags.MODAL_DIALOG_BEFORE_HIDE, this)
+                this.Element.hide() 
+                Queue.broadcast(ModalDialog.mags.MODAL_DIALOG_AFTER_HIDE, this)
+            }
+            onCancel() { Queue.broadcast(ModalDialog.mags.MODAL_DIALOG_CANCEL, this) }
+            onOk() { Queue.broadcast(ModalDialog.mags.MODAL_DIALOG_OK, this) }
             props = {
                 okLabel: `Ok`,
                 cancelLabel: `Cancel`,
@@ -77,7 +93,7 @@
     <component-markup>
         <div id="{id}" class="flex-col flex-align-center modal t0 l0 r0 b0 w100 h100 display-none">
             <div id="{id}ContentWrapper" class="flex-col flex-align-center modal-content">
-                <component-slot id="{id}Slot">DEFAULT CONTENT FOR {id}</component-slot>
+                <component-slot id="{id}Slot"></component-slot>
                 <div id="{id}Buttons" class="flex-row flex-end">
                     <div id="{id}Cancel" class="button flex-align-self-end" onclick="$obj.onCancel()">{cancelLabel}</div>
                     <div id="{id}Ok" class="button flex-align-self-end" onclick="$obj.onOk()">{okLabel}</div>

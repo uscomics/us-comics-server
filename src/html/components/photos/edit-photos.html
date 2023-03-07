@@ -4,7 +4,7 @@
         class EditPhotos extends Component {
             initialize(id) {
                 super.initialize(id)
-                Queue.register(this, Messages.FILE_SELECTED, (message) => {
+                Queue.register(this, FileSelector.msgs.FILE_SELECTED, (message) => {
                     if (message.component !== this.FileSelector) { return }
                     
                     const file = message.component.vars.selectedFile
