@@ -2,6 +2,10 @@
     <script>
         //# sourceURL=html/components/reviews/stars.html
         class Stars extends Component {
+            static msgs = {
+                STARS_BEFORE_VALUE_CHANGED: `STARS_BEFORE_VALUE_CHANGED`,
+                STARS_AFTER_VALUE_CHANGED: `STARS_AFTER_VALUE_CHANGED`
+            }
             onDescendantsMounted() { 
                 super.onDescendantsMounted()
                 this.setStars(this.vars.rating)
@@ -21,6 +25,7 @@
                 }
             }
             setStars(rating) {
+                Queue.broadcast(Stars.msgs.STARS_BEFORE_VALUE_CHANGED, this)
                 if (1 === this.vars.rating && 1 === rating) {
                     this.vars.rating = 0
                 } else {
@@ -59,20 +64,8 @@
                     this.Star1.setValue(1)
                 }
 
-                const newRatingEvent = new CustomEvent(
-                    `newRating`,
-                    {
-                        bubbles: true,
-                        detail: {
-                            rating: this.vars.rating,
-                            component: this, 
-                            element: document.getElementById(this.id) 
-                        }
-                    }
-                )
-                const element = document.getElementById(this.id)
+                Queue.broadcast(Stars.msgs.STARS_AFTER_VALUE_CHANGED, this)
 
-                element.dispatchEvent(newRatingEvent)
             }
             editStars(rating) {
                 if (!this.props.editable) { return }

@@ -38,7 +38,7 @@
                         this.vars.reviewImageURL = message.text
                     }
                 })
-                element.addEventListener(`newRating`, (e) => { this.vars.reviewRating = e.detail.rating })
+                Queue.register(this, Stars.msgs.STARS_AFTER_VALUE_CHANGED, (message) => { this.vars.reviewRating = message.vars.rating })
             }
             onBlur(event) { this.updateReview() }
             onInput(event) { this.updateReview() }

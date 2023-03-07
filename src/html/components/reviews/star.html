@@ -2,17 +2,23 @@
     <script>
         //# sourceURL=html/components/reviews/star.html
         class Star extends Component {
+            static msgs = {
+                STAR_BEFORE_VALUE_CHANGED: `STAR_BEFORE_VALUE_CHANGED`,
+                STAR_AFTER_VALUE_CHANGED: `STAR_AFTER_VALUE_CHANGED`
+            }
             afterMount() {
                 super.afterMount()
                 this.setValue(this.vars.value)
             }
             setValue(value) {
+                Queue.broadcast(Star.msgs.STAR_BEFORE_VALUE_CHANGED, this)
                 this.vars.value = value
                 this.vars.currentGradient = `WhiteGradient`
                 if ( 0.33 > value) { return }
                 this.vars.currentGradient = `HalfRedGradient`
                 if ( 0.66 > value) { return }
                 this.vars.currentGradient = `RedGradient`
+                Queue.broadcast(Star.msgs.STAR_AFTER_VALUE_CHANGED, this)
             }
             vars = {
                 value: 0,

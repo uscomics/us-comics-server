@@ -10,8 +10,7 @@
                         this.vars.imageURL = e.detail.text()
                     }
                 })
-                this.Element.addEventListener(`newRating`, (e) => { this.vars.reviewRating = e.detail.rating })
-
+                Queue.register(this, Stars.msgs.STARS_AFTER_VALUE_CHANGED, (message) => { this.vars.reviewRating = message.vars.rating })
                 Queue.register(this, ComponentLifecycle.msgs.COMPONENT_AFTER_MOUNT, (component) => { 
                     const id = this.id
                     const stateFieldId = `${id}EditableState`
