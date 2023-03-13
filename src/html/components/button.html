@@ -1,0 +1,65 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/button.html
+        class Button extends SlottedComponent {
+            static msgs = {
+                BUTTON_CLICKED: `BUTTON_CLICKED`,
+                BUTTON_BEFORE_TITLE_CHANGE: `BUTTON_BEFORE_TITLE_CHANGE`,
+                BUTTON_AFTER_TITLE_CHANGE: `BUTTON_AFTER_TITLE_CHANGE`,
+            }
+            setTitle(title) {
+                Queue.broadcast(Button.msgs.BUTTON_BEFORE_TITLE_CHANGE, this)
+                this.vars.title = title 
+                Queue.broadcast(Button.msgs.BUTTON_AFTER_TITLE_CHANGE, this)
+
+            }
+            vars = {
+                title: `Button`
+            }
+        }
+    </script>
+    <style>
+       :root {
+            --button-color: var(--gray-4);
+            --button-background-color: var(--gray-e);
+            --button-width: 100%;
+            --button-overflow-x: hidden; 
+            --button-font-family: var(--primary-font-family);
+            --button-font-size: var(--text-2-font-size);
+            --button-font-weight: normal;
+            --button-text-align: center;
+            --button-border-color: var(--gray-4);
+            --button-border-width: 1px;
+            --button-border-style: solid;
+            --button-cursor: pointer;
+            --button-padding-left: 5px;
+
+            --button-hover-background-color: var(--gray-a);
+        }
+
+        .button {
+            color: var(--button-color);
+            background-color: var(--button-background-color);
+            width: var(--button-width);
+            overflow-x: var(--button-overflow-x); 
+            font-family: var(--button-font-family);
+            font-size: var(--button-font-size);
+            font-weight: var(--button-font-weight);
+            text-align: var(--button-text-align);
+            border-color: var(--button-border-color);
+            border-width: var(--button-border-width);
+            border-style: var(--button-border-style);
+
+            cursor: var(--button-cursor);
+            padding-left: var(--button-padding-left);
+        }
+        .button:hover {
+            background-color: var(--button-hover-background-color);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="button" onclick="Queue.broadcast(Button.msgs.BUTTON_CLICKED, this)">{title}</div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

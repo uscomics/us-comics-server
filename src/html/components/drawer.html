@@ -69,6 +69,20 @@
             --drawer-open-button-top: 15px;
             --drawer-open-button-left: 5px;
             --drawer-open-button-cursor: pointer;
+
+            --drawer-item-color: var(--gray-4);
+            --drawer-item-background-color: var(--gray-e);
+            --drawer-item-width: 100%;
+            --drawer-item-overflow-x: hidden; 
+            --drawer-item-font-family: var(--primary-font-family);
+            --drawer-item-font-size: var(--text-2-font-size);
+            --drawer-item-font-weight: normal;
+            --drawer-item-text-align: center;
+            --drawer-item-cursor: pointer;
+            --drawer-item-padding-left: 5px;
+
+            --drawer-item-hover-background-color: var(--gray-a);
+
         }
 
         .drawer {
@@ -126,6 +140,21 @@
             top: var(--drawer-open-button-top);
             left: var(--drawer-open-button-left);
             cursor: var(--drawer-open-button-cursor);
+        }
+        .drawer-item {
+            color: var(--drawer-item-color);
+            background-color: var(--drawer-item-background-color);
+            width: var(--drawer-item-width);
+            overflow-x: var(--drawer-item-overflow-x); 
+            font-family: var(--drawer-item-font-family);
+            font-size: var(--drawer-item-font-size);
+            font-weight: var(--drawer-item-font-weight);
+            text-align: var(--drawer-item-text-align);
+            cursor: var(--drawer-item-cursor);
+            padding-left: var(--drawer-item-padding-left);
+        }
+        .drawer-item:hover {
+            background-color: var(--drawer-item-hover-background-color);
         }
 
         @media screen and (max-height: 450px) {

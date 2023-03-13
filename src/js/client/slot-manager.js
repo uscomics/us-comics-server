@@ -1,4 +1,18 @@
 class SlotManager {
+    static isSlotted = (forComponentId, slotId) => {
+        const componentElement = document.getElementById(forComponentId)
+
+        if (!componentElement) { return false }
+
+        const beginMarkerId = `#-SlotBeginMarker${slotId}`
+        const beginMarker = componentElement.querySelector(beginMarkerId)
+        const endMarkerId = `#-SlotEndMarker${slotId}`
+        const endMarker = componentElement.querySelector(endMarkerId)
+
+        if (!beginMarker || endMarker) { return false }
+
+        return true
+    }
     static getSlot = (forComponentId, slotId) => {
         const componentElement = document.getElementById(forComponentId)
 
@@ -70,9 +84,9 @@ class SlotManager {
         endMarker.id = endMarkerId
         componentSlotElement.after(endMarker)
         while (0 < slotContentElement.children.length) {
-            componentSlotElement.after(slotContentElement.lastChild)
             addElementGettersToComponentObject(slotContentElement.lastChild, component)
             addConvenienceMethodsToElement(slotContentElement.lastChild)
+            componentSlotElement.after(slotContentElement.lastChild)
         }
         componentSlotElement.after(beginMarker)
         componentSlotElement.remove()
@@ -80,31 +94,34 @@ class SlotManager {
 
         return true
     }
+    static loadSlot(slotContent) {
+        const forComponentId = slotContent.getAttribute(`for-component-id`)
+
+        if (!forComponentId) {
+            console.error(`loadSlots: The for-component-id attribute is required on slot-markup tags.`)
+            return
+        }
+
+        const slotName = slotContent.getAttribute(`for-slot`)
+        const componentSlot = SlotManager.getSlot(forComponentId, slotName)
+        const component = Component.getObject(forComponentId)
+
+        if (!componentSlot) { return }
+        component?.beforeSlotLoaded(slotName)
+        if (!SlotManager.moveSlotContentToComponent(component, slotContent, componentSlot)) {
+            console.error(`loadSlots: An error occured while moving slot content to the ${componentElement.getAttribute(`for-slot`)}] slot of ${forComponentId}.`)
+            return
+        }
+        component?.afterSlotLoaded(slotName)
+    }
     static loadSlots() {
         let slotMarkupElements = document.querySelectorAll('slot-markup')
 
         for (let slotContent of slotMarkupElements) {
-            const forComponentId = slotContent.getAttribute(`for-component-id`)
-
-            if (!forComponentId) {
-                console.error(`loadSlots: The for-component-id attribute is required on slot-markup tags.`)
-                continue
-            }
-
-            const slotName = slotContent.getAttribute(`for-slot`)
-            const componentSlot = SlotManager.getSlot(forComponentId, slotName)
-            const component = Component.getObject(forComponentId)
-
-            if (!componentSlot) { continue }
-            component?.beforeSlotLoaded(slotName)
-            if (!SlotManager.moveSlotContentToComponent(component, slotContent, componentSlot)) {
-                console.error(`loadSlots: An error occured while moving slot content to the ${componentElement.getAttribute(`for-slot`)}] slot of ${forComponentId}.`)
-                continue
-            }
-            component?.afterSlotLoaded(slotName)
+            SlotManager.loadSlot(slotContent)
         }
     }
-    removeSlotContentFromComponent = (slotId) => {
+    static unslot = (slotId) => {
         const beginMarkerId = `-SlotBeginMarker${slotId}`
         const beginMarker = document.getElementById(beginMarkerId)
         const endMarkerId = `-SlotEndMarker${slotId}`
@@ -133,5 +150,4 @@ class SlotManager {
 
         return true
     }
-
 }

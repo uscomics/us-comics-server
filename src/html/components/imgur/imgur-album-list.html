@@ -1,0 +1,40 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/imgur/imgur-album-list.html
+        class ImgurAlbumList extends Component {
+            initialize(id) {
+                super.initialize(id)
+                this.loadList()
+            }
+            onDescendantsMounted() {
+                super.onDescendantsMounted()
+                this.populateList()
+            }
+            async loadList() {
+                const response = await SIImgurAlbum.get()
+
+                if (200 === response.status) { 
+                    let albums = await response.json()          
+                    this.vars.albums = albums.reverse()
+                } else {
+                    showError(`Error retrieving Imgur album list. Status code ${response.status}.`)
+                }
+            }
+            async populateList() {
+                this.List.showList(this.vars.albums)
+            }
+            vars = {
+                albums: []
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}">
+            <include-html include-in="index.html" src="./html/components/list.html" component-class="List" component-id="{id}List"></include-html>
+        </span>     
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

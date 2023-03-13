@@ -9,12 +9,12 @@
             }
             afterMount() { 
                 super.afterMount()
-                if (this.props.autofocus) { this.Element.setAttribute('autofocus', true) } else { this.Element.removeAttribute('autofocus') }
-                if (this.props.disabled) { this.Element.setAttribute('disabled', true) } else { this.Element.removeAttribute('disabled') }
-                if (this.props.form) { this.Element.setAttribute('form', this.props.form) } else { this.Element.removeAttribute('form') }
-                if (this.props.maxlength) { this.Element.setAttribute('maxlength', this.props.maxlength) } else { this.Element.removeAttribute('maxlength') }
-                if (this.props.required) { this.Element.setAttribute('required', true) } else { this.Element.removeAttribute('required') }
-                if (this.props.cols) { this.Element.setAttribute('cols', `${this.props.cols}`) } else { this.Element.setAttribute('cols', `80`) }
+                if (this.props.autofocus) { this.ControlElement.setAttribute('autofocus', true) } else { this.ControlElement.removeAttribute('autofocus') }
+                if (this.props.disabled) { this.ControlElement.setAttribute('disabled', true) } else { this.ControlElement.removeAttribute('disabled') }
+                if (this.props.form) { this.ControlElement.setAttribute('form', this.props.form) } else { this.ControlElement.removeAttribute('form') }
+                if (this.props.maxlength) { this.ControlElement.setAttribute('maxlength', this.props.maxlength) } else { this.ControlElement.removeAttribute('maxlength') }
+                if (this.props.required) { this.ControlElement.setAttribute('required', true) } else { this.ControlElement.removeAttribute('required') }
+                if (this.props.cols) { this.ControlElement.setAttribute('cols', `${this.props.cols}`) } else { this.ControlElement.setAttribute('cols', `80`) }
                 if (this.props.labelAboveField) { 
                     if (this.WrapperElement.classList.contains(`flex-row`)) { this.WrapperElement.classList.remove(`flex-row`) }
                     this.WrapperElement.classList.add(`flex-col`) 
@@ -40,7 +40,7 @@
                 const showErrors = `inline` === this.props.showValidationErrors
 
                 this.validate(showErrors)
-                this.vars.value = this.Element.value
+                this.vars.value = this.ControlElement.value
             }
             async validate(showErrors) {
                 this.vars.valid = false
@@ -50,22 +50,22 @@
                         let results = []
 
                         if (!this.props.required) { return results }
-                        assert(0 < this.Element?.value?.length,                                 `Field '${this.props.label}' is required.`, results, true)
+                        assert(0 < this.ControlElement?.value?.length,                          `Field '${this.props.label}' is required.`, results, true)
                         return results
                     }]),                    
                     await test (`Test minlength`, `Ensure field is no shorter than ${this.props.minlength}.`, [async () => {
                         let results = []
 
                         if (!this.props.minlength) { return results }
-                        if (0 === this.Element?.value?.length) { return results }
-                        assert(this.props.minlength <= this.Element.value?.length,              `Field '${this.props.label}' has at least ${this.props.minlength} characters.`, results, true)
+                        if (0 === this.ControlElement?.value?.length) { return results }
+                        assert(this.props.minlength <= this.ControlElement.value?.length,       `Field '${this.props.label}' has at least ${this.props.minlength} characters.`, results, true)
                         return results
                     }]),
                     await test (`Test maxlength`, `Ensure field is no longer than ${this.props.maxlength}.`, [async () => {
                         let results = []
 
                         if (!this.props.maxlength) { return results }
-                        assert(this.props.maxlength >= this.Element.value?.length,              `Field '${this.props.label}' has no more than ${this.props.maxlength} characters.`, results, true)
+                        assert(this.props.maxlength >= this.ControlElement.value?.length,       `Field '${this.props.label}' has no more than ${this.props.maxlength} characters.`, results, true)
                         return results
                     }])
                 ]
@@ -78,7 +78,7 @@
                 let results = await suite(`Validate field.`, `Ensure field meets all requirements.`, testArray)
                 this.vars.valid = (0 === results.failCount)
                 if (this.vars.valid) { 
-                    this.vars.value = this.Element.value 
+                    this.vars.value = this.ControlElement.value 
                     Queue.broadcast(TextArea.msgs.TEXT_AREA_NEW_TEXT, { text: this.vars.value, component: this, element: document.getElementById(this.id) })
                 }
                 if (showErrors) { this.showErrors(results) }
@@ -196,10 +196,10 @@
         }
     </style>
     <component-markup>
-        <div id="{id}Wrapper" class="w100 h100">
+        <div id="{id}" class="w100 h100">
             <label id="{id}Label" for="{name}" class="text-area-label">{label}</label>
             <div id="{id}InputWrapper w100 h100">
-                <textarea id="{id}" name="{name}" class="text-area w100 h100" onblur="$obj.onBlur(event)" oninput="$obj.onInput(event)" tabindex="{tabIndex}">{value}</textarea>
+                <textarea id="{id}Control" name="{name}" class="text-area w100 h100" onblur="$obj.onBlur(event)" oninput="$obj.onInput(event)" tabindex="{tabIndex}">{value}</textarea>
                 <div id="{id}Error"></div>
             </div>
         </div>

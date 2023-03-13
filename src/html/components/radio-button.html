@@ -48,8 +48,10 @@
         }
     </style>
     <component-markup>
-        <input id="{id}" class="radio-button" type="radio" name="{name}" value="{value}" tabindex="{tabindex}">
-        <label id="{id}Label" for="{id}" class="radio-button-label" >{label}</label>
+        <div id="{id}">
+            <input id="{id}Control" class="radio-button" type="radio" name="{name}" value="{value}" tabindex="{tabindex}">
+            <label id="{id}Label" for="{id}" class="radio-button-label" >{label}</label>
+        </div>
     </component-markup>
     <test-script>
     </test-script>

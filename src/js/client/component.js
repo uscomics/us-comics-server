@@ -113,6 +113,7 @@ class Component {
                 this.onDescendantsMounted()
             }
         })
+        Queue.broadcast(ComponentLifecycle.msgs.COMPONENT_AFTER_INITIALIZATION, this)
     }
     haveChildrenMounted() {
         const childComponents = window.$components.childComponentRegistry.get(this.className())

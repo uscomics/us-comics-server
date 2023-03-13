@@ -3,37 +3,39 @@
         //# sourceURL=html/components/imgur/imgur-menu.html
         class ImgurMenu extends Component {
             static msgs = {
-                IMGUR_MENU_ADD_ALBUM: `IMGUR_MENU_ADD_ALBUM`,
-                IMGUR_MENU_DELETE_ALBUM: `IMGUR_MENU_DELETE_ALBUM`,
-                IMGUR_MENU_LIST_ALBUMS: `IMGUR_MENU_LIST_ALBUMS`,
-                IMGUR_MENU_ADD_IMAGE: `IMGUR_MENU_ADD_IMAGE`,
-                IMGUR_MENU_DELETE_IMAGE: `IMGUR_MENU_DELETE_IMAGE`,
-                IMGUR_MENU_LIST_IMAGES: `IMGUR_MENU_LIST_IMAGES`,
+                IMGUR_MENU_ALBUM: `IMGUR_MENU_ALBUM`,
+                IMGUR_MENU_IMAGE: `IMGUR_MENU_IMAGE`,
             }
-            broadcast(msg) { Queue.broadcast(msg, this) }
+            onDescendantsMounted() {
+                super.onDescendantsMounted()
+                Queue.register(this, Button.msgs.BUTTON_CLICKED, (button) => {
+                    if (button.id === this.ButtonAlbums.id) { Queue.broadcast(ImgurMenu.msgs.IMGUR_MENU_ALBUM, this) }
+                    else if (button.id === this.ButtonImages.id) { Queue.broadcast(ImgurMenu.msgs.IMGUR_MENU_IMAGE, this) }
+                })
+            }
         }
     </script>
     <style>
         :root {
-            --imgur-menu-item-a-color: var(--gray-4);
+            --imgur-menu-item-color: var(--gray-4);
             --imgur-menu-item-background-color: var(--gray-e);
             --imgur-menu-item-overflow-x: hidden; 
-            --imgur-menu-item-a-font-family: var(--primary-font-family);
-            --imgur-menu-item-a-font-size: var(--text-2-font-size);
-            --imgur-menu-item-a-font-weight: normal;
+            --imgur-menu-item-font-family: var(--primary-font-family);
+            --imgur-menu-item-font-size: var(--text-2-font-size);
+            --imgur-menu-item-font-weight: normal;
             --imgur-menu-item-cursor: pointer;
             --imgur-menu-item-padding-left: 10px;
 
-            --imgur-menu-item-hover-background-color: var(--gray-c);
+            --imgur-menu-item-hover-background-color: var(--gray-a);
         }
 
         .imgur-menu-item {
-            color: var(--imgur-menu-item-a-color);
+            color: var(--imgur-menu-item-color);
             background-color: var(--imgur-menu-item-background-color);
             overflow-x: var(--imgur-menu-item-overflow-x); 
-            font-family: var(--imgur-menu-item-a-font-family);
-            font-size: var(--imgur-menu-item-a-font-size);
-            font-weight: var(--imgur-menu-item-a-font-weight);
+            font-family: var(--imgur-menu-item-font-family);
+            font-size: var(--imgur-menu-item-font-size);
+            font-weight: var(--imgur-menu-item-font-weight);
             cursor: var(--imgur-menu-item-cursor);
             padding-left: var(--imgur-menu-item-padding-left);
         }
@@ -47,22 +49,14 @@
                 <include-props>{title: `Imgur Connect`}</include-props>
             </include-html>
             <slot-markup for-component-id="{id}Accordion" for-slot="{id}AccordionSlot">
-                <include-html include-in="imgur-menu.html" src="./html/components/accordion.html" component-class="Accordion" component-id="{id}AccordionAlbums">
-                    <include-props>{title: `Imgur Albums`}</include-props>
-                </include-html>
-                <slot-markup for-component-id="{id}AccordionAlbums" for-slot="{id}AccordionAlbumsSlot">
-                    <div id={id}AccordionAlbumsList" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_LIST_ALBUMS)">List</div>
-                    <div id={id}AccordionAlbumsAdd" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_ADD_ALBUM)">Add</div>
-                    <div id={id}AccordionAlbumsDelete" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_DELETE_ALBUM)">Delete</div>
-                </slot-markup>
-                <include-html include-in="imgur-menu.html" src="./html/components/accordion.html" component-class="Accordion" component-id="{id}AccordionImages">
-                    <include-props>{title: `Imgur Images`}</include-props>
-                </include-html>
-                <slot-markup for-component-id="{id}AccordionImages" for-slot="{id}AccordionImagesSlot">
-                    <div id={id}AccordionImagesList" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_LIST_IMAGES)">List</div>
-                    <div id={id}AccordionImagesAdd" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_ADD_IMAGE)">Add</div>
-                    <div id={id}AccordionImagesDelete" class="imgur-menu-item" onclick="$obj.broadcast(ImgurMenu.msgs.IMGUR_MENU_DELETE_IMAGE)">Delete</div>
-                </slot-markup>
+                <span id="{id}ImgurButtonWrapper" class="flex-col">
+                    <include-html include-in="imgur-menu.html" src="./html/components/button.html" component-class="Button" component-id="{id}ButtonAlbums">
+                        <include-vars>{title: `Albums`}</include-vars>
+                    </include-html>
+                    <include-html include-in="imgur-menu.html" src="./html/components/button.html" component-class="Button" component-id="{id}ButtonImages">
+                        <include-vars>{title: `Images`}</include-vars>
+                    </include-html>
+                </span>
             </slot-markup>
         </span>
     </component-markup>

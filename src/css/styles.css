@@ -151,19 +151,6 @@
   --caption-2-font-size: 0.66rem;     --caption-2-font-weight: 200;       --caption-2-text-color: var(--primary-text-color);
 
   --default-border-color: var(--primary-color); --default-border-width: 2px; --default-border-style: solid;
-
-  --button-color: var(--background-color);
-  --button-background-color: var(--secondary-color);
-  --button-cursor: pointer;
-  --button-font-family: var(--primary-font-family);
-  --button-font-size: var(--caption-2-font-size);
-  --button-font-weight: var(--caption-2-font-weight);
-  --button-padding: 3px;
-  --button-margin: 2px;
-  --button-border-color: var(--secondary-color);
-  --button-border-width: var(--default-border-width);
-  --button-border-style: var(--default-border-style);
-  --button-border-radius: 5px;
 }
 
 /* body */
@@ -1399,32 +1386,6 @@ body {
   /* table */
 .table-border-collapse { border-collapse: collapse; }               .table-border-separate  { border-collapse: separate; }
 
-.button {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background-position: center;
-  border-color: var(--button-border-color);
-  border-width: var(--button-border-width);
-  border-style: var(--button-border-style);
-  border-radius: var(--button-border-radius);
-  padding: var(--button-padding);
-  margin: var(--button-margin);
-  cursor: var(--button-cursor);
-  font-family: var(--button-font-family);
-  font-size: var(--button-font-size);
-  font-weight: var(--button-font-weight);
-  color: var(--button-color);
-  background-color: var(--button-background-color);
-}
-.button:hover {
-  filter: brightness(95%);
-}
-.button:active {
-  filter: brightness(105%);
-}
 .text-button {
   padding: var(--button-padding);
   margin: var(--button-margin);

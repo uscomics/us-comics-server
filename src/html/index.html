@@ -40,6 +40,8 @@
     <script type="text/javascript" src="./js/client/snackbar.js"></script>
     <script type="text/javascript" src="./js/client/test.js"></script>
     <script type="text/javascript" src="./js/client/purify.min.js"></script>
+    <script type="text/javascript" src="./js/client/server-interaction/si-imgur-album.js"></script>
+    <script type="text/javascript" src="./js/client/server-interaction/si-imgur-image.js"></script>
     <script type="text/javascript" src="./js/client/server-interaction/si-news.js"></script>
     <script type="text/javascript" src="./js/client/server-interaction/si-photos.js"></script>
     <script type="text/javascript" src="./js/client/server-interaction/si-users.js"></script>
@@ -63,16 +65,19 @@
       <include-vars class="display-none">{ text: `Message.` }</include-vars>
     </include-html>
     
-    <div id="Header" class="flex-row flex-align-center">
+    <div id="Header" class="flex-row flex-align-center flex-center">
       <img id="Logo" class="m3 m40-l" src="./images/logo.png" width="50" height="50">
       <h1 id="Title" class="header-4">U.S. Comics</h1>
     </div>
 
     <include-html include-in="index.html" src="./html/components/drawer.html" component-class="Drawer" component-id="Drawer"></include-html>
     <slot-markup class="display-none" for-component-id="Drawer" for-slot="DrawerSlot">
-      <include-html include-in="index.html" src="./html/components/imgur/imgur-menu.html" component-class="ImgurMenu" component-id="ImgurMenu"></include-html>
+        <include-html include-in="index.html" src="./html/components/button.html" component-class="Button" component-id="ButtonLogin">
+          <include-vars>{title: `Login`}</include-vars>
+        </include-html>
+        <include-html include-in="index.html" src="./html/components/imgur/imgur-menu.html" component-class="ImgurMenu" component-id="ImgurMenu"></include-html>
     </slot-markup>  
 
-    <include-html include-in="index.html" src="./html/components/imgur/imgur-content-panel.html" component-class="ImgurContentPanel" component-id="ImgurContentPanel"></include-html>
+    <include-html include-in="index.html" src="./html/components/content-panel.html" component-class="ContentPanel" component-id="ContentPanel"></include-html>
   </body>
 </html>

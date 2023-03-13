@@ -1,0 +1,93 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/login.html
+        class Login extends Component {
+            static msgs = {
+                LOGIN_USER_LOGGED_IN: `LOGIN_USER_LOGGED_IN`,
+                LOGIN_USER_LOGGED_OUT: `LOGIN_USER_LOGGED_OUT`
+            }
+            onChildrenMounted() {
+                Queue.register(this, Button.msgs.BUTTON_CLICKED, (message) => {
+                    if (message != this.ButtonLogin) {return }
+                    if (`Login` === this.ButtonLogin.vars.title) { 
+                        Queue.broadcast(Login.msgs.LOGIN_USER_LOGGED_IN, this) 
+                        this.ButtonLogin.setTitle(`Logout`)
+                    }
+                    else if (`Logout` === this.ButtonLogin.vars.title) { 
+                        Queue.broadcast(Login.msgs.LOGIN_USER_LOGGED_OUT, this) 
+                        this.ButtonLogin.setTitle(`Login`)
+                    }
+                })
+
+            }
+            async login() {
+                let user = Component.getObject(`${this.id}LoginUser`)
+                let password = Component.getObject(`${this.id}LoginPassword`)
+                let login = {name: ``, password: ``}
+
+                if (!user.vars.valid || !password.vars.valid) {
+                    alert(`Invalid user name or password.`)
+                    return
+                }
+                login.name = user.vars.value
+                login.password = password.vars.value
+
+                const response = await SIUsers.login(login.name, login.password)
+
+                if (200 !== response.status) { 
+                    if (500 >= response.status) { alert(`Login not accepted.`) }
+                    else { alert(`Error processing login.`) }
+                    return
+                }
+                let token = await response.text()
+
+                JavascriptWebToken.storeCredentials(JSON.parse(token))
+                Queue.broadcast(Login.msgs.LOGIN_USER_LOGGED_IN, this)
+                this.ButtonLogin.setTitle(`Logout`)
+                this.FieldsWrapperElement.classList.toggle(`display-none`)
+            }
+            async logout() {
+                const response = await SIUsers.logout()
+
+                if (200 !== response.status) { 
+                    if (500 >= response.status) { alert(`Logout not accepted.`) }
+                    else { alert(`Error processing logout.`) }
+                    return
+                }
+                let token = await response.text()
+
+                JavascriptWebToken.storeCredentials(null)
+                Queue.broadcast(Login.msgs.LOGIN_USER_LOGGED_OUT, this)
+                this.ButtonLogin.setTitle(`Login`)
+                this.FieldsWrapperElement.classList.toggle(`display-none`)
+            }
+        }
+    </script>
+    <style>
+    </style>
+    <component-markup>
+        <span id="{id}">
+            <section id="{id}LoginPage" class="flex-row flex-center margin-5 bg-grey-e w100">
+                <span id="{id}FieldsWrapper" class="flex-col">
+                    <include-html include-in="index.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}LoginUser">
+                        <include-props class="display-none">{ name: `UserField`, placeholder: `User`, label: `User`, labelAboveField: false, required: true, autofocus: true, autocomplete: true, minlength: 2, showValidationErrors: false }</include-props>
+                        <include-vars class="display-none">{ type: `text` } </include-vars>
+                    </include-html>
+                    <include-html include-in="index.html" src="./html/components/text-field.html" component-class="TextField" component-id="{id}LoginPassword">
+                        <include-props class="display-none">{ name: `PasswordField`, label: `Password`, labelAboveField: false, required: true, minlength: 2, size: 22, showValidationErrors: `snackbar` }</include-props>
+                        <include-vars class="display-none">{ type: `password` }</include-vars>
+                    </include-html>
+                </span>
+                <span id="{id}LoginPageButtonWrapper">
+                    <include-html include-in="imgur-menu.html" src="./html/components/button.html" component-class="Button" component-id="{id}ButtonLogin">
+                        <include-vars>{title: `Login`}</include-vars>
+                    </include-html>
+                </span>
+            </section>
+        </span>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>
+
+

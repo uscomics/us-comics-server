@@ -14,6 +14,26 @@ class SIUsers {
             return { status: 401 }
         }
     }
+    static async logout() {
+        try {
+            if (!JavascriptWebToken.areCredentialsValid(credentials)) { return { status: 401 }}
+
+            const server = Registry.get(`Server`)
+            const login = {name: userName, password}
+            const response = await fetch(`${server}logout-attempt`, {
+                method: 'GET', 
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `'Bearer ${credentials.token}'`
+                }
+            })
+
+            return response
+        } catch (e) {
+            return { status: 401 }
+        }
+    }
     static async get() {
         try {
             const server = Registry.get(`Server`)

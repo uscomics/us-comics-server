@@ -1,0 +1,57 @@
+<custom-component>
+    <script>
+        //# sourceURL=html/components/content-panel.html
+        class ContentPanel extends SlottedComponent {
+            initialize(id) {
+                super.initialize(id)
+
+                const callback = () => { 
+                    Queue.register(this, Drawer.msgs.DRAWER_BEFORE_OPENED, (drawer) => { this.Element.style.marginLeft = drawer.props.contentWidth })
+                    Queue.register(this, Button.msgs.BUTTON_CLICKED, (button) => { 
+                        if (`ButtonLogin` !== button.id) { return }
+
+                        const slotId = `${this.id}Slot`
+
+                        if (this.isSlotted(`${this.id}Slot`)) { this.unslot(slotId) }
+                        SlottedComponent.loadSlotFromInclude(this.Element, slotId, `content-panel.html`, `./html/components/login/login.html`, `Login`, `LoginPanel`, null, null)
+                    })
+                    Queue.register(this, Drawer.msgs.LOGIN_USER_LOGGED_OUT, (drawer) => { 
+                        alert(`LOGIN_USER_LOGGED_OUT`)
+                        if (this.isSlotted(`${this.id}Slot`)) { this.unslot(`${this.id}Slot}`) }
+                    })
+                    Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_ALBUM, (drawer) => {
+                        alert(`IMGUR_MENU_ALBUM`)
+                        if (this.isSlotted(`${this.id}Slot`)) { this.unslot(`${this.id}Slot}`) }
+                    })
+                    Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_IMAGE, (drawer) => {
+                        alert(`IMGUR_MENU_IMAGE`)
+                        if (this.isSlotted(`${this.id}Slot`)) { this.unslot(`${this.id}Slot}`) }
+                    })
+                 }
+
+                Queue.register(this, Messages.SITE_LOADED, callback)
+            }
+            reqisterWithQueue() {
+             }
+        }
+    </script>
+    <style>
+        :root {
+            --content-panel-width: 100%;
+            --content-panel-height: 100%;
+            --content-panel-transition: margin-left 0.5s;
+        }
+        .content-panel {
+            width: var(--content-panel-width);
+            height: var(--content-panel-height);
+            transition: var(--content-panel-transition);
+        }
+    </style>
+    <component-markup>
+        <div id="{id}" class="w100 h100">
+            <component-slot id="{id}Slot"></component-slot>
+        </div>
+    </component-markup>
+    <test-script>
+    </test-script>
+</custom-component>

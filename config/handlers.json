@@ -17,6 +17,16 @@
         {
             "name": "Load Index file.",
             "verb": "GET",
+            "path": "/favicon.ico",
+            "handler": "file.js",
+            "log": "INFO",
+            "args": {
+                "file": "./images/favicon_io/favicon-16x16.png"
+            }
+        },
+        {
+            "name": "Load Index file.",
+            "verb": "GET",
             "path": "/",
             "handler": "file.js",
             "log": "INFO",
@@ -284,6 +294,13 @@
             "verb": "POST",
             "path": "/login-attempt",
             "handler": "login.js",
+            "log": "INFO"
+        },
+        {
+            "name": "Logout.",
+            "verb": "GET",
+            "path": "/logout-attempt",
+            "handler": "logout.js",
             "log": "INFO"
         },
         {

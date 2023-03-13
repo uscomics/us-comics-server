@@ -1,7 +1,7 @@
 <custom-component>
     <script>
         //# sourceURL=html/components/imgur/imgur-content-panel.html
-        class ImgurContentPanel extends Component {
+        class ImgurContentPanel extends SlottedComponent {
             initialize(id) {
                 super.initialize(id)
 
@@ -13,22 +13,12 @@
                 Queue.register(this, Drawer.msgs.DRAWER_BEFORE_OPENED, (drawer) => { this.Element.style.marginLeft = drawer.props.contentWidth })
                 Queue.register(this, Drawer.msgs.DRAWER_BEFORE_CLOSED, (drawer) => { this.Element.style.marginLeft = "0" })
                 Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_ADD_ALBUM, (drawer) => {
-                    alert(`IMGUR_MENU_ADD_ALBUM`)
+                    alert(`IMGUR_MENU_ALBUM`)
+                    if (this.isSlotted(`${this.id}Slot}`)) { this.unslot(`${this.id}Slot}`) }
                 })
                 Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_DELETE_ALBUM, (drawer) => {
-                    alert(`IMGUR_MENU_DELETE_ALBUM`)
-                })
-                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_LIST_ALBUMS, (drawer) => {
-                    alert(`IMGUR_MENU_LIST_ALBUMS`)
-                })
-                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_ADD_IMAGE, (drawer) => {
-                    alert(`IMGUR_MENU_ADD_IMAGE`)
-                })
-                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_DELETE_IMAGE, (drawer) => {
-                    alert(`IMGUR_MENU_DELETE_IMAGE`)
-                })
-                Queue.register(this, ImgurMenu.msgs.IMGUR_MENU_LIST_IMAGES, (drawer) => {
-                    alert(`IMGUR_MENU_LIST_IMAGES`)
+                    alert(`IMGUR_MENU_IMAGE`)
+                    if (this.isSlotted(`${this.id}Slot}`)) { this.unslot(`${this.id}Slot}`) }
                 })
             }
         }
@@ -46,9 +36,9 @@
         }
     </style>
     <component-markup>
-        <span id="{id}" class="imgur-content-panel">
-            <component-slot id="{id}Slot">CONTENT</component-slot>
-        </span>
+        <div id="{id}" class="w100 h100">
+            <component-slot id="{id}Slot"></component-slot>
+        </div>
     </component-markup>
     <test-script>
     </test-script>

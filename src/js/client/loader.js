@@ -80,7 +80,7 @@ class Loader {
         }
         return [src, includeIn, componentClass, componentObjectId, repeat]
     }
-    static loadInclude = async function (include, keepTestingScript) {
+    static loadInclude = async function (include, keepTestingScript = false) {
         let [src, includeIn, componentClass, componentObjectId, repeat] = Loader.validateIncludeAttributes(include.attributes)
 
         if (!src || !includeIn) { return false }
@@ -95,14 +95,14 @@ class Loader {
             if (!componentClass) {
                 include.insertAdjacentHTML('afterend', text)
             } else {
-                let loadIncludeComponentResult = Loader.loadIncludeComponent(text, src, includeIn, componentClass, componentObjectId, include, keepTestingScript)
+                let loadIncludeComponentResult = await Loader.loadIncludeComponent(text, src, includeIn, componentClass, componentObjectId, include, keepTestingScript)
                 if (!loadIncludeComponentResult) { return false }
             }
         }
 
         return true
     }
-    static registerChildComponents = (fragment, componentClass, componentObjectId) => {
+    static registerChildComponents = (fragment, componentClass) => {
         const componentMarkupTag = fragment.querySelector("component-markup")
         const includeHTMLTags = componentMarkupTag?.querySelectorAll("include-html")
 
@@ -131,12 +131,12 @@ class Loader {
                     return Component.getObject(`${componentObjectId}${childComponentId}`)
                 },
                 set: function(newValue) {
-                    console.error(`Component: Cannot set ${getterName}.`)
+                    console.error(`addChildComponentGettersToComponentObject: Cannot set ${getterName}.`)
                 }
             })
         }
     }
-    static loadIncludeComponent = function (text, src, includeIn, componentClass, componentObjectId, include, keepTestingScript) {
+    static loadIncludeComponent = async function (text, src, includeIn, componentClass, componentObjectId, include, keepTestingScript) {
         let fragment = ComponentLifecycle.compile(text)
         let fragmentAlreadyRegistered = window?.$components?.fragmentRegistry?.has(componentClass)
         let fragmentRegistered = fragmentAlreadyRegistered || ComponentLifecycle.registerDOMFragment(componentClass, fragment, keepTestingScript)
@@ -146,7 +146,7 @@ class Loader {
             return false
         }
 
-        Loader.registerChildComponents(fragment, componentClass, componentObjectId)
+        Loader.registerChildComponents(fragment, componentClass)
 
         let componentObject = ComponentLifecycle.createComponentObject(componentClass, componentObjectId, include)
 

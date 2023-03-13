@@ -7,10 +7,13 @@
                 LIST_AFTER_ITEM_SELECTED:       `LIST_AFTER_ITEM_SELECTED`,
                 LIST_BEFORE_ITEM_UNSELECTED:    `LIST_BEFORE_ITEM_UNSELECTED`,
                 LIST_AFTER_ITEM_UNSELECTED:     `LIST_AFTER_ITEM_UNSELECTED`,
+                LIST_BEFORE_SHOW:               `LIST_BEFORE_SHOW`,
+                LIST_AFTER_SHOW:                `LIST_AFTER_SHOW`,
                 LIST_BEFORE_CLEARED:            `LIST_BEFORE_CLEARED`,
                 LIST_AFTER_CLEARED:             `LIST_AFTER_CLEARED`
             }
             showList(optionalList, optionalImageFieldName, optionalTitleFieldName) {
+                Queue.broadcast(List.msgs.LIST_BEFORE_SHOW, this)
                 if (optionalList) { this.vars.items = optionalList }
                 if (optionalImageFieldName) { this.vars.itemImageField = optionalImageFieldName }
                 if (optionalTitleFieldName) { this.vars.itemTitleField = optionalTitleFieldName }
@@ -57,6 +60,7 @@
                     this.ListWrapperElement.appendChild(wrapperDiv)
                 }
                 this.selectItem()
+                Queue.broadcast(List.msgs.LIST_AFTER_SHOW, this)
             }
             clearList() { 
                 Queue.broadcast(List.msgs.LIST_BEFORE_CLEARED, { index: loop, element: item, component: this })
